@@ -1,144 +1,67 @@
-import Versions from './components/Versions'
-import icons from './assets/icons.svg'
+import { Layout, Typography, Flex, Button } from 'antd'
+import styled from 'styled-components'
+import { SettingOutlined, BellOutlined, HomeOutlined, ReadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+
+import { start, stop } from './api'
+
+import LogoSrc from './assets/logo.svg'
+
+const { Header, Content, Footer, Sider } = Layout
+const { Text } = Typography
+const AppLayout = styled(Layout)`
+  min-height: 100vh;
+`
+
+const AppHeader = styled(Header)`
+  height: 40px;
+  background-color: #1677ff;
+  padding: 0;
+  -webkit-app-region: drag;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 80px;
+`
+
+const AppFooter = styled(Footer)`
+  height: 20px;
+  background-color: #00C1B0;
+  padding: 0;
+`
+const AppTitle = styled(Text)`
+  color: rgba(255, 255, 255, 0.87) !important;
+  padding: 0 8px;
+`
+const AppLogo = styled.img.attrs({ src: LogoSrc, width: 24, height: 24 })`
+`
 
 function App(): JSX.Element {
   return (
-    <div className="container">
-      <Versions></Versions>
+    <AppLayout>
+      <AppHeader>
+        <Flex justify={'space-between'} align={'center'}>
+          <AppLogo />
+          <AppTitle>Waterfall App</AppTitle>
+        </Flex>
 
-      <svg className="hero-logo" viewBox="0 0 900 300">
-        <use xlinkHref={`${icons}#electron`} />
-      </svg>
-      <h2 className="hero-text">
-        You{"'"}ve successfully created an Electron project with React and TypeScript
-      </h2>
-      <p className="hero-tagline">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
+        <Flex justify={'space-between'} align={'center'}>
+          <Button type="primary" shape="circle" size={'small'} icon={<HomeOutlined />} />
+          <Button type="primary" shape="circle" size={'small'} icon={<QuestionCircleOutlined />} />
+          <Button type="primary" shape="circle" size={'small'} icon={<ReadOutlined />} />
+          <Button type="primary" shape="circle" size={'small'} icon={<SettingOutlined />} />
+          <Button type="primary" shape="circle" size={'small'} icon={<BellOutlined />} />
+        </Flex>
+      </AppHeader>
+      <Layout>
+        <Sider>Sider</Sider>
+        <Content>
+          <button onClick={() => start()}>start</button>
+          <button onClick={() => stop()}>stop</button>
+        </Content>
+      </Layout>
+      <AppFooter>footer</AppFooter>
+    </AppLayout>
 
-      <div className="links">
-        <div className="link-item">
-          <a target="_blank" href="https://electron-vite.org" rel="noopener noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="link-item link-dot">•</div>
-        <div className="link-item">
-          <a
-            target="_blank"
-            href="https://github.com/alex8088/electron-vite"
-            rel="noopener noreferrer"
-          >
-            Getting Help
-          </a>
-        </div>
-        <div className="link-item link-dot">•</div>
-        <div className="link-item">
-          <a
-            target="_blank"
-            href="https://github.com/alex8088/quick-start/tree/master/packages/create-electron"
-            rel="noopener noreferrer"
-          >
-            create-electron
-          </a>
-        </div>
-      </div>
-
-      <div className="features">
-        <div className="feature-item">
-          <article>
-            <h2 className="title">Configuring</h2>
-            <p className="detail">
-              Config with <span>electron.vite.config.ts</span> and refer to the{' '}
-              <a target="_blank" href="https://electron-vite.org/config" rel="noopener noreferrer">
-                config guide
-              </a>
-              .
-            </p>
-          </article>
-        </div>
-        <div className="feature-item">
-          <article>
-            <h2 className="title">HMR</h2>
-            <p className="detail">
-              Edit <span>src/renderer</span> files to test HMR. See{' '}
-              <a
-                target="_blank"
-                href="https://electron-vite.org/guide/hmr.html"
-                rel="noopener noreferrer"
-              >
-                docs
-              </a>
-              .
-            </p>
-          </article>
-        </div>
-        <div className="feature-item">
-          <article>
-            <h2 className="title">Hot Reloading</h2>
-            <p className="detail">
-              Run{' '}
-              <span>
-                {"'"}electron-vite dev --watch{"'"}
-              </span>{' '}
-              to enable. See{' '}
-              <a
-                target="_blank"
-                href="https://electron-vite.org/guide/hot-reloading.html"
-                rel="noopener noreferrer"
-              >
-                docs
-              </a>
-              .
-            </p>
-          </article>
-        </div>
-        <div className="feature-item">
-          <article>
-            <h2 className="title">Debugging</h2>
-            <p className="detail">
-              Check out <span>.vscode/launch.json</span>. See{' '}
-              <a
-                target="_blank"
-                href="https://electron-vite.org/guide/debugging.html"
-                rel="noopener noreferrer"
-              >
-                docs
-              </a>
-              .
-            </p>
-          </article>
-        </div>
-        <div className="feature-item">
-          <article>
-            <h2 className="title">Source Code Protection</h2>
-            <p className="detail">
-              Supported via built-in plugin <span>bytecodePlugin</span>. See{' '}
-              <a
-                target="_blank"
-                href="https://electron-vite.org/guide/source-code-protection.html"
-                rel="noopener noreferrer"
-              >
-                docs
-              </a>
-              .
-            </p>
-          </article>
-        </div>
-        <div className="feature-item">
-          <article>
-            <h2 className="title">Packaging</h2>
-            <p className="detail">
-              Use{' '}
-              <a target="_blank" href="https://www.electron.build" rel="noopener noreferrer">
-                electron-builder
-              </a>{' '}
-              and pre-configured to pack your app.
-            </p>
-          </article>
-        </div>
-      </div>
-    </div>
   )
 }
 
