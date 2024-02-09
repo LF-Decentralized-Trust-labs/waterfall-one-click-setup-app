@@ -1,6 +1,12 @@
 import { Layout, Typography, Flex, Button } from 'antd'
 import styled from 'styled-components'
-import { SettingOutlined, BellOutlined, HomeOutlined, ReadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+  SettingOutlined,
+  BellOutlined,
+  HomeOutlined,
+  ReadOutlined,
+  QuestionCircleOutlined
+} from '@ant-design/icons'
 
 import { start, stop } from './api'
 
@@ -25,15 +31,19 @@ const AppHeader = styled(Header)`
 
 const AppFooter = styled(Footer)`
   height: 20px;
-  background-color: #00C1B0;
+  background-color: #00c1b0;
   padding: 0;
 `
 const AppTitle = styled(Text)`
   color: rgba(255, 255, 255, 0.87) !important;
   padding: 0 8px;
 `
-const AppLogo = styled.img.attrs({ src: LogoSrc, width: 24, height: 24 })`
+
+const ButtonWrapper = styled(Flex)`
+  margin-right: 140px;
 `
+
+const AppLogo = styled.img.attrs({ src: LogoSrc, width: 24, height: 24 })``
 
 function App(): JSX.Element {
   return (
@@ -44,13 +54,13 @@ function App(): JSX.Element {
           <AppTitle>Waterfall App</AppTitle>
         </Flex>
 
-        <Flex justify={'space-between'} align={'center'}>
+        <ButtonWrapper justify={'space-between'} align={'center'}>
           <Button type="primary" shape="circle" size={'small'} icon={<HomeOutlined />} />
           <Button type="primary" shape="circle" size={'small'} icon={<QuestionCircleOutlined />} />
           <Button type="primary" shape="circle" size={'small'} icon={<ReadOutlined />} />
           <Button type="primary" shape="circle" size={'small'} icon={<SettingOutlined />} />
           <Button type="primary" shape="circle" size={'small'} icon={<BellOutlined />} />
-        </Flex>
+        </ButtonWrapper>
       </AppHeader>
       <Layout>
         <Sider>Sider</Sider>
@@ -61,7 +71,6 @@ function App(): JSX.Element {
       </Layout>
       <AppFooter>footer</AppFooter>
     </AppLayout>
-
   )
 }
 
