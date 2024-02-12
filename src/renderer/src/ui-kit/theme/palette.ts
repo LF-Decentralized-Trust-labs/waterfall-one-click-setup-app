@@ -6,6 +6,10 @@ export const palette = {
   background: {
     white: '#ffffff',
     lightGray: '#efefef',
+    gray: '#e6e6ea',
+    darkGray: '#d2d2d6',
+    blue: '#1479fd',
+    dark: '#131b1f',
     black: '#000000'
   },
   text: {

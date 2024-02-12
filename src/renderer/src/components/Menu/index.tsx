@@ -22,32 +22,34 @@ export const Menu: React.FC<MenuPropsT> = ({ menuItems, active }) => {
 }
 
 const MenuWrapper = styled.div`
-  margin-top: 50px;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 20px;
-  min-width: 110px;
+  margin-top: 15px;
 `
 
 const activeStyles = css`
   font-weight: bold;
+  opacity: 1;
 `
 
 const MenuItem = styled(Link)<{ $isActive?: boolean }>`
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   gap: 16px;
-  font-size: 16px;
-  color: ${({ theme }) => theme.palette.text.black};
 
+  font-size: 16px;
+  font-weight: 400;
+
+  opacity: 0.7;
   ${({ $isActive }) => $isActive && activeStyles}
 
+  span {
+    color: ${({ theme }) => theme.palette.text.black};
+  }
   //icon
   .anticon {
     font-size: 19px;
     color: ${({ theme }) => theme.palette.text.black} !important;
   }
-  min-width: 110px;
 `

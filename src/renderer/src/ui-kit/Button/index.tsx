@@ -23,7 +23,7 @@ const ArrowedButton: React.FC<{
 )
 
 const ButtonPrimary: React.FC<ButtonProps> = ({ children, ...props }) => (
-  <StyledButton {...props}>{children}</StyledButton>
+  <StyledButton type="primary" {...props}>{children}</StyledButton>
 )
 
 export { ButtonPrimary, IconButton, ArrowedButton, Button }

@@ -12,8 +12,12 @@ type PageHeaderPropsT = {
 export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, goBack, actions }) => {
   return (
     <Wrapper>
-      <GoBack>{goBack && <ArrowedButton direction="back" onClick={goBack} />}</GoBack>
-      <Title>{title}</Title>
+      {goBack && (
+        <GoBack>
+          <ArrowedButton direction="back" onClick={goBack} />
+        </GoBack>
+      )}
+      <PageTitle level={3}>{title}</PageTitle>
       {actions && <Actions>{actions}</Actions>}
     </Wrapper>
   )
@@ -22,7 +26,7 @@ export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, goBack, actions 
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
-  padding: 30px 30px 30px 5px;
+  padding: 20px 30px 30px 30px;
 
   position: relative;
 `
@@ -33,5 +37,11 @@ const GoBack = styled.div`
 
 const Actions = styled.div`
   position: absolute;
-  right: 30px;
+  right: 14px;
+`
+
+const PageTitle = styled(Title)`
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: 400;
 `

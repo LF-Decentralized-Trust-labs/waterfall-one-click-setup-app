@@ -12,6 +12,9 @@ export const AppSideBar: React.FC<AppSideBarProps> = ({ children }) => {
 const StyledSider = styled(Sider)`
   display: flex;
   justify-content: center;
-  background-color: ${({theme}) => theme.palette.background.lightGray} !important;
-  border-right: 1px solid ${({theme}) => theme.palette.common.gray} !important;
+  background-color: ${({theme}) => theme.palette.background.gray} !important;
+  min-width: 200px !important;
+  .ant-layout-sider-children {
+    width: 100%;
+  }
 `
