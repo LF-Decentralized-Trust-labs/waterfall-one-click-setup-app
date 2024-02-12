@@ -22,7 +22,7 @@ export const Menu: React.FC<MenuPropsT> = ({ menuItems, active }) => {
 }
 
 const MenuWrapper = styled.div`
-  margin-top: 40px;
+  margin-top: 50px;
 
   display: flex;
   flex-direction: column;

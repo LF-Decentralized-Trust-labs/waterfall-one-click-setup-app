@@ -5,6 +5,7 @@ import LogoSrc from '@renderer/ui-kit/assets/logo.svg'
 import { LayoutHeaderActionT } from '@renderer/types/layout'
 import { IconButton } from '@renderer/ui-kit/Button'
 import { Text } from '@renderer/ui-kit/Typography'
+import { isWindows } from '@renderer/helpers/common'
 
 type HeaderComponentPropsT = {
   title: string
@@ -14,14 +15,14 @@ type HeaderComponentPropsT = {
 export const HeaderComponent: React.FC<HeaderComponentPropsT> = ({ title, rightActions }) => {
   return (
     <AppHeader>
-      <DummyNativeActions />
-      <Flex align={'center'}>
+      <DummyNativeActions order={isWindows ? 3 : 1} />
+      <Part align={'center'} order={2}>
         <AppLogo />
         <AppTitle>{title}</AppTitle>
-      </Flex>
-      <Flex justify={'space-between'} align={'center'} flex={0.1}>
+      </Part>
+      <Part justify={'space-between'} align={'center'} order={isWindows ? 1 : 3}>
         {rightActions?.map((el) => <IconButton icon={el.icon} key={el.key} onClick={el.onClick} />)}
-      </Flex>
+      </Part>
     </AppHeader>
   )
 }
@@ -43,6 +44,11 @@ const AppTitle = styled(Text)`
 `
 const AppLogo = styled.img.attrs({ src: LogoSrc, width: 24, height: 24 })``
 
-const DummyNativeActions = styled.div`
+const Part = styled(Flex)<{order: number}>`
+  order: ${({order}) => order || 1};
+`;
+
+const DummyNativeActions = styled.div<{order: number}>`
   width: 80px;
+  order: ${({order}) => order || 1};
 `
