@@ -9,4 +9,9 @@ export const AppSideBar: React.FC<AppSideBarProps> = ({ children }) => {
   return <StyledSider>{children}</StyledSider>
 }
 
-const StyledSider = styled(Sider)``
+const StyledSider = styled(Sider)`
+  display: flex;
+  justify-content: center;
+  background-color: ${({theme}) => theme.palette.background.lightGray} !important;
+  border-right: 1px solid ${({theme}) => theme.palette.common.black} !important;
+`

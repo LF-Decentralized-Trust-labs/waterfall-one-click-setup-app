@@ -5,6 +5,7 @@ export const palette = {
   },
   background: {
     white: '#ffffff',
+    lightGray: '#efefef',
     black: '#000000'
   },
   text: {
