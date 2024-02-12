@@ -29,7 +29,7 @@ export const HeaderComponent: React.FC<HeaderComponentPropsT> = ({ title, rightA
 
 const AppHeader = styled(Layout.Header)`
   height: 40px;
-  background-color: #1677ff;
+  background-color: ${({theme}) => theme.palette.background.blue};
   padding: 0;
   -webkit-app-region: drag;
   display: flex;
