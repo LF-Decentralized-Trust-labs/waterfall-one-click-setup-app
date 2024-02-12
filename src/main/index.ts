@@ -44,7 +44,6 @@ async function nodeStop(): Promise<string> {
   return `stop`
 }
 
-
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -53,8 +52,14 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     icon: icon,
+    center: true,
     title: 'Waterfall App',
     titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#1677ff',
+      symbolColor: '#fff',
+      height: 40
+    },
     trafficLightPosition: { x: 10, y: 12 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -66,7 +71,7 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  mainWindow.on('close', function(event): void {
+  mainWindow.on('close', function (event): void {
     event.preventDefault()
     mainWindow.hide()
   })
@@ -115,7 +120,6 @@ app.whenReady().then(() => {
         // app.focus()
         mainWindow.show()
         console.log('Show')
-
       }
     },
     {
@@ -132,16 +136,15 @@ app.whenReady().then(() => {
   tray.setToolTip('Waterfall App')
 
   if (getPlatform() === 'mac') {
-  //   app.dock.hide()
+    //   app.dock.hide()
     app.dock.setIcon(icon)
   }
-
 
   ipcMain.handle('node:start', nodeStart)
   ipcMain.handle('node:stop', nodeStop)
   createWindow()
 
-  app.on('activate', function() {
+  app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
