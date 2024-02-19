@@ -1,4 +1,3 @@
-import React from 'react'
 import { NodeListPage } from '@renderer/pages/NodesList'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { routes } from '@renderer/constants/navigation'

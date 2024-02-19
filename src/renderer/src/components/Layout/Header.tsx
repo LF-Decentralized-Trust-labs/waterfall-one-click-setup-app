@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Layout, Flex } from 'antd'
-import LogoSrc from '@renderer/ui-kit/assets/logo.svg'
+import LogoSrc from '/logo.svg'
 import { LayoutHeaderActionT } from '@renderer/types/layout'
 import { IconButton } from '@renderer/ui-kit/Button'
 import { Text } from '@renderer/ui-kit/Typography'

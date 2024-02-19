@@ -1,4 +1,3 @@
-import React from 'react'
 import { AppLayout } from './containers/Layout'
 import { AppNavigator } from './containers/Navigator/AppNavigator'
 import { ThemeProvider } from 'styled-components'
