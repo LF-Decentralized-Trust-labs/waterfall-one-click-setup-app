@@ -6,6 +6,7 @@ import { PageRender } from './NavigationWrapped'
 import { AddNodePage } from '@renderer/pages/NodeAdd'
 import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
+import { NodeViewPage } from '@renderer/pages/NodeView'
 
 export const AppNavigator = () => {
   return (
@@ -16,6 +17,15 @@ export const AppNavigator = () => {
         element={
           <PageRender>
             <NodeListPage />
+          </PageRender>
+        }
+      />
+      <Route
+        key="nodes-view"
+        path={routes.nodes.view}
+        element={
+          <PageRender>
+            <NodeViewPage />
           </PageRender>
         }
       />

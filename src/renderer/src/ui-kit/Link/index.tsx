@@ -12,4 +12,5 @@ const StyledLink = styled(RouterLink)`
     &:hover {
         border-bottom: none;
     }
+    color: ${({theme}) => theme.palette.text.blue}
 `

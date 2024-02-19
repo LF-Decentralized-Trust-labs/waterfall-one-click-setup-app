@@ -8,7 +8,7 @@ const root_routes = {
 const sub_routes = {
   nodes: {
     list: `/${root_routes.nodes}/list`,
-    view: `/${root_routes.nodes}/view`,
+    view: `/${root_routes.nodes}/view/:id`,
     create: `/${root_routes.nodes}/create`
   },
   workers: {
