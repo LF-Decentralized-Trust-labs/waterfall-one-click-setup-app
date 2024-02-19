@@ -10,7 +10,7 @@ import { node } from './node'
 // just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', {...electronAPI, platform: getPlatform()})
+    contextBridge.exposeInMainWorld('electron', { ...electronAPI, platform: getPlatform() })
     contextBridge.exposeInMainWorld('node', node)
   } catch (error) {
     console.error(error)
@@ -21,7 +21,7 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.api = api
   // @ts-ignore (define in dts)
-  window.platform = getPlatform();
+  window.platform = getPlatform()
 }
 
 function getPlatform(): 'linux' | 'mac' | 'win' | null {

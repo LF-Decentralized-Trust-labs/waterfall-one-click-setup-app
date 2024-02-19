@@ -1,2 +1,2 @@
 //@ts-ignore
-export const isWindows = window?.electron?.platform === 'win';
+export const isWindows = window?.electron?.platform === 'win'

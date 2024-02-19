@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react'
 
 export type MenuItemT = {
-    icon: React.ReactNode;
-    title: string;
-    link: string;
-    key: string;
+  icon: React.ReactNode
+  title: string
+  link: string
+  key: string
 }

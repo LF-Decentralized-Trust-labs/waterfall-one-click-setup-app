@@ -7,9 +7,9 @@ export const Link: React.FC<LinkProps> = ({ children, ...props }) => {
 }
 
 const StyledLink = styled(RouterLink)`
-    text-decoration: none !important;
-    user-select: none !important;
-    &:hover {
-        border-bottom: none;
-    }
+  text-decoration: none !important;
+  user-select: none !important;
+  &:hover {
+    border-bottom: none;
+  }
 `

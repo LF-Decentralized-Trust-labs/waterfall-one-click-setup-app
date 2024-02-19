@@ -29,7 +29,7 @@ export const HeaderComponent: React.FC<HeaderComponentPropsT> = ({ title, rightA
 
 const AppHeader = styled(Layout.Header)`
   height: 40px;
-  background-color: ${({theme}) => theme.palette.background.blue};
+  background-color: ${({ theme }) => theme.palette.background.blue};
   padding: 0;
   -webkit-app-region: drag;
   display: flex;
@@ -44,11 +44,11 @@ const AppTitle = styled(Text)`
 `
 const AppLogo = styled.img.attrs({ src: LogoSrc, width: 24, height: 24 })``
 
-const Part = styled(Flex)<{order: number}>`
-  order: ${({order}) => order || 1};
-`;
+const Part = styled(Flex)<{ order: number }>`
+  order: ${({ order }) => order || 1};
+`
 
-const DummyNativeActions = styled.div<{order: number}>`
+const DummyNativeActions = styled.div<{ order: number }>`
   width: 80px;
-  order: ${({order}) => order || 1};
+  order: ${({ order }) => order || 1};
 `

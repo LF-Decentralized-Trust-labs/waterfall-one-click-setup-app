@@ -4,12 +4,22 @@ import { Menu } from '@renderer/components/Menu'
 import { root_routes, routes } from '@renderer/constants/navigation'
 import { MenuItemT } from '@renderer/types/navigation'
 import { PropsWithChildren } from 'react'
-import { NodeIndexOutlined, RobotOutlined, UnorderedListOutlined, BugOutlined } from '@ant-design/icons'
+import {
+  NodeIndexOutlined,
+  RobotOutlined,
+  UnorderedListOutlined,
+  BugOutlined
+} from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 
 const menuItems: MenuItemT[] = [
   { link: routes.nodes.list, key: root_routes.nodes, icon: <NodeIndexOutlined />, title: 'Nodes' },
-  { link: routes.workers.list, key: root_routes.workers, icon: <RobotOutlined />, title: 'Workers' },
+  {
+    link: routes.workers.list,
+    key: root_routes.workers,
+    icon: <RobotOutlined />,
+    title: 'Workers'
+  },
   {
     link: routes.statistics.view,
     key: root_routes.statistics,
@@ -20,8 +30,8 @@ const menuItems: MenuItemT[] = [
 ]
 
 export const PageRender: React.FC<PropsWithChildren> = ({ children }) => {
-  const {pathname} = useLocation();
-  const active_root_key = pathname.split('/')?.[1];
+  const { pathname } = useLocation()
+  const active_root_key = pathname.split('/')?.[1]
 
   return (
     <>

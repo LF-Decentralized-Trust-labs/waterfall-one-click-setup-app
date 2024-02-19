@@ -1,5 +1,5 @@
-import { palette } from "./palette";
+import { palette } from './palette'
 
 export const theme = {
-    palette: palette
+  palette: palette
 }
