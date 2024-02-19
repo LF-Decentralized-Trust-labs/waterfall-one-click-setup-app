@@ -1,7 +1,8 @@
 import { PageHeader } from '@renderer/components/Page/Header'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { Layout } from 'antd'
-import { PlusCircleOutlined } from '@ant-design/icons'
+import { PlusCircleOutlined, PauseCircleOutlined, PlayCircleOutlined} from '@ant-design/icons'
+import { start, stop} from '@renderer/api/node'
 
 export const NodeListPage = () => {
   return (
@@ -9,9 +10,17 @@ export const NodeListPage = () => {
       <PageHeader
         title="Nodes"
         actions={
-          <ButtonPrimary>
-            Add <PlusCircleOutlined />
-          </ButtonPrimary>
+          <>
+            <ButtonPrimary onClick={start}>
+              Start <PlayCircleOutlined />
+            </ButtonPrimary>
+            <ButtonPrimary onClick={stop}>
+              Stop <PauseCircleOutlined />
+            </ButtonPrimary>
+            <ButtonPrimary>
+              Add <PlusCircleOutlined />
+            </ButtonPrimary>
+          </>
         }
       />
     </Layout>

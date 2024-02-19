@@ -3,7 +3,7 @@ import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform } from 'node:os'
 
-import { api } from './api'
+import { node } from './node'
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -11,7 +11,7 @@ import { api } from './api'
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', {...electronAPI, platform: getPlatform()})
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('node', node)
   } catch (error) {
     console.error(error)
   }
