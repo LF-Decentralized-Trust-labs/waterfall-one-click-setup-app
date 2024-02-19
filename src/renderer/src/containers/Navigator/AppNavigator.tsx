@@ -5,10 +5,20 @@ import { PageRender } from './NavigationWrapped'
 import { AddNodePage } from '@renderer/pages/NodeAdd'
 import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
+import { DraftPage } from '@renderer/pages/Draft'
 
 export const AppNavigator = () => {
   return (
     <Routes>
+      <Route
+        key="draft"
+        path={routes.draft}
+        element={
+          <PageRender>
+            <DraftPage />
+          </PageRender>
+        }
+      />
       <Route
         key="nodes-list"
         path={routes.nodes.list}

@@ -4,7 +4,7 @@ import { Menu } from '@renderer/components/Menu'
 import { root_routes, routes } from '@renderer/constants/navigation'
 import { MenuItemT } from '@renderer/types/navigation'
 import { PropsWithChildren } from 'react'
-import { NodeIndexOutlined, RobotOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import { NodeIndexOutlined, RobotOutlined, UnorderedListOutlined, BugOutlined } from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 
 const menuItems: MenuItemT[] = [
@@ -15,7 +15,8 @@ const menuItems: MenuItemT[] = [
     key: root_routes.statistics,
     icon: <UnorderedListOutlined />,
     title: 'Statistics'
-  }
+  },
+  { link: routes.draft, key: routes.draft, icon: <BugOutlined />, title: 'Draft' }
 ]
 
 export const PageRender: React.FC<PropsWithChildren> = ({ children }) => {
