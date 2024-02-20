@@ -1,4 +1,4 @@
-import { Flex, TableColumnsType } from 'antd'
+import { TableColumnsType } from 'antd'
 import { NodesWorkersDataFields, NodesWorkersDataTypes } from '@renderer/types/node'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 
