@@ -1,4 +1,3 @@
-import React from 'react'
 import { NodeListPage } from '@renderer/pages/NodesList'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { routes } from '@renderer/constants/navigation'
@@ -7,10 +6,20 @@ import { AddNodePage } from '@renderer/pages/NodeAdd'
 import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
 import { NodeViewPage } from '@renderer/pages/NodeView'
+import { DraftPage } from '@renderer/pages/Draft'
 
 export const AppNavigator = () => {
   return (
     <Routes>
+      <Route
+        key="draft"
+        path={routes.draft}
+        element={
+          <PageRender>
+            <DraftPage />
+          </PageRender>
+        }
+      />
       <Route
         key="nodes-list"
         path={routes.nodes.list}

@@ -1,4 +1,3 @@
-import React from 'react'
 import { PageHeader } from '@renderer/components/Page/Header'
 import { ArrowedButton } from '@renderer/ui-kit/Button'
 import { Flex, Layout } from 'antd'

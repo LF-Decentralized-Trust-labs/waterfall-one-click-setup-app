@@ -38,6 +38,7 @@ const GoBack = styled.div`
 const Actions = styled.div`
   position: absolute;
   right: 14px;
+  display: flex;
 `
 
 const PageTitle = styled(Title)`

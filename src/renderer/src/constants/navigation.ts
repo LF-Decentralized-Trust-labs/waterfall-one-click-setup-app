@@ -19,7 +19,8 @@ const sub_routes = {
   },
   statistics: {
     view: `/${root_routes.statistics}/view`
-  }
+  },
+  draft: `/draft`
 }
 
 export { sub_routes as routes, root_routes }

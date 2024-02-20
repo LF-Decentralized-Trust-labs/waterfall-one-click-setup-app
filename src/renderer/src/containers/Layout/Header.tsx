@@ -1,4 +1,3 @@
-import React from 'react'
 import { HeaderComponent } from '@renderer/components/Layout/Header'
 import { LayoutHeaderActionT } from '@renderer/types/layout'
 import { SettingOutlined, FileOutlined, HomeOutlined, InfoCircleOutlined } from '@ant-design/icons'
