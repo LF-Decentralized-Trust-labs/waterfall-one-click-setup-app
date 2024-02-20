@@ -1,3 +1,4 @@
+// NODE LIST TABLE
 export enum NodesListDataFields {
   name = 'name',
   localOrIp = 'localOrIp',
@@ -10,6 +11,26 @@ export type NodesListDataTypes = {
   [NodesListDataFields.localOrIp]: string
   [NodesListDataFields.upTime]: number
   [NodesListDataFields.workers]: string[]
+}
+
+// NODE WORKERS TABLE
+export enum NodesWorkersDataFields {
+  id = 'id',
+  status = 'status',
+  workedHours = 'workedHours',
+  actions = 'actions',
+  deposit = 'deposit'
+}
+
+export type NodesWorkersDataTypes = {
+  [NodesWorkersDataFields.id]: string
+  [NodesWorkersDataFields.status]?: string
+  [NodesWorkersDataFields.workedHours]?: number
+  [NodesWorkersDataFields.actions]?: string
+  [NodesWorkersDataFields.deposit]?: {
+    data?: string | null
+    id: string
+  }
 }
 
 export type NodeViewTabProps = {

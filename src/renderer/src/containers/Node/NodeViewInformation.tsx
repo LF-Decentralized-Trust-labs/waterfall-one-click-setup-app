@@ -1,7 +1,7 @@
+import React from 'react'
 import { NodeViewTabProps } from '@renderer/types/node'
 import { DataFolder } from '@renderer/ui-kit/DataFolder'
 import { TabContent, TabTextRow } from '@renderer/ui-kit/Tabs'
-import React from 'react'
 
 export const NodeViewInformation: React.FC<NodeViewTabProps> = () => {
   return (

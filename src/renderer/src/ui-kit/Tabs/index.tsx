@@ -68,5 +68,5 @@ const TabContentWrapper = styled.div`
 `
 
 const TextItem = styled(Flex)`
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 `
