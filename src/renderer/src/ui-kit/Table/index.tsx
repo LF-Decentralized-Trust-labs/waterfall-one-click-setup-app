@@ -11,11 +11,6 @@ export const Table: React.FC<TableProps> = ({ ...props }) => {
 }
 
 const TableWrapper = styled.div`
-  .ant-table-thead {
-    th {
-      background-color: #ececec !important;
-    }
-  }
   table {
     border: 1px solid #ebeaea;
     border-bottom-left-radius: 10px;

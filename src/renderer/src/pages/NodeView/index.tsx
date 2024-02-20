@@ -68,7 +68,7 @@ export const NodeViewPage = () => {
         }
       />
       <PageBody>
-        <Tabs type="editable-card" items={tabs} onChange={onTabChange} activeKey={activeKey} />
+        <Tabs items={tabs} onChange={onTabChange} activeKey={activeKey} />
       </PageBody>
     </Layout>
   )
