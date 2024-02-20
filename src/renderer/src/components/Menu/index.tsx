@@ -1,7 +1,7 @@
+import React from 'react'
 import { MenuItemT } from '@renderer/types/navigation'
 import { Link } from '@renderer/ui-kit/Link'
 import { Text } from '@renderer/ui-kit/Typography'
-import React from 'react'
 import { css, styled } from 'styled-components'
 
 type MenuPropsT = {

@@ -19,6 +19,7 @@ const grayScale = {
 export const palette = {
   layout: {
     white: grayScale._0,
+    light: grayScale._1,
     black: grayScale._12
   },
   background: {
@@ -32,6 +33,8 @@ export const palette = {
   text: {
     white: grayScale._0,
     lightGray: grayScale._2,
+    gray: grayScale._5,
+    blue: blue.primary,
     black: grayScale._12
   },
   common: {

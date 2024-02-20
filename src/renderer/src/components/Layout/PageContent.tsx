@@ -9,4 +9,9 @@ export const PageContent: React.FC<PageContentProps> = ({ children }) => {
   return <StyledContent>{children}</StyledContent>
 }
 
-const StyledContent = styled(Content)``
+const StyledContent = styled(Content)`
+  .ant-layout {
+    background-color: ${({ theme }) => theme.palette.layout.white};
+    height: 100%;
+  }
+`

@@ -26,7 +26,7 @@ export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, goBack, actions 
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
-  padding: 20px 30px 30px 30px;
+  padding: 20px 40px 30px 40px;
 
   position: relative;
 `
