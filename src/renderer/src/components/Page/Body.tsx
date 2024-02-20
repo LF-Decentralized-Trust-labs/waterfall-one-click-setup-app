@@ -1,7 +1,7 @@
 import React, { PropsWithChildren } from 'react'
 import { styled } from 'styled-components'
 
-export const PageBody: React.FC<PropsWithChildren> = ({children}) => {
+export const PageBody: React.FC<PropsWithChildren> = ({ children }) => {
   return <StyledWrapper>{children}</StyledWrapper>
 }
 

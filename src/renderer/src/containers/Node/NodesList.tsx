@@ -1,4 +1,3 @@
-import React from 'react'
 import { NodesListDataFields } from '@renderer/types/node'
 import { NodesListTable } from '@renderer/components/Node/NodesListTable/Table'
 

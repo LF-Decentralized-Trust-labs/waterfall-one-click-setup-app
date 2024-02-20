@@ -26,10 +26,10 @@ export const TabTextRow: React.FC<{ label: string; value?: string | number | Rea
     </TextItem>
   )
 }
-export const TabTextColumn: React.FC<{ label: string; value?: string | number | React.ReactNode }> = ({
-  label,
-  value
-}) => {
+export const TabTextColumn: React.FC<{
+  label: string
+  value?: string | number | React.ReactNode
+}> = ({ label, value }) => {
   return (
     <TextItem gap={4} vertical>
       <Text strong>{label}</Text>

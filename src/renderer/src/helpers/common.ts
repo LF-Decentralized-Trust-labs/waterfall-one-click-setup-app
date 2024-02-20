@@ -1,2 +1,3 @@
+//eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 export const isWindows = window?.electron?.platform === 'win'
