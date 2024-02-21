@@ -1,4 +1,4 @@
-import { blue } from '@ant-design/colors'
+import { blue, red } from '@ant-design/colors'
 
 const grayScale = {
   _0: '#ffffff',
@@ -35,7 +35,8 @@ export const palette = {
     lightGray: grayScale._2,
     gray: grayScale._5,
     blue: blue.primary,
-    black: grayScale._12
+    black: grayScale._12,
+    red: '#f5222d',
   },
   common: {
     white: grayScale._0,

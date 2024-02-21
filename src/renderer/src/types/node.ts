@@ -36,3 +36,17 @@ export type NodesWorkersDataTypes = {
 export type NodeViewTabProps = {
   id?: string
 }
+
+// NODE CREATE
+
+export enum CreateNodeFields {
+  network = 'network',
+  dataFolder = 'dataFolder',
+  name = 'name'
+}
+
+export type CreateNodeFormValuesT = {
+  [CreateNodeFields.network]: string; 
+  [CreateNodeFields.dataFolder]: string; 
+  [CreateNodeFields.name]: string; 
+}
