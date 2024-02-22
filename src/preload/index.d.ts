@@ -1,9 +1,9 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import { NodeApi } from './node'
+import { node } from './node'
 declare global {
   interface Window {
     electron: ElectronAPI
-    node: NodeApi
+    node: node
     platform: 'linux' | 'mac' | 'win' | null
   }
 }

@@ -43,6 +43,12 @@ class Child {
     this.child.stdout.pipe(outLogStream)
     this.child.stderr.pipe(errLogStream)
 
+    this.child.on('close', () => {
+      outLogStream.end()
+      errLogStream.end()
+      this.child = null
+    })
+
     if (this.child.pid) return Promise.resolve(StatusResult.success)
 
     return await new Promise((resolve, reject) => {

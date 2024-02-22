@@ -6,13 +6,37 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/app/iconTemplate.png?asset'
 import trayIcon from '../../resources/tray/iconTemplate.png?asset'
 import Node from './node'
-import { getPlatform } from './utils'
+import { getPlatform } from './libs/env'
+import { runMigrations } from './libs/migrate'
+
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
+let updateWindow: null | BrowserWindow = null
 let node: null | Node = null
 
 // Optional, initialize the logger for any renderer process
 log.initialize()
+
+function createUpdateWindow(): void {
+  updateWindow = new BrowserWindow({
+    width: 900,
+    height: 670,
+    icon: icon,
+    center: true,
+    title: 'Waterfall App Update',
+    webPreferences: {
+      sandbox: false
+    }
+  })
+  // HMR for renderer base on electron-vite cli.
+  // Load the remote URL for development or the local html file for production.
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    console.log('ELECTRON_RENDERER_URL', process.env['ELECTRON_RENDERER_URL'])
+    updateWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/update.html`).then(() => {})
+  } else {
+    updateWindow.loadFile(join(__dirname, '../renderer/update.html')).then(() => {})
+  }
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -37,6 +61,9 @@ function createWindow(): void {
     }
   })
   mainWindow.on('ready-to-show', () => {
+    if (updateWindow) {
+      updateWindow.close()
+    }
     if (mainWindow === null) {
       return
     }
@@ -61,7 +88,7 @@ function createWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']).then(() => {})
+    mainWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/index.html`).then(() => {})
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html')).then(() => {})
   }
@@ -71,7 +98,7 @@ app.setName('Waterfall App')
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.waterfall')
 
@@ -82,7 +109,26 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  console.log(app.getName())
+  if (getPlatform() === 'mac') {
+    //   app.dock.hide()
+    app.dock.setIcon(icon)
+  }
+  createUpdateWindow()
+
+  try {
+    await runMigrations()
+  } catch (e) {
+    console.log('runMigrations', e)
+    return app.quit()
+  }
+
+  node = new Node(ipcMain)
+  try {
+    await node.initialize()
+  } catch (e) {
+    console.log('node.initialize', e)
+    return app.quit()
+  }
 
   tray = new Tray(trayIcon)
   const contextMenu = Menu.buildFromTemplate([
@@ -116,14 +162,14 @@ app.whenReady().then(() => {
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall App')
 
-  if (getPlatform() === 'mac') {
-    //   app.dock.hide()
-    app.dock.setIcon(icon)
-  }
-
-  node = new Node(ipcMain)
-  node.handle()
-
+  // setTimeout(async () => {
+  //   console.log('start add')
+  //   if (!node) {
+  //     return
+  //   }
+  //   const res = await node.tmp()
+  //   console.log('end add', res)
+  // }, 5000)
   createWindow()
 
   app.on('activate', function () {

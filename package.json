@@ -17,17 +17,19 @@
     "dev:watch": "electron-vite dev --watch",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "build:win": "npm run build && electron-builder --win --config",
-    "build:mac": "electron-vite build && electron-builder --mac --config",
-    "build:linux": "electron-vite build && electron-builder --linux --config"
+    "build:win": "rm -rf out && rm -rf dist && npm run build && electron-builder --win --config",
+    "build:mac": "rm -rf out && rm -rf dist && electron-vite build && electron-builder --mac --config",
+    "build:linux": "rm -rf out && rm -rf dist && electron-vite build && electron-builder --linux --config"
   },
   "dependencies": {
     "@ant-design/colors": "^7.0.2",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "antd": "^5.13.2",
+    "better-sqlite3": "^9.4.1",
     "electron-log": "^5.1.1",
     "electron-updater": "^6.1.7",
+    "migrate": "^2.1.0",
     "react-router-dom": "^6.22.0",
     "styled-components": "^6.1.8"
   },
@@ -35,6 +37,7 @@
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
     "@electron-toolkit/eslint-config-ts": "^1.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/better-sqlite3": "^7.6.9",
     "@types/node": "^18.19.5",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
@@ -51,10 +54,18 @@
     "vite": "^5.0.11"
   },
   "build": {
+    "buildDependenciesFromSource": true,
     "extraFiles": [
       {
         "from": "resources/${os}",
         "to": "Resources/bin",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/genesis",
+        "to": "Resources/genesis",
         "filter": [
           "**/*"
         ]

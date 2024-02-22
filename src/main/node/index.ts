@@ -1,167 +1,90 @@
-import Child, { StatusResult } from './child'
-import { IpcMain } from 'electron'
-import { coordinatorBeaconPath, gwatPath, coordinatorValidatorPath } from '../utils'
+import { IpcMain, IpcMainInvokeEvent } from 'electron'
+import LocalNode, { StatusResult, StatusResults } from './local'
+import { getAll, insert as nodeInsert, NewNode, Type, Type as NodeType } from '../models/node'
+import { Network } from '../libs/env'
 
-type StatusResults = {
-  coordinatorBeacon: StatusResult
-  coordinatorValidator: StatusResult
-  gwat: StatusResult
+enum ErrorResults {
+  NODE_NOT_FOUND = 'Node Not Found',
+  NODE_NOT_CREATED = 'Node Not Created'
 }
 
 class Node {
   private ipcMain: IpcMain
-  private coordinatorBeacon: Child
-  private coordinatorValidator: Child
-  private gwat: Child
+
+  private nodes: {
+    [key: string]: LocalNode
+  }
 
   constructor(ipcMain: IpcMain) {
     this.ipcMain = ipcMain
-    this.coordinatorBeacon = new Child({
-      binPath: coordinatorBeaconPath,
-      args: [
-        '--accept-terms-of-use',
-        '--disable-peer-scorer',
-        '--datadir=/Users/alex/.wf8/coordinator',
-        '--bootstrap-node=enr:-LG4QC0DoIv8bWBuE_ZVx9zcrDaE1HbBPuNWVpl74GoStnSPXO0B73WF5VlfDJQSqTetQ775V9PWi7Yg3Ua7igL1ucOGAYvKzQeKh2F0dG5ldHOIAAAAAAAAAACEZXRoMpATfFTTAAAgCf__________gmlkgnY0gmlwhICMLZGJc2VjcDI1NmsxoQKi0xTSOgGw6UO9URJjAM1TPqPfadDeuORaJ027WIjLYIN1ZHCCD6A',
-        '--genesis-state=/Users/alex/.wf8/coordinator/coordinator-genesis.ssz',
-        '--chain-id=8601152',
-        '--network-id=8601152',
-        '--contract-deployment-block=0',
-        '--deposit-contract=0x6671Ed1732b6b5AF82724A1d1A94732D1AA37aa6',
-        '--http-web3provider=/Users/alex/.wf8/gwat/gwat.ipc'
-        // '--http-web3provider=http://127.0.0.1:9545'
-      ],
-      outLogPath: '/Users/alex/.wf8/logs/coordinator-beacon.out.log',
-      errLogPath: '/Users/alex/.wf8/logs/coordinator-beacon.err.log'
-    })
-    this.gwat = new Child({
-      binPath: gwatPath,
-      args: [
-        '--datadir=/Users/alex/.wf8/gwat',
-        '--bootnodes=enode://716898aedc2337bc1f8c2a936f4b1080e5c4794ba55b31d4cf5898d02dd036150debb742f9929f6f6a7030afaf324604fda57702769ad05bdcce526b3b12cbf1@128.140.45.145:30301',
-        '--networkid=8601152',
-        '--syncmode=full',
-        '--ipcpath=/Users/alex/.wf8/gwat/gwat.ipc',
-        '--http',
-        '--http.corsdomain=*',
-        '--http.vhosts=*',
-        '--http.addr=0.0.0.0',
-        '--http.port=9545',
-        '--http.api=eth,net,wat',
-        '--authrpc.port=8591'
-      ],
-      outLogPath: '/Users/alex/.wf8/logs/gwat.out.log',
-      errLogPath: '/Users/alex/.wf8/logs/gwat.err.log'
-    })
-    this.coordinatorValidator = new Child({
-      binPath: coordinatorValidatorPath,
-      args: [
-        '--accept-terms-of-use',
-        '--grpc-max-msg-size=15900000',
-        '--beacon-rpc-provider=localhost:4000',
-        '--wallet-dir=/Users/alex/.wf8/coordinator/wallet',
-        '--wallet-password-file=/Users/alex/.wf8/coordinator/wallet/password.txt'
-      ],
-      outLogPath: '/Users/alex/.wf8/logs/coordinator-validator.out.log',
-      errLogPath: '/Users/alex/.wf8/logs/coordinator-validator.err.log'
-    })
+    this.nodes = {}
     console.log(`Node constructor`)
   }
+  public async initialize(): Promise<boolean> {
+    this.ipcMain.handle('node:start', (_event: IpcMainInvokeEvent, id) => this._start(id))
+    this.ipcMain.handle('node:stop', (_event: IpcMainInvokeEvent, id) => this._stop(id))
+    this.ipcMain.handle('node:restart', (_event: IpcMainInvokeEvent, id) => this._restart(id))
+    this.ipcMain.handle('node:getAll', () => getAll())
+    this.ipcMain.handle('node:add', (_event: IpcMainInvokeEvent, options: NewNode) =>
+      this._add(options)
+    )
 
-  public handle(): void {
-    this.ipcMain.handle('node:start', this._start.bind(this))
-    this.ipcMain.handle('node:stop', this._stop.bind(this))
-    this.ipcMain.handle('node:restart', this._restart.bind(this))
+    const nodeModels = getAll()
+    console.log('nodeModels', nodeModels)
+    let status = true
+    for (const nodeModel of nodeModels) {
+      if (!this.nodes[nodeModel.id.toString()]) {
+        this.nodes[nodeModel.id.toString()] =
+          nodeModel.type === NodeType.local ? new LocalNode(nodeModel) : new LocalNode(nodeModel)
+      }
+      const node = this.nodes[nodeModel.id.toString()]
+      const initNodeStatus = await node.initialize()
+      console.log('initNodeStatus', initNodeStatus)
+      if (
+        status &&
+        (initNodeStatus.coordinatorBeacon === StatusResult.fail ||
+          initNodeStatus.validator === StatusResult.fail ||
+          initNodeStatus.coordinatorValidator === StatusResult.fail)
+      )
+        status = false
+    }
+
+    return status
   }
 
-  private async _start(): Promise<StatusResults> {
-    console.log('start')
-    const results: StatusResults = {
-      coordinatorBeacon: StatusResult.success,
-      gwat: StatusResult.success,
-      coordinatorValidator: StatusResult.success
-    }
-
-    if (!this.gwat.isRunning()) {
-      results.gwat = await this.gwat.start()
-      console.log(`start gwat: ${results.gwat}`)
-    }
-
-    if (!this.coordinatorBeacon.isRunning()) {
-      results.coordinatorBeacon = await this.coordinatorBeacon.start()
-      console.log(`start coord: ${results.coordinatorBeacon}`)
-    }
-
-    if (!this.coordinatorValidator.isRunning()) {
-      results.coordinatorValidator = await this.coordinatorValidator.start()
-      console.log(`start valid: ${results.coordinatorValidator}`)
-    }
-
-    return results
+  private async _start(id: number): Promise<StatusResults | ErrorResults> {
+    console.log('_start', id, this.nodes)
+    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+    return this.nodes[id.toString()].start()
   }
 
-  private async _stop(): Promise<StatusResults> {
-    console.log('stop')
-    const results: StatusResults = {
-      coordinatorBeacon: StatusResult.success,
-      gwat: StatusResult.success,
-      coordinatorValidator: StatusResult.success
-    }
-
-    if (!this.coordinatorBeacon.isRunning()) {
-      console.log('stop coord: not running')
-    } else {
-      results.coordinatorBeacon = await this.coordinatorBeacon.stop()
-      console.log(`stop coord: ${results.coordinatorBeacon}`)
-    }
-
-    if (!this.coordinatorValidator.isRunning()) {
-      console.log('stop valid: not running')
-    } else {
-      results.coordinatorValidator = await this.coordinatorValidator.stop()
-      console.log(`stop valid: ${results.coordinatorValidator}`)
-    }
-
-    if (!this.gwat.isRunning()) {
-      console.log('stop gwat: not running')
-    } else {
-      results.gwat = await this.gwat.stop()
-      console.log(`stop gwat: ${results.gwat}`)
-    }
-
-    return results
+  private async _stop(id: number): Promise<StatusResults | ErrorResults> {
+    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+    return this.nodes[id.toString()].stop()
   }
 
-  private async _restart(): Promise<StatusResults> {
-    console.log('restart')
-
-    const results: StatusResults = {
-      coordinatorBeacon: StatusResult.success,
-      gwat: StatusResult.success,
-      coordinatorValidator: StatusResult.success
+  private async _restart(id: number): Promise<StatusResults | ErrorResults> {
+    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+    return this.nodes[id.toString()].restart()
+  }
+  private async _add(options: NewNode): Promise<StatusResults | ErrorResults> {
+    const nodeModel = nodeInsert(options)
+    if (!nodeModel) {
+      return ErrorResults.NODE_NOT_CREATED
     }
+    const node =
+      nodeModel.type === NodeType.local ? new LocalNode(nodeModel) : new LocalNode(nodeModel)
+    this.nodes[nodeModel.id.toString()] = node
 
-    if (this.coordinatorBeacon.isRunning()) {
-      await this.coordinatorBeacon.stop()
-      console.log(`stop coord`)
-    }
-
-    if (this.coordinatorValidator.isRunning()) {
-      await this.coordinatorValidator.stop()
-      console.log(`stop valid`)
-    }
-
-    if (this.gwat.isRunning()) {
-      await this.gwat.stop()
-      console.log(`stop gwat`)
-    }
-    results.gwat = await this.gwat.start()
-    console.log(`start gwat: ${results.gwat}`)
-    results.coordinatorBeacon = await this.coordinatorBeacon.start()
-    console.log(`start coord: ${results.coordinatorBeacon}`)
-    results.coordinatorValidator = await this.coordinatorValidator.start()
-    console.log(`start valid: ${results.coordinatorValidator}`)
-    return results
+    return await node.initialize()
+  }
+  public async tmp(): Promise<StatusResults | ErrorResults> {
+    return await this._add({
+      name: 'node1',
+      network: Network.testnet8,
+      type: Type.local,
+      locationDir: '/Users/alex/Downloads/wf-test'
+    })
   }
 }
 
