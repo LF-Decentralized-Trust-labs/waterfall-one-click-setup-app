@@ -1,15 +1,15 @@
 import React from 'react'
 import { Steps } from 'antd'
-import { NodeCreateForm } from '@renderer/components/Node/AddNode/Form'
-import { useCreateNode } from '@renderer/hooks/node'
-import { CreateNodeFields } from '@renderer/types/node'
+import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
+import { useAddNode } from '@renderer/hooks/node'
+import { AddNodeFields } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
   NodeNameInput
 } from '@renderer/components/Node/AddNode/Inputs'
 
-type CreateNodePropsT = {
+type AddNodePropsT = {
   step: number
   onChangeStep: (value: number) => void
   goNextStep: () => void
@@ -19,52 +19,52 @@ type CreateNodePropsT = {
 const stepItems = [
   {
     title: 'Step 1',
-    description: 'Select a network',
+    description: 'Select a network'
   },
   {
     title: 'Step 2',
-    description: 'Select a data folder',
+    description: 'Select a data folder'
   },
   {
     title: 'Step 3',
-    description: 'Name your node',
+    description: 'Name your node'
   }
 ]
 
-export const CreateNode: React.FC<CreateNodePropsT> = ({
+export const AddNode: React.FC<AddNodePropsT> = ({
   step,
   onChangeStep,
   goNextStep,
   goPrevStep
 }) => {
-  const { handleChange, values, onCreate } = useCreateNode()
+  const { handleChange, values, onAdd } = useAddNode()
   return (
     <>
       <Steps direction="horizontal" current={step} onChange={onChangeStep} items={stepItems} />
       {step === 0 && (
         <NetworkSelection
-          value={values[CreateNodeFields.network]}
-          handleChange={handleChange(CreateNodeFields.network)}
-          field={CreateNodeFields.network}
+          value={values[AddNodeFields.network]}
+          handleChange={handleChange(AddNodeFields.network)}
+          field={AddNodeFields.network}
           goNextStep={goNextStep}
           goPrevStep={goPrevStep}
         />
       )}
       {step === 1 && (
         <FolderSelection
-          value={values[CreateNodeFields.dataFolder]}
-          handleChange={handleChange(CreateNodeFields.dataFolder)}
-          field={CreateNodeFields.dataFolder}
+          value={values[AddNodeFields.dataFolder]}
+          handleChange={handleChange(AddNodeFields.dataFolder)}
+          field={AddNodeFields.dataFolder}
           goNextStep={goNextStep}
           goPrevStep={goPrevStep}
         />
       )}
       {step === 2 && (
         <NameSelection
-          value={values[CreateNodeFields.name]}
-          handleChange={handleChange(CreateNodeFields.name)}
-          field={CreateNodeFields.name}
-          goNextStep={onCreate}
+          value={values[AddNodeFields.name]}
+          handleChange={handleChange(AddNodeFields.name)}
+          field={AddNodeFields.name}
+          goNextStep={onAdd}
           goPrevStep={goPrevStep}
         />
       )}
@@ -74,9 +74,9 @@ export const CreateNode: React.FC<CreateNodePropsT> = ({
 
 const NetworkSelection: React.FC<SelectionBasePropsT> = ({ value, handleChange, goNextStep }) => {
   return (
-    <NodeCreateForm title="Select a network" goNext={goNextStep} canGoNext={!!value}>
-      <NodeNetworkInput value={value} handleChange={handleChange} />
-    </NodeCreateForm>
+    <NodeAddForm title="Select a network" goNext={goNextStep} canGoNext={!!value}>
+      <NodeNetworkInput value={value} handleChange={handleChange} type="local" />
+    </NodeAddForm>
   )
 }
 
@@ -87,7 +87,7 @@ const FolderSelection: React.FC<SelectionBasePropsT> = ({
   goPrevStep
 }) => {
   return (
-    <NodeCreateForm
+    <NodeAddForm
       title="Select a data folder"
       goNext={goNextStep}
       goPrev={goPrevStep}
@@ -98,7 +98,7 @@ const FolderSelection: React.FC<SelectionBasePropsT> = ({
         handleChange={handleChange}
         // error={'The directory and network does not match'}
       />
-    </NodeCreateForm>
+    </NodeAddForm>
   )
 }
 
@@ -109,20 +109,15 @@ const NameSelection: React.FC<SelectionBasePropsT> = ({
   goPrevStep
 }) => {
   return (
-    <NodeCreateForm
-      title="Name your node"
-      goNext={goNextStep}
-      goPrev={goPrevStep}
-      canGoNext={!!value}
-    >
+    <NodeAddForm title="Name your node" goNext={goNextStep} goPrev={goPrevStep} canGoNext={!!value}>
       <NodeNameInput handleChange={handleChange} value={value} />
-    </NodeCreateForm>
+    </NodeAddForm>
   )
 }
 
 type SelectionBasePropsT = {
   value: string
-  field: CreateNodeFields
+  field: AddNodeFields
   handleChange: (value?: string) => void
 
   //steps

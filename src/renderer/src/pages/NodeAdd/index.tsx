@@ -1,6 +1,6 @@
 import { PageBody } from '@renderer/components/Page/Body'
 import { PageHeader } from '@renderer/components/Page/Header'
-import { CreateNode } from '@renderer/containers/Node/CreateNode'
+import { AddNode } from '@renderer/containers/Node/AddNode'
 import { ArrowedButton } from '@renderer/ui-kit/Button'
 import { Flex, Layout } from 'antd'
 import { useState } from 'react'
@@ -22,12 +22,7 @@ export const AddNodePage = () => {
         }
       />
       <PageBody>
-        <CreateNode
-          step={step}
-          onChangeStep={onStepsChange}
-          goNextStep={goNext}
-          goPrevStep={goPrev}
-        />
+        <AddNode step={step} onChangeStep={onStepsChange} goNextStep={goNext} goPrevStep={goPrev} />
       </PageBody>
     </Layout>
   )
