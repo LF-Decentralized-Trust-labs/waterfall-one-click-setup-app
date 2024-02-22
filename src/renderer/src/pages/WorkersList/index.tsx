@@ -24,21 +24,27 @@ const data: WorkersT[] = [
 ]
 
 export const WorkersListPage = () => {
+  const shouldAddNode = false
   return (
     <Layout>
       <PageHeader
         title="Workers"
         actions={
-          data?.length && (
+          shouldAddNode ? null : !data?.length ? (
             <ButtonPrimary>
               Import
+              <PlusCircleOutlined />
+            </ButtonPrimary>
+          ) : (
+            <ButtonPrimary>
+              Add Worker
               <PlusCircleOutlined />
             </ButtonPrimary>
           )
         }
       />
       <PageBody>
-        <WorkersList shouldAddNode={false} data={[]} />
+        <WorkersList shouldAddNode={shouldAddNode} data={data} />
       </PageBody>
     </Layout>
   )
