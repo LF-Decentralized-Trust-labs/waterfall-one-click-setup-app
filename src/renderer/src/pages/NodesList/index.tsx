@@ -4,6 +4,7 @@ import { Layout } from 'antd'
 import { PlusCircleOutlined } from '@ant-design/icons'
 import { NodesList } from '@renderer/containers/Node/NodesList'
 import { PageBody } from '@renderer/components/Page/Body'
+import { routes } from '@renderer/constants/navigation'
 
 export const NodeListPage = () => {
   return (
@@ -11,7 +12,7 @@ export const NodeListPage = () => {
       <PageHeader
         title="Nodes"
         actions={
-          <ButtonPrimary>
+          <ButtonPrimary href={routes.nodes.create}>
             Add <PlusCircleOutlined />
           </ButtonPrimary>
         }

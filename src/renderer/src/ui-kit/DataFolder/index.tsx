@@ -1,17 +1,47 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { styled } from 'styled-components'
 import { DatabaseOutlined } from '@ant-design/icons'
 import { Text } from '../Typography'
-import { AutoComplete, Flex } from 'antd'
+import { AutoComplete, Flex, SelectProps } from 'antd'
 import { ButtonPrimary } from '../Button'
+
 type DataFolderPropsT = {
   hideLabel?: boolean
   editable?: boolean
-  hint?: string
+  errorMessage?: string
   value?: string
+  onChange?: (val: string) => void
+  placeholder?: string
+  baseOptions?: { label: string; value: string }[]
 }
 
-export const DataFolder: React.FC<DataFolderPropsT> = ({ hideLabel, hint, editable, value }) => {
+export const DataFolder: React.FC<DataFolderPropsT> = ({
+  hideLabel,
+  errorMessage,
+  editable = true,
+  value,
+  onChange,
+  placeholder,
+  baseOptions
+}) => {
+  const [searchValue, setSearchValue] = useState(value)
+  const [options, setOptions] = useState<SelectProps<object>['options']>(baseOptions || [])
+
+  const searchResult = (value: string) => {
+    //search folder in options
+    const result =
+      baseOptions?.filter((el) => el?.value.toLowerCase().includes(value.toLowerCase())) || []
+    return [...result]
+  }
+
+  const handleSearch = (value: string) => {
+    setOptions(value ? searchResult(value) : [])
+  }
+
+  const onSelect = (value: string) => {
+    onChange(value)
+    setSearchValue(value)
+  }
   return (
     <Wrapper>
       {!hideLabel && (
@@ -20,16 +50,18 @@ export const DataFolder: React.FC<DataFolderPropsT> = ({ hideLabel, hint, editab
           <Text>Data Folder</Text>
         </Label>
       )}
-      <Flex dir="row" gap={10}>
-        <Input
-          // options={options}
-          placeholder="/Volumes/H/.wf8"
+      <InputWrapper gap={10}>
+        <AutoComplete
+          options={options}
+          placeholder={placeholder}
           disabled={!editable}
-          value={value}
+          onSelect={onSelect}
+          onSearch={handleSearch}
+          value={searchValue}
         />
         {editable && <ButtonPrimary>Select</ButtonPrimary>}
-      </Flex>
-      {hint && <Hint>{hint}</Hint>}
+      </InputWrapper>
+      {errorMessage && <Error>{errorMessage}</Error>}
     </Wrapper>
   )
 }
@@ -45,11 +77,19 @@ const Label = styled.div`
   font-size: 16px;
 `
 
-const Hint = styled.div`
+const Error = styled.div`
   font-size: 12px;
-  color: ${({ theme }) => theme.palette.text.gray};
+  margin-top: 4px;
+  color: ${({ theme }) => theme.palette.text.red};
 `
-
-const Input = styled(AutoComplete)`
+const InputWrapper = styled(Flex)`
   width: 100%;
+  max-width: 360px;
+
+  .ant-select {
+    width: 100%;
+  }
+  & > .ant-btn {
+    height: 32px;
+  }
 `
