@@ -2,11 +2,12 @@ import React from 'react'
 import { Steps } from 'antd'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
-import { AddNodeFields } from '@renderer/types/node'
+import { AddNodeFields, NODE_TYPE } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
-  NodeNameInput
+  NodeNameInput,
+  NodeTypeInput
 } from '@renderer/components/Node/AddNode/Inputs'
 
 type AddNodePropsT = {
@@ -19,14 +20,18 @@ type AddNodePropsT = {
 const stepItems = [
   {
     title: 'Step 1',
-    description: 'Select a network'
+    description: 'Select Node type'
   },
   {
     title: 'Step 2',
-    description: 'Select a data folder'
+    description: 'Select a network'
   },
   {
     title: 'Step 3',
+    description: 'Select a data folder'
+  },
+  {
+    title: 'Step 4',
     description: 'Name your node'
   }
 ]
@@ -42,15 +47,25 @@ export const AddNode: React.FC<AddNodePropsT> = ({
     <>
       <Steps direction="horizontal" current={step} onChange={onChangeStep} items={stepItems} />
       {step === 0 && (
-        <NetworkSelection
-          value={values[AddNodeFields.network]}
-          handleChange={handleChange(AddNodeFields.network)}
-          field={AddNodeFields.network}
+        <NodeTypeSelection
+          value={values[AddNodeFields.type]}
+          handleChange={handleChange(AddNodeFields.type)}
+          field={AddNodeFields.type}
           goNextStep={goNextStep}
           goPrevStep={goPrevStep}
         />
       )}
       {step === 1 && (
+        <NetworkSelection
+          value={values[AddNodeFields.network]}
+          handleChange={handleChange(AddNodeFields.network)}
+          field={AddNodeFields.network}
+          nodeType={values[AddNodeFields.type]}
+          goNextStep={goNextStep}
+          goPrevStep={goPrevStep}
+        />
+      )}
+      {step === 2 && (
         <FolderSelection
           value={values[AddNodeFields.dataFolder]}
           handleChange={handleChange(AddNodeFields.dataFolder)}
@@ -59,7 +74,7 @@ export const AddNode: React.FC<AddNodePropsT> = ({
           goPrevStep={goPrevStep}
         />
       )}
-      {step === 2 && (
+      {step === 3 && (
         <NameSelection
           value={values[AddNodeFields.name]}
           handleChange={handleChange(AddNodeFields.name)}
@@ -72,10 +87,23 @@ export const AddNode: React.FC<AddNodePropsT> = ({
   )
 }
 
-const NetworkSelection: React.FC<SelectionBasePropsT> = ({ value, handleChange, goNextStep }) => {
+const NodeTypeSelection: React.FC<SelectionBasePropsT> = ({ value, handleChange, goNextStep }) => {
+  return (
+    <NodeAddForm title="Select a Node type" goNext={goNextStep} canGoNext={!!value}>
+      <NodeTypeInput value={value} handleChange={handleChange} />
+    </NodeAddForm>
+  )
+}
+
+const NetworkSelection: React.FC<SelectionBasePropsT & { nodeType: NODE_TYPE }> = ({
+  value,
+  handleChange,
+  goNextStep,
+  nodeType
+}) => {
   return (
     <NodeAddForm title="Select a network" goNext={goNextStep} canGoNext={!!value}>
-      <NodeNetworkInput value={value} handleChange={handleChange} type="local" />
+      <NodeNetworkInput value={value} handleChange={handleChange} type={nodeType} />
     </NodeAddForm>
   )
 }

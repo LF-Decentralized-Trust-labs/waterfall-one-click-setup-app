@@ -1,9 +1,10 @@
 import { routes } from '@renderer/constants/navigation'
-import { AddNodeFields, AddNodeFormValuesT } from '@renderer/types/node'
+import { AddNodeFields, AddNodeFormValuesT, NODE_TYPE } from '@renderer/types/node'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const initialValues = {
+  [AddNodeFields.type]: NODE_TYPE.local,
   [AddNodeFields.network]: 'mainnet',
   [AddNodeFields.dataFolder]: '',
   [AddNodeFields.name]: ''
