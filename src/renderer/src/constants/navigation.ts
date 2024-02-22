@@ -13,7 +13,7 @@ const sub_routes = {
   },
   workers: {
     list: `/${root_routes.workers}/list`,
-    view: `/${root_routes.workers}/view`,
+    view: `/${root_routes.workers}/view/:id`,
     create: `/${root_routes.workers}/create`,
     import: `/${root_routes.workers}/import`
   },
