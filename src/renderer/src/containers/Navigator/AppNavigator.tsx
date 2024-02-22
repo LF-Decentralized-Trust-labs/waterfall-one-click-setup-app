@@ -7,6 +7,7 @@ import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
 import { NodeViewPage } from '@renderer/pages/NodeView'
 import { DraftPage } from '@renderer/pages/Draft'
+import { WorkerViewPage } from '@renderer/pages/WorkerView'
 
 export const AppNavigator = () => {
   return (
@@ -53,6 +54,15 @@ export const AppNavigator = () => {
         element={
           <PageRender>
             <WorkersListPage />
+          </PageRender>
+        }
+      />
+       <Route
+        key="worker-page"
+        path={routes.workers.view}
+        element={
+          <PageRender>
+            <WorkerViewPage />
           </PageRender>
         }
       />

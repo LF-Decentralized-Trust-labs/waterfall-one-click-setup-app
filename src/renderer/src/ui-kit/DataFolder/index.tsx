@@ -10,7 +10,7 @@ type DataFolderPropsT = {
   editable?: boolean
   errorMessage?: string
   value?: string
-  onChange: (val: string) => void
+  onChange?: (val: string) => void
   placeholder?: string
   baseOptions?: { label: string; value: string }[]
 }
