@@ -1,13 +1,13 @@
 import React from 'react'
 import { Steps } from 'antd'
-import { NodeCreateForm } from '@renderer/components/Node/CreateNode/Form'
+import { NodeCreateForm } from '@renderer/components/Node/AddNode/Form'
 import { useCreateNode } from '@renderer/hooks/node'
 import { CreateNodeFields } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
   NodeNameInput
-} from '@renderer/components/Node/CreateNode/Inputs'
+} from '@renderer/components/Node/AddNode/Inputs'
 
 type CreateNodePropsT = {
   step: number
