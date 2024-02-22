@@ -37,16 +37,22 @@ export type NodeViewTabProps = {
   id?: string
 }
 
-// NODE CREATE
+// NODE ADD
 
-export enum CreateNodeFields {
+export enum AddNodeFields {
+  type = 'type',
   network = 'network',
   dataFolder = 'dataFolder',
   name = 'name'
 }
 
-export type CreateNodeFormValuesT = {
-  [CreateNodeFields.network]: string; 
-  [CreateNodeFields.dataFolder]: string; 
-  [CreateNodeFields.name]: string; 
+export type AddNodeFormValuesT = {
+  [AddNodeFields.network]: string
+  [AddNodeFields.dataFolder]: string
+  [AddNodeFields.name]: string
+}
+
+export enum NODE_TYPE {
+  local = 'local',
+  remote = 'remote'
 }

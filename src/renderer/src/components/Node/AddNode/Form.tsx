@@ -10,7 +10,7 @@ type FormPropsT = PropsWithChildren & {
   canGoNext?: boolean
 }
 
-export const NodeCreateForm: React.FC<FormPropsT> = ({
+export const NodeAddForm: React.FC<FormPropsT> = ({
   children,
   canGoNext = true,
   goNext,

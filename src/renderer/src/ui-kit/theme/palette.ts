@@ -36,7 +36,7 @@ export const palette = {
     gray: grayScale._5,
     blue: blue.primary,
     black: grayScale._12,
-    red: '#f5222d',
+    red: '#f5222d'
   },
   common: {
     white: grayScale._0,
