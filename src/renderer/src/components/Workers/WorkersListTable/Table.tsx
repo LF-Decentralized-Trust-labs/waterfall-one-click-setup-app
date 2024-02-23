@@ -7,12 +7,17 @@ type WorkersListTablePropsT = {
 }
 
 export const WorkersListTable: React.FC<WorkersListTablePropsT> = ({ data }) => {
-  const onActivate = (id?: string) => alert(`start ${id}`);
-  const onDeactivate = (id?: string) => alert(`stop ${id}`);
-  const onWithdraw = (id?: string) => alert(`reload ${id}`);
-  
-  const generateFN = (id?: string) => console.log(`generate ${id}`);
-  const getColumns = columns({generateFN, activate: onActivate, deactivate: onDeactivate, withdraw: onWithdraw });
+  const onActivate = (id?: string) => alert(`Activated ${id}`)
+  const onDeactivate = (id?: string) => alert(`Deactivated ${id}`)
+  const onWithdraw = (id?: string) => alert(`Withdraw ${id}`)
+
+  const generateFN = (id?: string) => console.log(`generate ${id}`)
+  const getColumns = columns({
+    generateFN,
+    activate: onActivate,
+    deactivate: onDeactivate,
+    withdraw: onWithdraw
+  })
 
   return <Table dataSource={data} columns={getColumns} />
 }

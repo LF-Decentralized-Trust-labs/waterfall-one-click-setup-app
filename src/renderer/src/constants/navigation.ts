@@ -14,7 +14,7 @@ const sub_routes = {
   workers: {
     list: `/${root_routes.workers}/list`,
     view: `/${root_routes.workers}/view/:id`,
-    create: `/${root_routes.workers}/create`,
+    add: `/${root_routes.workers}/add`,
     import: `/${root_routes.workers}/import`
   },
   statistics: {
@@ -23,4 +23,8 @@ const sub_routes = {
   draft: `/draft`
 }
 
-export { sub_routes as routes, root_routes }
+const SearchKeys = {
+  node: 'node'
+}
+
+export { sub_routes as routes, root_routes, SearchKeys }

@@ -69,14 +69,14 @@ export const columns = ({
       return (
         <Flex gap={30} align="center">
           <Flex gap={6}>
-            <IconButton
-              icon={<CloseOutlined />}
+          <IconButton
+              icon={<CaretRightOutlined />}
               shape="default"
               size="small"
               onClick={onActivate}
             />
             <IconButton
-              icon={<CaretRightOutlined />}
+              icon={<CloseOutlined />}
               shape="default"
               size="small"
               onClick={onDeactivate}
