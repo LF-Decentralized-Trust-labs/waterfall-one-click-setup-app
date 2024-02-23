@@ -1,6 +1,6 @@
 import { routes } from '@renderer/constants/navigation'
 import { shuffleArray } from '@renderer/helpers/common'
-import { AddWorkerFields, AddWorkerFormValuesT } from '@renderer/types/workers'
+import { AddWorkerFields, AddWorkerFormValuesT, ImportWorkerFields, ImportWorkerFormValuesT } from '@renderer/types/workers'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -36,6 +36,26 @@ export const useAddWorker = () => {
   })
   const handleChange =
     (field: AddWorkerFields) => (value?: string | Record<number, string> | number | null) =>
+      setValues((prev) => ({ ...prev, [field]: value }))
+
+  const onAdd = () => {
+    navigate(routes.workers.list)
+  }
+  return { values, handleChange, onAdd }
+}
+
+const importInitialValues = {
+  [ImportWorkerFields.node]: '1',
+  [ImportWorkerFields.mnemonic]: {},
+  [ImportWorkerFields.withdrawalAddress]: '',
+  [ImportWorkerFields.keys]: ''
+}
+
+export const useImportWorker = () => {
+  const navigate = useNavigate()
+  const [values, setValues] = useState<ImportWorkerFormValuesT>(importInitialValues)
+  const handleChange =
+    (field: ImportWorkerFields) => (value?: string | Record<number, string> | number | null) =>
       setValues((prev) => ({ ...prev, [field]: value }))
 
   const onAdd = () => {

@@ -79,7 +79,7 @@ export const AppNavigator = () => {
       />
       <Route
         key="import-worker"
-        path={routes.workers.add}
+        path={routes.workers.import}
         element={
           <PageRender>
             <ImportWorkerPage />

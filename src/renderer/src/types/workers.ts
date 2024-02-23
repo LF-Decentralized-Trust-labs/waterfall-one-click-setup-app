@@ -49,6 +49,22 @@ export type AddWorkerFormValuesT = {
   [AddWorkerFields.keys]: any
 }
 
+//IMPORT WORKER 
+export enum ImportWorkerFields {
+  node = 'node',
+  mnemonic = 'mnemonic',
+  withdrawalAddress = 'withdrawalAddress',
+  keys = 'keys'
+}
+
+export type ImportWorkerFormValuesT = {
+  [AddWorkerFields.node]: string
+  [AddWorkerFields.mnemonic]: Record<number, string>
+  [AddWorkerFields.withdrawalAddress]: string
+  [AddWorkerFields.keys]: any
+}
+
+
 //DISPLAY KEYS TABLE
 export type DisplayKeysDataType = {
   id: string
