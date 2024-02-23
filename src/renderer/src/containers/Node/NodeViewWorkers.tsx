@@ -38,8 +38,12 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = () => {
   return (
     <TabContent>
       <Flex align="center" justify="flex-end" gap={10}>
-        <ButtonPrimary href={addParams(routes.workers.add, {node: '1'})}>Add Worker</ButtonPrimary>
-        <ButtonPrimary href={addParams(routes.workers.import, {node: '1'})}>Import Worker</ButtonPrimary>
+        <ButtonPrimary href={addParams(routes.workers.add, { node: '1' })}>
+          Add Worker
+        </ButtonPrimary>
+        <ButtonPrimary href={addParams(routes.workers.import, { node: '1' })}>
+          Import Worker
+        </ButtonPrimary>
       </Flex>
       <NodesWorkersTable data={data} generate={generateFn} />
     </TabContent>
