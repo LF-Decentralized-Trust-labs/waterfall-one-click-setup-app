@@ -5,12 +5,14 @@ import { StyledArrowButton, StyledButton, StyledLink, StyledTextButton } from '.
 import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 
-const IconButton: React.FC<{
-  shape?: 'circle' | 'default' | 'round' | undefined
-  size?: SizeType
-  icon: React.ReactNode
-  onClick?: () => void
-}> = ({ ...props }) => <Button type="primary" shape="circle" size="small" {...props} />
+const IconButton: React.FC<
+  {
+    shape?: 'circle' | 'default' | 'round' | undefined
+    size?: SizeType
+    icon: React.ReactNode
+    onClick?: () => void
+  } & ButtonProps
+> = ({ ...props }) => <Button type="primary" shape="circle" size="small" {...props} />
 
 const ArrowedButton: React.FC<{
   onClick?: () => void
