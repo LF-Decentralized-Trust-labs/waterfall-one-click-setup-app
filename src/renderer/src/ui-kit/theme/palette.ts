@@ -1,4 +1,4 @@
-import { blue, red } from '@ant-design/colors'
+import { blue } from '@ant-design/colors'
 
 const grayScale = {
   _0: '#ffffff',

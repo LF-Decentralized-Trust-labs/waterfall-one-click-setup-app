@@ -4,6 +4,8 @@ import { TabContent } from '@renderer/ui-kit/Tabs'
 import { Flex } from 'antd'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { NodesWorkersTable } from '@renderer/components/Node/NodeWorkersTable/Table'
+import { addParams } from '@renderer/helpers/navigation'
+import { routes } from '@renderer/constants/navigation'
 
 const data = [
   {
@@ -36,8 +38,8 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = () => {
   return (
     <TabContent>
       <Flex align="center" justify="flex-end" gap={10}>
-        <ButtonPrimary>Add Worker</ButtonPrimary>
-        <ButtonPrimary>Import Worker</ButtonPrimary>
+        <ButtonPrimary href={addParams(routes.workers.add, {node: '1'})}>Add Worker</ButtonPrimary>
+        <ButtonPrimary href={addParams(routes.workers.import, {node: '1'})}>Import Worker</ButtonPrimary>
       </Flex>
       <NodesWorkersTable data={data} generate={generateFn} />
     </TabContent>

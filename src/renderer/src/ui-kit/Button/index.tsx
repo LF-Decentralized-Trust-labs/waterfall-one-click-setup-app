@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, ButtonProps } from 'antd'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
-import { StyledArrowButton, StyledButton } from './styles'
+import { StyledArrowButton, StyledButton, StyledTextButton } from './styles'
 import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 
 const IconButton: React.FC<{
@@ -28,4 +28,10 @@ const ButtonPrimary: React.FC<ButtonProps> = ({ children, ...props }) => (
   </StyledButton>
 )
 
-export { ButtonPrimary, IconButton, ArrowedButton, Button }
+const ButtonTextPrimary: React.FC<ButtonProps> = ({ children, ...props }) => (
+  <StyledTextButton type="text" {...props}>
+    {children}
+  </StyledTextButton>
+)
+
+export { ButtonPrimary, IconButton, ArrowedButton, Button, ButtonTextPrimary }

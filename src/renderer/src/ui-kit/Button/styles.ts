@@ -20,3 +20,15 @@ export const StyledButton = styled(Button)`
     font-size: 22px;
   }
 `
+
+export const StyledTextButton = styled(Button)`
+  height: 40px;
+  display: flex;
+  align-items: center;
+
+  font-size: 14px;
+  color: ${({ theme }) => theme.palette.text.blue};
+  .anticon {
+    font-size: 22px;
+  }
+`
