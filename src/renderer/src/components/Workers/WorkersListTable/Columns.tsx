@@ -69,7 +69,7 @@ export const columns = ({
       return (
         <Flex gap={30} align="center">
           <Flex gap={6}>
-          <IconButton
+            <IconButton
               icon={<CaretRightOutlined />}
               shape="default"
               size="small"

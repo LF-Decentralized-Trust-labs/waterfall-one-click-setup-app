@@ -221,7 +221,7 @@ export const getValidatorOptions = (dataPoints: DataPointsStatus) => {
         toolTip: {
           shared: true
         },
-        data: [active, inactive, pending_activation, pending_deactivation],
+        data: [active, inactive, pending_activation, pending_deactivation]
       }
     ],
     ...getNavigation(buttons, data)
@@ -229,53 +229,58 @@ export const getValidatorOptions = (dataPoints: DataPointsStatus) => {
 }
 
 const getTopThree = (
-  info: Array<{value: {y: number; x: number; toolTipContent: string}[]; name: keyof DataPointsBalance}>,
+  info: Array<{
+    value: { y: number; x: number; toolTipContent: string }[]
+    name: keyof DataPointsBalance
+  }>
 ) => {
-  const sorted = info.sort((a, b) => b.value[b.value.length - 1]?.y - a.value[a.value.length - 1]?.y);
-  const colorByIndex: string[] = ['#93a835E6', '#c2363b', '#3576a8E6'];
-  const result: Partial<Record<keyof DataPointsBalance, string>> = {};
-  sorted.forEach((item, index) => Object.assign(result, {[item.name]: colorByIndex[index] || ''}));
-  return result;
-};
+  const sorted = info.sort(
+    (a, b) => b.value[b.value.length - 1]?.y - a.value[a.value.length - 1]?.y
+  )
+  const colorByIndex: string[] = ['#93a835E6', '#c2363b', '#3576a8E6']
+  const result: Partial<Record<keyof DataPointsBalance, string>> = {}
+  sorted.forEach((item, index) => Object.assign(result, { [item.name]: colorByIndex[index] || '' }))
+  return result
+}
 
 export const getBalanceOptions = (dataPoints: DataPointsBalance) => {
-  const lg = dataPoints?.income?.length;
-  if (!lg) return;
+  const lg = dataPoints?.income?.length
+  if (!lg) return
   const colors = getTopThree([
-    {name: 'income', value: dataPoints?.income},
-    {name: 'effective_balance', value: dataPoints?.effective_balance},
-    {name: 'balance', value: dataPoints?.balance},
-  ]);
-  const buttons = getButtons(lg);
+    { name: 'income', value: dataPoints?.income },
+    { name: 'effective_balance', value: dataPoints?.effective_balance },
+    { name: 'balance', value: dataPoints?.balance }
+  ])
+  const buttons = getButtons(lg)
   const income = {
     name: 'Income',
     type: 'splineArea',
     showInLegend: true,
     color: colors['income'],
     xValueFormatString: '',
-    dataPoints: dataPoints?.income,
-  };
+    dataPoints: dataPoints?.income
+  }
   const effective_balance = {
     name: 'Stake',
     type: 'splineArea',
     color: colors['effective_balance'],
     showInLegend: true,
     xValueFormatString: '',
-    dataPoints: dataPoints?.effective_balance,
-  };
+    dataPoints: dataPoints?.effective_balance
+  }
   const balance = {
     name: 'Balance',
     type: 'splineArea',
     color: colors['balance'],
     showInLegend: true,
     xValueFormatString: '',
-    dataPoints: dataPoints?.balance,
-  };
+    dataPoints: dataPoints?.balance
+  }
   const data = [
-    {...balance, showInLegend: false},
-    {...income, showInLegend: false},
-    {...effective_balance, showInLegend: false},
-  ];
+    { ...balance, showInLegend: false },
+    { ...income, showInLegend: false },
+    { ...effective_balance, showInLegend: false }
+  ]
   return {
     animationEnabled: true,
     backgroundColor: 'transparent',
@@ -284,61 +289,62 @@ export const getBalanceOptions = (dataPoints: DataPointsBalance) => {
       {
         axisX: {
           labelFormatter: function (e: any) {
-            return Number(e.value) % 1 == 0 ? `${Number(e.value)?.toFixed(0)}` : '';
+            return Number(e.value) % 1 == 0 ? `${Number(e.value)?.toFixed(0)}` : ''
           },
           crosshair: {
             enabled: true,
-            snapToDataPoint: true,
+            snapToDataPoint: true
           },
-          margin: 24,
+          margin: 24
         },
         axisY: {
           title: 'WATER',
           titleFontSize: 16,
           crosshair: {
-            enabled: true,
+            enabled: true
             //snapToDataPoint: true
           },
           valueFormatString: `#,###.##`,
-          lineThickness: 0,
+          lineThickness: 0
         },
         toolTip: {
           shared: true,
-          content: '{y}',
+          content: '{y}'
         },
         data: [balance, income, effective_balance].sort(
-          (a, b) => b.dataPoints[b.dataPoints.length - 1]?.y - a.dataPoints[a.dataPoints.length - 1]?.y,
-        ),
-      },
+          (a, b) =>
+            b.dataPoints[b.dataPoints.length - 1]?.y - a.dataPoints[a.dataPoints.length - 1]?.y
+        )
+      }
     ],
-    ...getNavigation(buttons, data),
-  };
-};
+    ...getNavigation(buttons, data)
+  }
+}
 
 export const getRewardsOptions = (dataPoints: DataPointsBalance) => {
-  const lg = dataPoints?.rewards?.length;
-  if (!lg) return;
-  const buttons = getButtons(lg);
+  const lg = dataPoints?.rewards?.length
+  if (!lg) return
+  const buttons = getButtons(lg)
   const dataRewards = {
     name: `Rewards`,
     type: 'spline',
     yValueFormatString: '#,###.##',
     showInLegend: true,
     xValueFormatString: '',
-    dataPoints: dataPoints?.rewards,
-  };
+    dataPoints: dataPoints?.rewards
+  }
   const dataPenalty = {
     name: `Penalty`,
     type: 'spline',
     yValueFormatString: '#,###.##',
     showInLegend: true,
     xValueFormatString: '',
-    dataPoints: dataPoints?.penalty,
-  };
+    dataPoints: dataPoints?.penalty
+  }
   const data = [
-    {...dataRewards, showInLegend: false},
-    {...dataPenalty, showInLegend: false},
-  ];
+    { ...dataRewards, showInLegend: false },
+    { ...dataPenalty, showInLegend: false }
+  ]
   return {
     animationEnabled: true,
     backgroundColor: 'transparent',
@@ -347,13 +353,13 @@ export const getRewardsOptions = (dataPoints: DataPointsBalance) => {
       {
         axisX: {
           labelFormatter: function (e: any) {
-            return Number(e.value) % 1 == 0 ? `${Number(e.value)?.toFixed(0)}` : '';
+            return Number(e.value) % 1 == 0 ? `${Number(e.value)?.toFixed(0)}` : ''
           },
           crosshair: {
             enabled: true,
             snapToDataPoint: true,
-            valueFormatString: '#,###.##',
-          },
+            valueFormatString: '#,###.##'
+          }
         },
         axisY: {
           title: 'WATER',
@@ -361,16 +367,16 @@ export const getRewardsOptions = (dataPoints: DataPointsBalance) => {
           crosshair: {
             enabled: true,
             snapToDataPoint: true,
-            valueFormatString: `#,###.##`,
+            valueFormatString: `#,###.##`
           },
-          margin: 24,
+          margin: 24
         },
         toolTip: {
-          shared: true,
+          shared: true
         },
-        data: [dataRewards, dataPenalty],
-      },
+        data: [dataRewards, dataPenalty]
+      }
     ],
-    ...getNavigation(buttons, data),
-  };
-};
+    ...getNavigation(buttons, data)
+  }
+}

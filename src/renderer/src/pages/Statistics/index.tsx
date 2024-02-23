@@ -16,7 +16,7 @@ import {
 } from '@renderer/hooks/statistics'
 import { LeaderBoardTableDataTypes } from '@renderer/types/statistics'
 import { Text } from '@renderer/ui-kit/Typography'
-import { Card, DatePicker, DatePickerProps, Divider, Flex, Layout, Select } from 'antd'
+import { Card, DatePicker, DatePickerProps, Divider, Flex, Layout } from 'antd'
 import { RangePickerProps } from 'antd/es/date-picker'
 import { useState } from 'react'
 const { RangePicker } = DatePicker
@@ -49,10 +49,10 @@ const epochLeaderBoardsData: LeaderBoardTableDataTypes[] = [
 
 export const StatisticsPage = () => {
   const [nodeFilter, setNodeFilter] = useState([nodeOptions[0].value])
-  const [dateFilter, setDateFilter] = useState<[string, string] | string | null>(null)
+  const [_, setDateFilter] = useState<[string, string] | string | null>(null)
 
   const onNodeSelect = (value?: string[]) => {
-    setNodeFilter(value)
+    setNodeFilter(value || [])
   }
   const onChange = (
     value: DatePickerProps['value'] | RangePickerProps['value'],
@@ -85,11 +85,7 @@ export const StatisticsPage = () => {
         title="Statistics"
         actions={
           <Flex gap={10}>
-            <NodeSelector
-              options={nodeOptions}
-              value={nodeFilter}
-              onChange={onNodeSelect}
-            />
+            <NodeSelector options={nodeOptions} value={nodeFilter} onChange={onNodeSelect} />
             <RangePicker onChange={onChange} />
           </Flex>
         }
