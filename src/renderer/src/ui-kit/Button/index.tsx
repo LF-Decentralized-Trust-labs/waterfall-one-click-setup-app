@@ -4,12 +4,14 @@ import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { StyledArrowButton, StyledButton, StyledTextButton } from './styles'
 import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 
-const IconButton: React.FC<{
-  shape?: 'circle' | 'default' | 'round' | undefined
-  size?: SizeType
-  icon: React.ReactNode
-  onClick?: () => void
-}> = ({ ...props }) => <Button type="primary" shape="circle" size="small" {...props} />
+const IconButton: React.FC<
+  {
+    shape?: 'circle' | 'default' | 'round' | undefined
+    size?: SizeType
+    icon: React.ReactNode
+    onClick?: () => void
+  } & ButtonProps
+> = ({ ...props }) => <Button type="primary" shape="circle" size="small" {...props} />
 
 const ArrowedButton: React.FC<{
   onClick?: () => void
