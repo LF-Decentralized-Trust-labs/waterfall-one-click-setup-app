@@ -5,7 +5,6 @@ import { ArrowedButton } from '@renderer/ui-kit/Button'
 import { Flex, Layout } from 'antd'
 import { useState } from 'react'
 
-
 export const AddNodePage = () => {
   const [step, setStep] = useState<number>(0)
   const onStepsChange = (value: number) => setStep(value)

@@ -18,7 +18,6 @@ export const MnemonicInput: React.FC<GenerateMnemonicPropsT> = ({ value, onChang
   }
 
   const handleChange = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
     const nextValue = e.target.value
     if (nextValue.includes(' ')) {
       const words = nextValue.split(' ').slice(0, 24 - index)

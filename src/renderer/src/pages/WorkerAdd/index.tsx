@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { SearchKeys } from '@renderer/constants/navigation'
 import { useSearchParams } from 'react-router-dom'
 import { getAddWorkerSteps } from '@renderer/helpers/workers'
@@ -17,7 +17,6 @@ export const AddWorkerPage = () => {
   const onStepsChange = (value: number) => setStep(value)
   const goNext = () => setStep((prev) => (prev + 1 < steps.length ? prev + 1 : prev))
   const goPrev = () => setStep((prev) => (prev - 1 >= 0 ? prev - 1 : prev))
-
 
   return (
     <Layout>

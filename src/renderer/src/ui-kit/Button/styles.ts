@@ -27,7 +27,7 @@ export const StyledTextButton = styled(Button)`
   align-items: center;
 
   font-size: 14px;
-  color: ${({theme}) => theme.palette.text.blue};
+  color: ${({ theme }) => theme.palette.text.blue};
   .anticon {
     font-size: 22px;
   }

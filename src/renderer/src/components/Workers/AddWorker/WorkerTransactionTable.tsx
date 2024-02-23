@@ -1,9 +1,7 @@
 import React from 'react'
-
 import { Flex, Input, QRCode, TableColumnsType } from 'antd'
 import { Table } from '@renderer/ui-kit/Table'
 import { WorkerTransactionTableFields, WorkerTransactionTableData } from '@renderer/types/workers'
-import { render } from 'react-dom'
 import { ButtonPrimary, ButtonTextPrimary } from '@renderer/ui-kit/Button'
 
 type DataType = WorkerTransactionTableData & {

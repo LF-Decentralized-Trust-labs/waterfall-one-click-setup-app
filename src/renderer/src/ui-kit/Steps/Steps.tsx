@@ -2,7 +2,7 @@ import { Steps, StepsProps } from 'antd'
 import React from 'react'
 import { styled } from 'styled-components'
 
-export const StepsWithActiveContent: React.FC<StepsProps> = ({...props}) => {
+export const StepsWithActiveContent: React.FC<StepsProps> = ({ ...props }) => {
   return <StyledSteps {...props} />
 }
 

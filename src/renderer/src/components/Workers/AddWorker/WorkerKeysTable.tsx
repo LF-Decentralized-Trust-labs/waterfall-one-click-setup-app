@@ -33,7 +33,7 @@ type WorkerKeysTablePropsT = {
 }
 
 export const WorkerKeysTable: React.FC<WorkerKeysTablePropsT> = ({ data }) => {
-  const tableColumns = columns();
+  const tableColumns = columns()
 
   return <Table dataSource={data} columns={tableColumns} />
 }

@@ -114,7 +114,7 @@ const VerifyMnemonicPhrase: React.FC<
   }
 > = ({ goNext, goPrev, value, onChange }) => {
   // const isValid = phrase.join('') === Object.values(value).join('')
-  const isValid = Object.values(value).filter(el => el).length === 24;
+  const isValid = Object.values(value).filter((el) => el).length === 24
 
   return (
     <AddWorkerForm

@@ -1,6 +1,11 @@
 import { routes } from '@renderer/constants/navigation'
 import { shuffleArray } from '@renderer/helpers/common'
-import { AddWorkerFields, AddWorkerFormValuesT, ImportWorkerFields, ImportWorkerFormValuesT } from '@renderer/types/workers'
+import {
+  AddWorkerFields,
+  AddWorkerFormValuesT,
+  ImportWorkerFields,
+  ImportWorkerFormValuesT
+} from '@renderer/types/workers'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { SearchKeys } from '@renderer/constants/navigation'
 import { useSearchParams } from 'react-router-dom'
 import { getImportWorkersSteps } from '@renderer/helpers/workers'

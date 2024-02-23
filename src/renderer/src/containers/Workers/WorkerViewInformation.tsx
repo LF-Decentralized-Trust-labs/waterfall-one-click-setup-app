@@ -13,7 +13,7 @@ export const WorkerViewInformation: React.FC<WorkerViewTabProps> = () => {
       <TabTextRow
         label="Withdrawal address"
         value={
-          <Flex align='center' gap={12}>
+          <Flex align="center" gap={12}>
             <Text>0xDccA352601a464e8d629A2E8CFBa9C1a27612751</Text>
             <Button type="dashed">Copy</Button>
           </Flex>

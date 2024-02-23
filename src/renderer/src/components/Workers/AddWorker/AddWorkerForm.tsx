@@ -7,9 +7,9 @@ type FormPropsT = PropsWithChildren & {
   title?: string
   goNext?: () => void
   goPrev?: () => void
-  canGoNext?: boolean;
-  extra?: React.ReactNode;
-  nextText?: string;
+  canGoNext?: boolean
+  extra?: React.ReactNode
+  nextText?: string
 }
 
 export const AddWorkerForm: React.FC<FormPropsT> = ({
@@ -19,7 +19,7 @@ export const AddWorkerForm: React.FC<FormPropsT> = ({
   goPrev,
   title,
   extra,
-  nextText = 'Next',
+  nextText = 'Next'
 }) => {
   return (
     <StyledCard type="inner" title={title} extra={extra}>

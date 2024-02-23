@@ -1,5 +1,4 @@
 import React from 'react'
-import { Steps } from 'antd'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
 import { AddNodeFields, NODE_TYPE } from '@renderer/types/node'

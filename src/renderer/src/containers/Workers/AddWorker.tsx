@@ -207,11 +207,7 @@ const DisplayKeys: React.FC<BasePropsT> = ({ goNext, goPrev }) => {
     }
   ]
   return (
-    <AddWorkerForm
-      goNext={goNext}
-      goPrev={goPrev}
-      canGoNext={true}
-    >
+    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={true}>
       <WorkerKeysTable data={data} />
     </AddWorkerForm>
   )
@@ -241,7 +237,7 @@ const SendTransactionTable: React.FC<BasePropsT> = ({ goNext, goPrev }) => {
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={true}
-      nextText='I have sent the deposits'
+      nextText="I have sent the deposits"
     >
       <WorkerTransactionTable data={data} />
     </AddWorkerForm>
