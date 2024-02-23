@@ -1,8 +1,9 @@
 import React from 'react'
 import { Button, ButtonProps } from 'antd'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
-import { StyledArrowButton, StyledButton, StyledTextButton } from './styles'
+import { StyledArrowButton, StyledButton, StyledLink, StyledTextButton } from './styles'
 import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons'
+import { Link } from 'react-router-dom'
 
 const IconButton: React.FC<{
   shape?: 'circle' | 'default' | 'round' | undefined
@@ -22,11 +23,15 @@ const ArrowedButton: React.FC<{
   />
 )
 
-const ButtonPrimary: React.FC<ButtonProps> = ({ children, ...props }) => (
-  <StyledButton type="primary" {...props}>
-    {children}
-  </StyledButton>
-)
+const ButtonPrimary: React.FC<ButtonProps> = ({ children, href, ...props }) => {
+  if (href) return <StyledLink to={href}>{children}</StyledLink>
+
+  return (
+    <StyledButton type="primary" {...props}>
+      {children}
+    </StyledButton>
+  )
+}
 
 const ButtonTextPrimary: React.FC<ButtonProps> = ({ children, ...props }) => (
   <StyledTextButton type="text" {...props}>
