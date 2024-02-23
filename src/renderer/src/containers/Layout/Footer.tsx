@@ -17,7 +17,7 @@ export const Footer = () => {
       leftSide={
         <Flex justify="space-around" align="center">
           <Text color="white" size="sm">
-            Syncing
+            Running
           </Text>
           <Actions gap={2} align="center">
             <IconButton icon={<CaretRightOutlined />} size="small" shape="default" />
@@ -65,6 +65,9 @@ export const Footer = () => {
 
 const Actions = styled(Flex)`
   height: ${FOOTER_HEIGHT}px;
+  button {
+    border: none;
+  }
 `
 
 const RightInfo = styled(Flex)`

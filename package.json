@@ -23,6 +23,9 @@
   },
   "dependencies": {
     "@ant-design/colors": "^7.0.2",
+    "@canvasjs/react-charts": "^1.0.0",
+    "@canvasjs/react-stockcharts": "^1.0.0",
+    "@canvasjs/stockcharts": "^1.7.39",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "antd": "^5.13.2",
