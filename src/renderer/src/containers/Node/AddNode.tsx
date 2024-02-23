@@ -9,6 +9,7 @@ import {
   NodeNameInput,
   NodeTypeInput
 } from '@renderer/components/Node/AddNode/Inputs'
+import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
 
 type AddNodePropsT = {
   step: number
@@ -19,20 +20,16 @@ type AddNodePropsT = {
 
 const stepItems = [
   {
-    title: 'Step 1',
-    description: 'Select Node type'
+    title: 'Select Node type'
   },
   {
-    title: 'Step 2',
-    description: 'Select a network'
+    title: 'Select a network'
   },
   {
-    title: 'Step 3',
-    description: 'Select a data folder'
+    title: 'Select a data folder'
   },
   {
-    title: 'Step 4',
-    description: 'Name your node'
+    title: 'Name your node'
   }
 ]
 
@@ -43,47 +40,56 @@ export const AddNode: React.FC<AddNodePropsT> = ({
   goPrevStep
 }) => {
   const { handleChange, values, onAdd } = useAddNode()
+  const stepsComponents = {
+    0: (
+      <NodeTypeSelection
+        value={values[AddNodeFields.type]}
+        handleChange={handleChange(AddNodeFields.type)}
+        field={AddNodeFields.type}
+        goNextStep={goNextStep}
+        goPrevStep={goPrevStep}
+      />
+    ),
+    1: (
+      <NetworkSelection
+        value={values[AddNodeFields.network]}
+        handleChange={handleChange(AddNodeFields.network)}
+        field={AddNodeFields.network}
+        nodeType={values[AddNodeFields.type]}
+        goNextStep={goNextStep}
+        goPrevStep={goPrevStep}
+      />
+    ),
+    2: (
+      <FolderSelection
+        value={values[AddNodeFields.dataFolder]}
+        handleChange={handleChange(AddNodeFields.dataFolder)}
+        field={AddNodeFields.dataFolder}
+        goNextStep={goNextStep}
+        goPrevStep={goPrevStep}
+      />
+    ),
+    3: (
+      <NameSelection
+        value={values[AddNodeFields.name]}
+        handleChange={handleChange(AddNodeFields.name)}
+        field={AddNodeFields.name}
+        goNextStep={onAdd}
+        goPrevStep={goPrevStep}
+      />
+    )
+  }
+  const stepsWithComponents = stepItems.map((el, index) => ({
+    title: el?.title,
+    description: stepsComponents?.[index] || null
+  }))
   return (
-    <>
-      <Steps direction="horizontal" current={step} onChange={onChangeStep} items={stepItems} />
-      {step === 0 && (
-        <NodeTypeSelection
-          value={values[AddNodeFields.type]}
-          handleChange={handleChange(AddNodeFields.type)}
-          field={AddNodeFields.type}
-          goNextStep={goNextStep}
-          goPrevStep={goPrevStep}
-        />
-      )}
-      {step === 1 && (
-        <NetworkSelection
-          value={values[AddNodeFields.network]}
-          handleChange={handleChange(AddNodeFields.network)}
-          field={AddNodeFields.network}
-          nodeType={values[AddNodeFields.type]}
-          goNextStep={goNextStep}
-          goPrevStep={goPrevStep}
-        />
-      )}
-      {step === 2 && (
-        <FolderSelection
-          value={values[AddNodeFields.dataFolder]}
-          handleChange={handleChange(AddNodeFields.dataFolder)}
-          field={AddNodeFields.dataFolder}
-          goNextStep={goNextStep}
-          goPrevStep={goPrevStep}
-        />
-      )}
-      {step === 3 && (
-        <NameSelection
-          value={values[AddNodeFields.name]}
-          handleChange={handleChange(AddNodeFields.name)}
-          field={AddNodeFields.name}
-          goNextStep={onAdd}
-          goPrevStep={goPrevStep}
-        />
-      )}
-    </>
+    <StepsWithActiveContent
+      direction="vertical"
+      current={step}
+      onChange={onChangeStep}
+      items={stepsWithComponents}
+    />
   )
 }
 

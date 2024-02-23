@@ -6,6 +6,7 @@ export const PageBody: React.FC<PropsWithChildren> = ({ children }) => {
 }
 
 const StyledWrapper = styled.div`
-  box-sizing: border-box;
   padding: 30px 40px 20px 40px;
+  box-sizing: border-box;
+  overflow: scroll;
 `

@@ -5,6 +5,7 @@ import { PlusCircleOutlined } from '@ant-design/icons'
 import { PageBody } from '@renderer/components/Page/Body'
 import { WorkersList } from '@renderer/containers/Workers/WorkersList'
 import { WorkersT } from '@renderer/types/workers'
+import { routes } from '@renderer/constants/navigation'
 
 const data: WorkersT[] = [
   {
@@ -31,12 +32,12 @@ export const WorkersListPage = () => {
         title="Workers"
         actions={
           shouldAddNode ? null : !data?.length ? (
-            <ButtonPrimary>
+            <ButtonPrimary href={routes.workers.import}>
               Import
               <PlusCircleOutlined />
             </ButtonPrimary>
           ) : (
-            <ButtonPrimary>
+            <ButtonPrimary href={routes.workers.add}>
               Add Worker
               <PlusCircleOutlined />
             </ButtonPrimary>
