@@ -62,3 +62,18 @@ export const checkPort = async (port: number): Promise<boolean> => {
     server.listen(port)
   })
 }
+
+export const checkSocket = async (ipcPath: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const client = net.createConnection({ path: ipcPath }, () => {
+      client.end()
+    })
+    client.on('end', () => {
+      resolve(true)
+    })
+    client.on('error', () => {
+      resolve(false)
+    })
+
+  })
+}

@@ -8,6 +8,10 @@ export default defineConfig({
     build: {
       rollupOptions: {
         external: ['better-sqlite3']
+        // input: {
+        //   index: resolve(__dirname, 'src/main/index.ts'),
+        //   monitoringStatus: resolve(__dirname, 'src/main/monitoring/status.ts')
+        // }
       }
     }
   },

@@ -1,7 +1,9 @@
+import { app } from 'electron'
 import Database from 'better-sqlite3'
 import { FileStore, MigrationSet, FileStoreLoadCallback, Migration } from 'migrate'
+import path from 'path'
 import log from 'electron-log/main'
-import { db } from './db'
+import { getMain } from './db'
 
 type Database = ReturnType<typeof Database>
 type Callback = (result: Error | null) => void
@@ -11,7 +13,8 @@ export class SQLiteStore implements FileStore {
   private db: Database
 
   constructor() {
-    this.db = db
+    const dbPath = path.join(app.getPath('userData'), 'wf.db')
+    this.db = getMain(dbPath)
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS migrations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

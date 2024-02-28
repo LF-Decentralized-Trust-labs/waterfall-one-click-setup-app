@@ -1,5 +1,5 @@
 import log from 'electron-log/main'
-import { db } from '../libs/db'
+import Database from 'better-sqlite3'
 import {
   Network,
   COORDINATOR_HTTP_API_PORT,
@@ -11,6 +11,7 @@ import {
   VALIDATOR_WS_API_PORT
 } from '../libs/env'
 
+type Database = ReturnType<typeof Database>
 export enum Type {
   local = 'local',
   remote = 'remote'
@@ -31,22 +32,12 @@ export enum ValidatorStatus {
   running = 'running'
 }
 
-export interface NewNode {
+export interface Node {
+  id: number | bigint
   name: string
   network: Network
   type: Type
   locationDir: string
-  coordinatorHttpApiPort?: number
-  coordinatorHttpValidatorApiPort?: number
-  coordinatorP2PTcpPort?: number
-  coordinatorP2PUdpPort?: number
-  validatorP2PPort?: number
-  validatorHttpApiPort?: number
-  validatorWsApiPort?: number
-}
-
-export interface Node extends NewNode {
-  id: number | bigint
   coordinatorStatus: CoordinatorStatus
   coordinatorPeersCount: number
   coordinatorHeadSlot: bigint
@@ -75,51 +66,104 @@ export interface Node extends NewNode {
   updatedAt: string
 }
 
-export const insert = (fields: NewNode): Node | null => {
-  const query = db.prepare(
-    'INSERT INTO nodes (' +
-      'name, network, type, locationDir, ' +
-      'coordinatorHttpApiPort, coordinatorHttpValidatorApiPort, coordinatorP2PTcpPort, coordinatorP2PUdpPort, ' +
-      'validatorP2PPort, validatorHttpApiPort, validatorWsApiPort' +
-      ') VALUES (' +
-      '@name, @network, @type, @locationDir, ' +
-      '@coordinatorHttpApiPort, @coordinatorHttpValidatorApiPort, @coordinatorP2PTcpPort, @coordinatorP2PUdpPort, ' +
-      '@validatorP2PPort, @validatorHttpApiPort, @validatorWsApiPort' +
-      ')'
-  )
-  try {
-    const res = query.run({
-      ...fields,
-      coordinatorHttpApiPort: fields.coordinatorHttpApiPort || COORDINATOR_HTTP_API_PORT,
-      coordinatorHttpValidatorApiPort:
-        fields.coordinatorHttpValidatorApiPort || COORDINATOR_HTTP_VALIDATOR_API_PORT,
-      coordinatorP2PTcpPort: fields.coordinatorP2PTcpPort || COORDINATOR_P2P_TCP_PORT,
-      coordinatorP2PUdpPort: fields.coordinatorP2PUdpPort || COORDINATOR_P2P_UDP_PORT,
-      validatorP2PPort: fields.validatorP2PPort || VALIDATOR_P2P_PORT,
-      validatorHttpApiPort: fields.validatorHttpApiPort || VALIDATOR_HTTP_API_PORT,
-      validatorWsApiPort: fields.validatorWsApiPort || VALIDATOR_WS_API_PORT
-    })
-    if (res.changes === 0) {
+type RequiredNewNodeFields = Pick<Node, 'name' | 'network' | 'type' | 'locationDir'>
+type OptionalNewNodeFields = Partial<
+  Pick<
+    Node,
+    | 'coordinatorHttpApiPort'
+    | 'coordinatorHttpValidatorApiPort'
+    | 'coordinatorP2PTcpPort'
+    | 'coordinatorP2PUdpPort'
+    | 'validatorP2PPort'
+    | 'validatorHttpApiPort'
+    | 'validatorWsApiPort'
+  >
+>
+export interface NewNode extends RequiredNewNodeFields, OptionalNewNodeFields {}
+export interface UpdateNode extends Partial<Omit<Node, 'id' | 'createdAt' | 'updatedAt'>> {}
+
+class NodeModel {
+  private db: Database | null = null
+  constructor(db) {
+    this.db = db
+  }
+  public insert(fields: NewNode): Node | null {
+    if (!this.db) {
       return null
     }
-    return getById(res.lastInsertRowid)
-  } catch (e) {
-    log.error('node insert', e)
-    return null
+    const query = this.db.prepare(
+      'INSERT INTO nodes (' +
+        'name, network, type, locationDir, ' +
+        'coordinatorHttpApiPort, coordinatorHttpValidatorApiPort, coordinatorP2PTcpPort, coordinatorP2PUdpPort, ' +
+        'validatorP2PPort, validatorHttpApiPort, validatorWsApiPort' +
+        ') VALUES (' +
+        '@name, @network, @type, @locationDir, ' +
+        '@coordinatorHttpApiPort, @coordinatorHttpValidatorApiPort, @coordinatorP2PTcpPort, @coordinatorP2PUdpPort, ' +
+        '@validatorP2PPort, @validatorHttpApiPort, @validatorWsApiPort' +
+        ')'
+    )
+    try {
+      const res = query.run({
+        ...fields,
+        coordinatorHttpApiPort: fields.coordinatorHttpApiPort || COORDINATOR_HTTP_API_PORT,
+        coordinatorHttpValidatorApiPort:
+          fields.coordinatorHttpValidatorApiPort || COORDINATOR_HTTP_VALIDATOR_API_PORT,
+        coordinatorP2PTcpPort: fields.coordinatorP2PTcpPort || COORDINATOR_P2P_TCP_PORT,
+        coordinatorP2PUdpPort: fields.coordinatorP2PUdpPort || COORDINATOR_P2P_UDP_PORT,
+        validatorP2PPort: fields.validatorP2PPort || VALIDATOR_P2P_PORT,
+        validatorHttpApiPort: fields.validatorHttpApiPort || VALIDATOR_HTTP_API_PORT,
+        validatorWsApiPort: fields.validatorWsApiPort || VALIDATOR_WS_API_PORT
+      })
+      if (res.changes === 0) {
+        return null
+      }
+      return this.getById(res.lastInsertRowid)
+    } catch (e) {
+      log.error('node insert', e)
+      return null
+    }
+  }
+
+  getById(id: number | bigint): Node | null {
+    if (!this.db) {
+      return null
+    }
+    const res = this.db.prepare('SELECT * FROM nodes WHERE id = ?')
+    return res.get(id) as Node
+  }
+
+  getAll(): Node[] {
+    if (!this.db) {
+      return []
+    }
+    const res = this.db.prepare('SELECT * FROM nodes')
+    return res.all() as Node[]
+  }
+  remove(id: number | bigint): boolean {
+    if (!this.db) {
+      return false
+    }
+    const query = this.db.prepare('DELETE FROM nodes WHERE id = ?')
+    const res = query.run(id)
+    return !!res.changes
+  }
+
+  update(id: number | bigint, data: UpdateNode): boolean {
+    if (!this.db) {
+      return false
+    }
+    if (Object.keys(data).length === 0) return false
+
+    const columns = Object.keys(data)
+      .map((key) => `${key} = @${key}`)
+      .join(', ')
+
+    const query = this.db.prepare(`UPDATE nodes SET ${columns}  WHERE id = @id`)
+    const res = query.run({
+      ...data,
+      id
+    })
+    return !!res.changes
   }
 }
-
-export const getById = (id: number | bigint): Node => {
-  const res = db.prepare('SELECT * FROM nodes WHERE id = ?')
-  return res.get(id) as Node
-}
-
-export const getAll = (): Node[] => {
-  const res = db.prepare('SELECT * FROM nodes')
-  return res.all() as Node[]
-}
-export const remove = (id: number | bigint): boolean => {
-  const query = db.prepare('DELETE FROM nodes WHERE id = ?')
-  const res = query.run(id)
-  return !!res.changes
-}
+export default NodeModel

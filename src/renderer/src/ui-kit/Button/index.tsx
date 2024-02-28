@@ -3,7 +3,6 @@ import { Button, ButtonProps } from 'antd'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { StyledArrowButton, StyledButton, StyledLink, StyledTextButton } from './styles'
 import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
 
 const IconButton: React.FC<
   {

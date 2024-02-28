@@ -76,19 +76,18 @@ export interface Node extends NewNode {
   createdAt: string
   updatedAt: string
 }
-export const start = async (id: number): Promise<StatusResults> => {
-  const result = await window.node.start(id)
-  console.log(result)
-  return result
+
+export const start = async (id: number | bigint): Promise<StatusResults> => {
+  return await window.node.start(id)
 }
-export const stop = async (id: number): Promise<StatusResults> => {
-  const result = await window.node.stop(id)
-  console.log(result)
-  return result
+export const stop = async (id: number | bigint): Promise<StatusResults> => {
+  return await window.node.stop(id)
 }
 
 export const getAll = async (): Promise<Node[]> => {
-  const result = await window.node.getAll()
-  console.log(result)
-  return result
+  return await window.node.getAll()
+}
+
+export const add = async (newNode: NewNode): Promise<Node> => {
+  return await window.node.add(newNode)
 }

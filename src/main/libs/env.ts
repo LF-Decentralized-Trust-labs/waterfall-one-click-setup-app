@@ -1,64 +1,10 @@
-import { app } from 'electron'
-import * as path from 'node:path'
-import { platform } from 'node:os'
-
 const ENV = import.meta.env
 
 export enum Network {
   testnet8 = 'testnet8'
 }
 
-export function getPlatform(): 'linux' | 'mac' | 'win' | null {
-  switch (platform()) {
-    case 'aix':
-    case 'freebsd':
-    case 'linux':
-    case 'openbsd':
-    case 'android':
-      return 'linux'
-    case 'darwin':
-    case 'sunos':
-      return 'mac'
-    case 'win32':
-      return 'win'
-    default:
-      return null
-  }
-}
-
-export function getBinariesPath(): string {
-  const { isPackaged } = app
-
-  return isPackaged
-    ? path.join(process.resourcesPath, './bin')
-    : path.join(app.getAppPath(), 'resources', getPlatform()!)
-}
-
-export function getGenesisPath(): string {
-  const { isPackaged } = app
-
-  return isPackaged
-    ? path.join(process.resourcesPath, './genesis')
-    : path.join(app.getAppPath(), 'resources', 'genesis')
-}
-
-export const getValidatorBinPath = (network: Network) =>
-  path.resolve(path.join(getBinariesPath(), `./validator-${network}`))
-export const getCoordinatorBeaconBinPath = (network: Network) =>
-  path.resolve(path.join(getBinariesPath(), `./coordinator-beacon-${network}`))
-export const getCoordinatorValidatorBinPath = (network: Network) =>
-  path.resolve(path.join(getBinariesPath(), `./coordinator-validator-${network}`))
-
-export const getCoordinatorBeaconGenesisPath = (network: Network) =>
-  path.resolve(path.join(getGenesisPath(), `./coordinator-genesis-${network}.ssz`))
-
-export const getValidatorGenesisPath = (network: Network) =>
-  path.resolve(path.join(getGenesisPath(), `./validator-genesis-${network}.json`))
-
-export const getValidatorGenesisDataPath = (network: Network) =>
-  path.resolve(path.join(getGenesisPath(), `./validator-genesis-data-${network}.json`))
-
-export const DEFAULT_DATA_PATH = `${app.getPath('home')}${ENV.VITE_DATA_PATH}`
+export const DATA_PATH = ENV.VITE_DATA_PATH
 export const getCoordinatorBootnode = (network: Network): string =>
   ENV[`MAIN_VITE_COORDINATOR_BOOTNODE_${network.toUpperCase()}`]
 

@@ -1,6 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
 import fs from 'node:fs'
 import log from 'electron-log/main'
+import { EventEmitter } from 'node:events'
 
 export enum StatusResult {
   success = 'success',
@@ -14,7 +15,7 @@ type Options = {
   errLogPath: string
 }
 
-class Child {
+class Child extends EventEmitter {
   child: ChildProcessWithoutNullStreams | null = null
 
   readonly binPath: string
@@ -23,6 +24,7 @@ class Child {
   readonly errLogPath: string
 
   constructor(options: Options) {
+    super()
     this.binPath = options.binPath
     this.args = options.args
     this.outLogPath = options.outLogPath
@@ -43,10 +45,14 @@ class Child {
     this.child.stdout.pipe(outLogStream)
     this.child.stderr.pipe(errLogStream)
 
+    this.child.on('spawn', () => {
+      this.emit('start', this.child ? this.child.pid : null)
+    })
     this.child.on('close', () => {
       outLogStream.end()
       errLogStream.end()
       this.child = null
+      this.emit('stop')
     })
 
     if (this.child.pid) return Promise.resolve(StatusResult.success)
@@ -75,13 +81,19 @@ class Child {
       if (!this.child) {
         return resolve(StatusResult.success)
       }
-      this.child.on('close', (code) => {
+      this.child.once('close', (code) => {
         log.debug(`spawn child process exited with code ${code}`)
         this.child = null
         resolve(StatusResult.success)
       })
       this.child.kill()
     })
+  }
+  public getPid() {
+    if (!this.child) {
+      return undefined
+    }
+    return this.child.pid
   }
 }
 

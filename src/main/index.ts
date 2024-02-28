@@ -6,21 +6,33 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/app/iconTemplate.png?asset'
 import trayIcon from '../../resources/tray/iconTemplate.png?asset'
 import Node from './node'
-import { getPlatform } from './libs/env'
+import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
+import createStatusWorker from './monitoring/status?nodeWorker'
 
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
 let updateWindow: null | BrowserWindow = null
-let node: null | Node = null
-
+const appEnv = new AppEnv({
+  isPackaged: app.isPackaged,
+  appPath: app.getAppPath(),
+  userData: app.getPath('userData')
+})
+const node = new Node(ipcMain, appEnv)
+const statusWorker = createStatusWorker({
+  workerData: {
+    isPackaged: appEnv.isPackaged,
+    appPath: appEnv.appPath,
+    userData: appEnv.userData
+  }
+})
 // Optional, initialize the logger for any renderer process
 log.initialize()
 
 function createUpdateWindow(): void {
   updateWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1024,
+    height: 768,
     icon: icon,
     center: true,
     title: 'Waterfall App Update',
@@ -41,8 +53,8 @@ function createUpdateWindow(): void {
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1024,
+    height: 768,
     show: false,
     autoHideMenuBar: true,
     icon: icon,
@@ -109,7 +121,7 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  if (getPlatform() === 'mac') {
+  if (appEnv.getPlatform() === 'mac') {
     //   app.dock.hide()
     app.dock.setIcon(icon)
   }
@@ -119,16 +131,19 @@ app.whenReady().then(async () => {
     await runMigrations()
   } catch (e) {
     console.log('runMigrations', e)
-    return app.quit()
+    return await quit()
   }
 
-  node = new Node(ipcMain)
   try {
     await node.initialize()
   } catch (e) {
     console.log('node.initialize', e)
-    return app.quit()
+    return await quit()
   }
+
+  statusWorker.postMessage({
+    type: 'start'
+  })
 
   tray = new Tray(trayIcon)
   const contextMenu = Menu.buildFromTemplate([
@@ -148,13 +163,8 @@ app.whenReady().then(async () => {
     },
     {
       label: 'Quit',
-      click: (): void => {
-        if (mainWindow === null) {
-          return
-        }
-        mainWindow.destroy()
-        app.quit()
-        console.log('Quit')
+      click: async () => {
+        await quit()
       }
     }
   ])
@@ -175,6 +185,9 @@ app.whenReady().then(async () => {
   app.on('activate', function () {
     // On macOS, it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
+    if (mainWindow === null) {
+      return
+    }
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
@@ -190,3 +203,18 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+const quit = async () => {
+  statusWorker.postMessage({
+    type: 'stop'
+  })
+  statusWorker.terminate()
+
+  await node.destroy()
+
+  if (mainWindow !== null) {
+    mainWindow.destroy()
+  }
+  app.quit()
+  console.log('Quit')
+}

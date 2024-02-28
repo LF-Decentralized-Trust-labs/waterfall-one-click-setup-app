@@ -1,24 +1,22 @@
 import * as crypto from 'crypto'
+import log from 'electron-log/main'
+import { exec } from 'node:child_process'
 import Child, { StatusResult } from './child'
-import { checkOrCreateDir, checkOrCreateFile, checkPort } from '../libs/fs'
+import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket } from '../libs/fs'
+import AppEnv from '../libs/appEnv'
 import {
   getChainId,
-  getCoordinatorBeaconBinPath,
-  getCoordinatorBeaconGenesisPath,
   getCoordinatorBootnode,
   getCoordinatorPath,
-  getCoordinatorValidatorBinPath,
   getCoordinatorWalletPath,
   getLogPath,
   getValidatorAddress,
-  getValidatorBinPath,
   getValidatorBootnode,
-  getValidatorGenesisDataPath,
-  getValidatorGenesisPath,
   getValidatorPath
 } from '../libs/env'
 
 import { Node } from '../models/node'
+import { EventEmitter } from 'node:events'
 
 export { StatusResult }
 
@@ -28,13 +26,16 @@ export type StatusResults = {
   validator: StatusResult
 }
 
-class LocalNode {
+class LocalNode extends EventEmitter {
+  private readonly appEnv: AppEnv
   private readonly model: Node | null
   private coordinatorBeacon: Child | null
   private coordinatorValidator: Child | null
   private validator: Child | null
 
-  constructor(model: Node | undefined) {
+  constructor(model: Node | undefined, appEnv) {
+    super()
+    this.appEnv = appEnv
     this.model = model || null
     this.coordinatorBeacon = null
     this.coordinatorValidator = null
@@ -168,6 +169,97 @@ class LocalNode {
     return results
   }
 
+  public getPids() {
+    return {
+      coordinatorBeacon: this.coordinatorBeacon ? this.coordinatorBeacon.getPid() : undefined,
+      validator: this.validator ? this.validator.getPid() : undefined,
+      coordinatorValidator: this.coordinatorValidator
+        ? this.coordinatorValidator.getPid()
+        : undefined
+    }
+  }
+
+  public async getPeers() {
+    const results: {
+      coordinatorPeersCount?: number
+      validatorPeersCount?: number
+    } = {}
+    if (this.model === null) {
+      return null
+    }
+    try {
+      const response = await this._runCoordinatorCommand('/eth/v1/node/peer_count')
+      if (response && response?.data) {
+        results.coordinatorPeersCount = response.data.connected
+      }
+    } catch (error) {
+      log.debug(error)
+    }
+    try {
+      const response = (await this._runValidatorCommand('admin.peers.length')) as string
+      if (response !== '') {
+        results.validatorPeersCount = parseInt(response)
+      }
+    } catch (error) {
+      log.debug(error)
+    }
+    return Object.keys(results).length > 0 ? results : null
+  }
+
+  public async getSync() {
+    const results: {
+      coordinatorHeadSlot?: bigint
+      coordinatorSyncDistance?: bigint
+      coordinatorPreviousJustifiedEpoch?: bigint
+      coordinatorCurrentJustifiedEpoch?: bigint
+      coordinatorFinalizedEpoch?: bigint
+      validatorHeadSlot?: bigint
+      validatorSyncDistance?: bigint
+      validatorFinalizedSlot?: bigint
+    } = {}
+    if (this.model === null) {
+      return null
+    }
+    try {
+      const response = await this._runCoordinatorCommand('/eth/v1/node/syncing')
+      if (response && response?.data) {
+        results.coordinatorHeadSlot = BigInt(response.data.head_slot)
+        results.coordinatorSyncDistance = BigInt(response.data.sync_distance)
+      }
+    } catch (error) {
+      log.debug(error)
+    }
+    try {
+      const response = await this._runCoordinatorCommand(
+        '/eth/v1/beacon/states/head/finality_checkpoints'
+      )
+      if (response && response?.data) {
+        results.coordinatorPreviousJustifiedEpoch = BigInt(response.data.previous_justified.epoch)
+        results.coordinatorCurrentJustifiedEpoch = BigInt(response.data.current_justified.epoch)
+        results.coordinatorFinalizedEpoch = BigInt(response.data.finalized.epoch)
+      }
+    } catch (error) {
+      log.debug(error)
+    }
+
+    try {
+      const response = (await this._runValidatorCommand('eth.syncing')) as string
+
+      if (response !== 'false' && response !== '') {
+        const currentSlot = (await this._runValidatorCommand('eth.syncing.currentSlot')) as string
+        const finalizedSlot = (await this._runValidatorCommand(
+          'eth.syncing.finalizedSlot'
+        )) as string
+        results.validatorHeadSlot = BigInt(finalizedSlot)
+        results.validatorSyncDistance = BigInt(currentSlot) - BigInt(finalizedSlot)
+        results.validatorFinalizedSlot = BigInt(finalizedSlot)
+      }
+    } catch (error) {
+      log.debug(error)
+    }
+    return Object.keys(results).length > 0 ? results : null
+  }
+
   private async _checkMain(): Promise<boolean> {
     if (this.model === null) {
       return false
@@ -228,12 +320,12 @@ class LocalNode {
       ))
     ) {
       const child = new Child({
-        binPath: getValidatorBinPath(this.model.network),
+        binPath: this.appEnv.getValidatorBinPath(this.model.network),
         args: [
           `--datadir=${getValidatorPath(this.model.locationDir)}`,
           `init`,
-          `${getValidatorGenesisPath(this.model.network)}`,
-          `${getValidatorGenesisDataPath(this.model.network)}`
+          `${this.appEnv.getValidatorGenesisPath(this.model.network)}`,
+          `${this.appEnv.getValidatorGenesisDataPath(this.model.network)}`
         ],
         outLogPath: `${getLogPath(this.model.locationDir)}/validator.out.log`,
         errLogPath: `${getLogPath(this.model.locationDir)}/validator.err.log`
@@ -275,13 +367,13 @@ class LocalNode {
       return false
     }
     this.coordinatorBeacon = new Child({
-      binPath: getCoordinatorBeaconBinPath(this.model.network),
+      binPath: this.appEnv.getCoordinatorBeaconBinPath(this.model.network),
       args: [
         '--accept-terms-of-use',
         '--disable-peer-scorer',
         `--datadir=${getCoordinatorPath(this.model.locationDir)}`,
         `--bootstrap-node=${getCoordinatorBootnode(this.model.network)}`,
-        `--genesis-state=${getCoordinatorBeaconGenesisPath(this.model.network)}`,
+        `--genesis-state=${this.appEnv.getCoordinatorBeaconGenesisPath(this.model.network)}`,
         `--chain-id=${getChainId(this.model.network)}`,
         `--network-id=${getChainId(this.model.network)}`,
         '--contract-deployment-block=0',
@@ -295,6 +387,10 @@ class LocalNode {
       outLogPath: `${getLogPath(this.model.locationDir)}/coordinator-beacon.out.log`,
       errLogPath: `${getLogPath(this.model.locationDir)}/coordinator-beacon.err.log`
     })
+    this.coordinatorBeacon.on('stop', () => {
+      this.emit('stop', 'coordinatorBeacon')
+    })
+
     return true
   }
 
@@ -303,7 +399,7 @@ class LocalNode {
       return false
     }
     this.validator = new Child({
-      binPath: getValidatorBinPath(this.model.network),
+      binPath: this.appEnv.getValidatorBinPath(this.model.network),
       args: [
         `--datadir=${getValidatorPath(this.model.locationDir)}`,
         `--bootnodes=${getValidatorBootnode(this.model.network)}`,
@@ -315,6 +411,9 @@ class LocalNode {
       outLogPath: `${getLogPath(this.model.locationDir)}/validator.out.log`,
       errLogPath: `${getLogPath(this.model.locationDir)}/validator.err.log`
     })
+    this.validator.on('stop', () => {
+      this.emit('stop', 'validator')
+    })
     return true
   }
 
@@ -323,7 +422,7 @@ class LocalNode {
       return false
     }
     this.coordinatorValidator = new Child({
-      binPath: getCoordinatorValidatorBinPath(this.model.network),
+      binPath: this.appEnv.getCoordinatorValidatorBinPath(this.model.network),
       args: [
         '--accept-terms-of-use',
         '--grpc-max-msg-size=15900000',
@@ -334,7 +433,62 @@ class LocalNode {
       outLogPath: `${getLogPath(this.model.locationDir)}/coordinator-validator.out.log`,
       errLogPath: `${getLogPath(this.model.locationDir)}/coordinator-validator.err.log`
     })
+    this.coordinatorValidator.on('stop', () => {
+      this.emit('stop', 'coordinatorValidator')
+    })
     return true
+  }
+
+  private async _runCoordinatorCommand(command: string) {
+    if (!this.model) {
+      return {}
+    }
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:${this.model.coordinatorHttpApiPort}${command}`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      if (!response.ok) {
+        return {}
+      }
+      return await response.json()
+    } catch (error) {
+      // log.debug(error)
+    }
+    return {}
+  }
+
+  private async _runValidatorCommand(command: string) {
+    if (!this.model) {
+      return ''
+    }
+    const isWorking = await checkSocket(`${getValidatorPath(this.model.locationDir)}/validator.ipc`)
+    if (!isWorking) {
+      return ''
+    }
+    return new Promise((resolve, reject) => {
+      if (!this.model) {
+        return reject('')
+      }
+      exec(
+        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec "${command}" attach ${getValidatorPath(this.model.locationDir)}/validator.ipc`,
+        (err, stdout, stderr) => {
+          if (err) {
+            return reject(err)
+          }
+          if (stderr) {
+            return reject(stderr)
+          }
+          if (stdout) {
+            return resolve(stdout)
+          }
+        }
+      )
+    })
   }
 }
 

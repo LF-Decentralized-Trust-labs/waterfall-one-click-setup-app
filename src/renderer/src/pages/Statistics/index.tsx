@@ -49,7 +49,7 @@ const epochLeaderBoardsData: LeaderBoardTableDataTypes[] = [
 
 export const StatisticsPage = () => {
   const [nodeFilter, setNodeFilter] = useState([nodeOptions[0].value])
-  const [_, setDateFilter] = useState<[string, string] | string | null>(null)
+  const [, setDateFilter] = useState<[string, string] | string | null>(null)
 
   const onNodeSelect = (value?: string[]) => {
     setNodeFilter(value || [])

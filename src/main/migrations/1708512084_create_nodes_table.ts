@@ -1,5 +1,9 @@
-import { db } from '../libs/db'
+import path from 'path'
+import { app } from 'electron'
+import { getMain } from '../libs/db'
 
+const dbPath = path.join(app.getPath('userData'), 'wf.db')
+const db = getMain(dbPath)
 export function up(next: () => void): void {
   db.exec(`
     CREATE TABLE nodes (
