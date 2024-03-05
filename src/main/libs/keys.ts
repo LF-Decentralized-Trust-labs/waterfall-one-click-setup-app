@@ -1,13 +1,13 @@
 import { ethers } from 'ethers'
-// import { ByteVectorType, ContainerType, UintBigintType } from '@chainsafe/ssz'
+import { ByteVectorType, ContainerType, UintBigintType } from '@chainsafe/ssz'
 // // import { getSecretKeyFromKeystore } from '@myetherwallet/eth2-keystore'
 // import { init, SecretKey } from '@chainsafe/bls'
 // import { deriveChildSKMultiple, deriveMasterSK, pathToIndices } from '@chainsafe/bls-hd-key'
 // import * as bip39 from 'bip39'
 //
-// const DOMAIN_DEPOSIT = Buffer.from('03000000', 'hex')
-// const GENESIS_FORK_VERSION = Buffer.alloc(4)
-// const AMOUNT = BigInt(3200000000000)
+const DOMAIN_DEPOSIT = Buffer.from('03000000', 'hex')
+const GENESIS_FORK_VERSION = Buffer.alloc(4)
+const AMOUNT = BigInt(3200000000000)
 export const genMnemonic = (): string => {
   const entropy = ethers.randomBytes(32)
   const mnemonic = ethers.Mnemonic.fromEntropy(entropy)
@@ -97,121 +97,121 @@ export const genMnemonic = (): string => {
 // //   console.log(bytesToHex(key))
 // // }
 //
-// function compute_deposit_domain(fork_version: Uint8Array) {
-//   const fork_data_root = compute_deposit_fork_data_root(fork_version)
-//   return Uint8Array.from([...DOMAIN_DEPOSIT, ...fork_data_root.slice(0, 28)])
-// }
-//
-// function compute_deposit_fork_data_root(current_version: Uint8Array) {
-//   const genesis_validators_root = Buffer.alloc(32)
-//   const ForkData = new ContainerType({
-//     current_version: new ByteVectorType(4),
-//     genesis_validators_root: new ByteVectorType(32)
-//   })
-//
-//   const data = {
-//     current_version: current_version,
-//     genesis_validators_root: genesis_validators_root
-//   }
-//   return ForkData.hashTreeRoot(data)
-// }
-//
-// function compute_signing_root(root: Uint8Array, domain: Uint8Array) {
-//   const SigningData = new ContainerType({
-//     object_root: new ByteVectorType(32),
-//     domain: new ByteVectorType(32)
-//   })
-//   const data = {
-//     object_root: root,
-//     domain: domain
-//   }
-//   return SigningData.hashTreeRoot(data)
-// }
-//
-// function deposit_message_signing_root(
-//   publicKey: Uint8Array,
-//   creator_address: Uint8Array,
-//   withdrawal_address: Uint8Array
-// ) {
-//   const DepositDataType = new ContainerType({
-//     pubkey: new ByteVectorType(48),
-//     creator_address: new ByteVectorType(20),
-//     withdrawal_address: new ByteVectorType(20)
-//   })
-//
-//   const data = {
-//     pubkey: publicKey,
-//     creator_address: creator_address,
-//     withdrawal_address: withdrawal_address
-//   }
-//
-//   return DepositDataType.hashTreeRoot(data)
-// }
-//
-// function deposit_message_root(
-//   publicKey: Uint8Array,
-//   creator_address: Uint8Array,
-//   withdrawal_address: Uint8Array,
-//   amount: bigint
-// ) {
-//   const DepositDataType = new ContainerType({
-//     pubkey: new ByteVectorType(48),
-//     creator_address: new ByteVectorType(20),
-//     withdrawal_address: new ByteVectorType(20),
-//     amount: new UintBigintType(8)
-//   })
-//
-//   const data = {
-//     pubkey: publicKey,
-//     creator_address: creator_address,
-//     withdrawal_address: withdrawal_address,
-//     amount: amount
-//   }
-//
-//   return DepositDataType.hashTreeRoot(data)
-// }
-//
-// function signed_deposit_root(
-//   publicKey: Uint8Array,
-//   creator_address: Uint8Array,
-//   withdrawal_address: Uint8Array,
-//   amount: bigint,
-//   signature: Uint8Array
-// ) {
-//   const DepositDataType = new ContainerType({
-//     pubkey: new ByteVectorType(48),
-//     creator_address: new ByteVectorType(20),
-//     withdrawal_address: new ByteVectorType(20),
-//     amount: new UintBigintType(8),
-//     signature: new ByteVectorType(96)
-//   })
-//
-//   const data = {
-//     pubkey: publicKey,
-//     creator_address: creator_address,
-//     withdrawal_address: withdrawal_address,
-//     amount: amount,
-//     signature: signature
-//   }
-//   return DepositDataType.hashTreeRoot(data)
-// }
-//
-// const hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'))
-// function isBytes(a: unknown): a is Uint8Array {
-//   return (
-//     a instanceof Uint8Array ||
-//     (a != null && typeof a === 'object' && a.constructor.name === 'Uint8Array')
-//   )
-// }
-// function bytesToHex(bytes: Uint8Array): string {
-//   if (!isBytes(bytes)) throw new Error('Uint8Array expected')
-//   // pre-caching improves the speed 6x
-//   let hex = ''
-//   for (let i = 0; i < bytes.length; i++) {
-//     hex += hexes[bytes[i]]
-//   }
-//   return hex
-// }
+function compute_deposit_domain(fork_version: Uint8Array) {
+  const fork_data_root = compute_deposit_fork_data_root(fork_version)
+  return Uint8Array.from([...DOMAIN_DEPOSIT, ...fork_data_root.slice(0, 28)])
+}
+
+function compute_deposit_fork_data_root(current_version: Uint8Array) {
+  const genesis_validators_root = Buffer.alloc(32)
+  const ForkData = new ContainerType({
+    current_version: new ByteVectorType(4),
+    genesis_validators_root: new ByteVectorType(32)
+  })
+
+  const data = {
+    current_version: current_version,
+    genesis_validators_root: genesis_validators_root
+  }
+  return ForkData.hashTreeRoot(data)
+}
+
+function compute_signing_root(root: Uint8Array, domain: Uint8Array) {
+  const SigningData = new ContainerType({
+    object_root: new ByteVectorType(32),
+    domain: new ByteVectorType(32)
+  })
+  const data = {
+    object_root: root,
+    domain: domain
+  }
+  return SigningData.hashTreeRoot(data)
+}
+
+function deposit_message_signing_root(
+  publicKey: Uint8Array,
+  creator_address: Uint8Array,
+  withdrawal_address: Uint8Array
+) {
+  const DepositDataType = new ContainerType({
+    pubkey: new ByteVectorType(48),
+    creator_address: new ByteVectorType(20),
+    withdrawal_address: new ByteVectorType(20)
+  })
+
+  const data = {
+    pubkey: publicKey,
+    creator_address: creator_address,
+    withdrawal_address: withdrawal_address
+  }
+
+  return DepositDataType.hashTreeRoot(data)
+}
+
+function deposit_message_root(
+  publicKey: Uint8Array,
+  creator_address: Uint8Array,
+  withdrawal_address: Uint8Array,
+  amount: bigint
+) {
+  const DepositDataType = new ContainerType({
+    pubkey: new ByteVectorType(48),
+    creator_address: new ByteVectorType(20),
+    withdrawal_address: new ByteVectorType(20),
+    amount: new UintBigintType(8)
+  })
+
+  const data = {
+    pubkey: publicKey,
+    creator_address: creator_address,
+    withdrawal_address: withdrawal_address,
+    amount: amount
+  }
+
+  return DepositDataType.hashTreeRoot(data)
+}
+
+function signed_deposit_root(
+  publicKey: Uint8Array,
+  creator_address: Uint8Array,
+  withdrawal_address: Uint8Array,
+  amount: bigint,
+  signature: Uint8Array
+) {
+  const DepositDataType = new ContainerType({
+    pubkey: new ByteVectorType(48),
+    creator_address: new ByteVectorType(20),
+    withdrawal_address: new ByteVectorType(20),
+    amount: new UintBigintType(8),
+    signature: new ByteVectorType(96)
+  })
+
+  const data = {
+    pubkey: publicKey,
+    creator_address: creator_address,
+    withdrawal_address: withdrawal_address,
+    amount: amount,
+    signature: signature
+  }
+  return DepositDataType.hashTreeRoot(data)
+}
+
+const hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'))
+function isBytes(a: unknown): a is Uint8Array {
+  return (
+    a instanceof Uint8Array ||
+    (a != null && typeof a === 'object' && a.constructor.name === 'Uint8Array')
+  )
+}
+function bytesToHex(bytes: Uint8Array): string {
+  if (!isBytes(bytes)) throw new Error('Uint8Array expected')
+  // pre-caching improves the speed 6x
+  let hex = ''
+  for (let i = 0; i < bytes.length; i++) {
+    hex += hexes[bytes[i]]
+  }
+  return hex
+}
 //
 // // "@chainsafe/bls": "^6.0.3",
 // //   "@chainsafe/bls-hd-key": "^0.3.0",
