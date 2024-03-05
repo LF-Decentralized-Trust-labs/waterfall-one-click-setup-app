@@ -26,6 +26,7 @@
     "@canvasjs/react-charts": "^1.0.0",
     "@canvasjs/react-stockcharts": "^1.0.0",
     "@canvasjs/stockcharts": "^1.7.39",
+    "@chainsafe/bls-hd-key": "^0.3.0",
     "@chainsafe/ssz": "^0.14.3",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",

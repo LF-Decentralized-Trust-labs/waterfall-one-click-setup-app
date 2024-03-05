@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import { ByteVectorType, ContainerType, UintBigintType } from '@chainsafe/ssz'
 // // import { getSecretKeyFromKeystore } from '@myetherwallet/eth2-keystore'
 // import { init, SecretKey } from '@chainsafe/bls'
-// import { deriveChildSKMultiple, deriveMasterSK, pathToIndices } from '@chainsafe/bls-hd-key'
+import { deriveChildSKMultiple, deriveMasterSK, pathToIndices } from '@chainsafe/bls-hd-key'
 import * as bip39 from 'bip39'
 
 const DOMAIN_DEPOSIT = Buffer.from('03000000', 'hex')
@@ -23,9 +23,9 @@ export const getDepositData = async (
 
   const seed = bip39.mnemonicToSeedSync(phrase, '')
   log.debug(bytesToHex(seed))
-//   const masterKey = deriveMasterSK(seed)
-//   const childKey = deriveChildSKMultiple(masterKey, pathToIndices(`m/12381/3600/${index}/0/0`))
-
+  const masterKey = deriveMasterSK(seed)
+  const childKey = deriveChildSKMultiple(masterKey, pathToIndices(`m/12381/3600/${index}/0/0`))
+  log.debug(bytesToHex(masterKey))
   //   await init('herumi')
 //   const privateKey = SecretKey.fromBytes(childKey)
 //   const publicKey = privateKey.toPublicKey().toBytes()
