@@ -21,7 +21,7 @@ export const TabTextRow: React.FC<{ label: string; value?: string | number | Rea
 }) => {
   return (
     <TextItem gap={6} align="center">
-      <Text strong>{label}:</Text>
+      <Text>{label}:</Text>
       <Text>{value}</Text>
     </TextItem>
   )
@@ -32,7 +32,7 @@ export const TabTextColumn: React.FC<{
 }> = ({ label, value }) => {
   return (
     <TextItem gap={4} vertical>
-      <Text strong>{label}</Text>
+      <Text>{label}</Text>
       <Text>{value}</Text>
     </TextItem>
   )

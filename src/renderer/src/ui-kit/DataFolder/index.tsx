@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { styled } from 'styled-components'
 import { DatabaseOutlined } from '@ant-design/icons'
 import { Text } from '../Typography'
@@ -38,10 +38,15 @@ export const DataFolder: React.FC<DataFolderPropsT> = ({
     setOptions(value ? searchResult(value) : [])
   }
 
-  const onSelect = (value: string) => {
-    onChange(value)
-    setSearchValue(value)
-  }
+  const onSelect = useCallback(
+    (value: string) => {
+      if (onChange) {
+        onChange(value)
+      }
+      setSearchValue(value)
+    },
+    [onChange]
+  )
   return (
     <Wrapper>
       {!hideLabel && (
