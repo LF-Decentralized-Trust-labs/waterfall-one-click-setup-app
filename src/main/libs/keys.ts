@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { ByteVectorType, ContainerType, UintBigintType } from '@chainsafe/ssz'
 // // import { getSecretKeyFromKeystore } from '@myetherwallet/eth2-keystore'
 // import { init, SecretKey } from '@chainsafe/bls'
+// import bls from '@chainsafe/bls'
 import { deriveChildSKMultiple, deriveMasterSK, pathToIndices } from '@chainsafe/bls-hd-key'
 import * as bip39 from 'bip39'
 
@@ -22,45 +23,44 @@ export const getDepositData = async (
 ) => {
 
   const seed = bip39.mnemonicToSeedSync(phrase, '')
-  log.debug(bytesToHex(seed))
   const masterKey = deriveMasterSK(seed)
   const childKey = deriveChildSKMultiple(masterKey, pathToIndices(`m/12381/3600/${index}/0/0`))
-  log.debug(bytesToHex(masterKey))
-  //   await init('herumi')
-//   const privateKey = SecretKey.fromBytes(childKey)
-//   const publicKey = privateKey.toPublicKey().toBytes()
-//
-//   const hdNodeEth1 = ethers.HDNodeWallet.fromPhrase(phrase, '', `m/44'/60'/0'/0/${index}`)
-//   const creatorKey = ethers.getBytes(hdNodeEth1.address)
-//
-//   const withdrawalKey = ethers.getBytes(withdrawalAddress)
-//
-//   const domain = compute_deposit_domain(GENESIS_FORK_VERSION)
-//   const root = deposit_message_signing_root(publicKey, creatorKey, withdrawalKey)
-//   const signingRoot = compute_signing_root(root, domain)
-//   const signature = privateKey.sign(signingRoot)
-//
-//   const deposit_data_root = signed_deposit_root(
-//     publicKey,
-//     creatorKey,
-//     withdrawalKey,
-//     AMOUNT,
-//     signature.toBytes()
-//   )
-//   const deposit_message_root2 = deposit_message_root(publicKey, creatorKey, withdrawalKey, AMOUNT)
-//
-//   return {
-//     pubkey: bytesToHex(publicKey),
-//     creator_address: bytesToHex(creatorKey),
-//     withdrawal_address: bytesToHex(withdrawalKey),
-//     amount: ethers.toNumber(AMOUNT),
-//     signature: bytesToHex(signature.toBytes()),
-//     deposit_message_root: bytesToHex(deposit_message_root2),
-//     deposit_data_root: bytesToHex(deposit_data_root),
-//     fork_version: bytesToHex(GENESIS_FORK_VERSION),
-//     eth2_network_name: 'mainnet',
-//     deposit_cli_version: '1.2.0'
-//   }
+  // await init('herumi')
+  // const privateKey = bls.SecretKey.fromBytes(childKey)
+  // const publicKey = privateKey.toPublicKey().toBytes()
+  // log.debug(bytesToHex(publicKey))
+  //
+  // const hdNodeEth1 = ethers.HDNodeWallet.fromPhrase(phrase, '', `m/44'/60'/0'/0/${index}`)
+  // const creatorKey = ethers.getBytes(hdNodeEth1.address)
+  //
+  // const withdrawalKey = ethers.getBytes(withdrawalAddress)
+  //
+  // const domain = compute_deposit_domain(GENESIS_FORK_VERSION)
+  // const root = deposit_message_signing_root(publicKey, creatorKey, withdrawalKey)
+  // const signingRoot = compute_signing_root(root, domain)
+  // const signature = privateKey.sign(signingRoot)
+  //
+  // const deposit_data_root = signed_deposit_root(
+  //   publicKey,
+  //   creatorKey,
+  //   withdrawalKey,
+  //   AMOUNT,
+  //   signature.toBytes()
+  // )
+  // const deposit_message_root2 = deposit_message_root(publicKey, creatorKey, withdrawalKey, AMOUNT)
+  //
+  // return {
+  //   pubkey: bytesToHex(publicKey),
+  //   creator_address: bytesToHex(creatorKey),
+  //   withdrawal_address: bytesToHex(withdrawalKey),
+  //   amount: ethers.toNumber(AMOUNT),
+  //   signature: bytesToHex(signature.toBytes()),
+  //   deposit_message_root: bytesToHex(deposit_message_root2),
+  //   deposit_data_root: bytesToHex(deposit_data_root),
+  //   fork_version: bytesToHex(GENESIS_FORK_VERSION),
+  //   eth2_network_name: 'mainnet',
+  //   deposit_cli_version: '1.2.0'
+  // }
   return {}
 }
 //
@@ -201,12 +201,14 @@ function signed_deposit_root(
 }
 
 const hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'))
+
 function isBytes(a: unknown): a is Uint8Array {
   return (
     a instanceof Uint8Array ||
     (a != null && typeof a === 'object' && a.constructor.name === 'Uint8Array')
   )
 }
+
 function bytesToHex(bytes: Uint8Array): string {
   if (!isBytes(bytes)) throw new Error('Uint8Array expected')
   // pre-caching improves the speed 6x
@@ -216,6 +218,7 @@ function bytesToHex(bytes: Uint8Array): string {
   }
   return hex
 }
+
 //
 // // "@chainsafe/bls": "^6.0.3",
 // //   "@chainsafe/bls-hd-key": "^0.3.0",

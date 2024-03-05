@@ -7,7 +7,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
-        external: ['better-sqlite3']
+        external: ['better-sqlite3', 'bcrypto']
         // input: {
         //   index: resolve(__dirname, 'src/main/index.ts'),
         //   monitoringStatus: resolve(__dirname, 'src/main/monitoring/status.ts')
