@@ -9,6 +9,7 @@ import Node from './node'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
+import { genMnemonic } from './libs/keys'
 // import { genMnemonic, getDepositData } from './libs/keys'
 
 let tray: null | Tray = null
@@ -198,8 +199,8 @@ app.whenReady().then(async () => {
     mainWindow.webContents.toggleDevTools()
   })
 
-  // const m = genMnemonic()
-  // log.debug('Mnemonic', m)
+  const m = genMnemonic()
+  log.debug('Mnemonic', m)
   // const depositData = await getDepositData(
   //   'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick',
   //   1,
