@@ -9,8 +9,7 @@ import Node from './node'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
-import { genMnemonic } from './libs/keys'
-// import { genMnemonic, getDepositData } from './libs/keys'
+import { genMnemonic, getDepositData } from './libs/keys'
 
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
@@ -201,12 +200,12 @@ app.whenReady().then(async () => {
 
   const m = genMnemonic()
   log.debug('Mnemonic', m)
-  // const depositData = await getDepositData(
-  //   'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick',
-  //   1,
-  //   '0x30c35895fe0f7768a261b5326e4332cbb4556ba3'
-  // )
-  // log.debug('depositData', depositData)
+  const depositData = await getDepositData(
+    'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick',
+    1,
+    '0x30c35895fe0f7768a261b5326e4332cbb4556ba3'
+  )
+  log.debug('depositData', depositData)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

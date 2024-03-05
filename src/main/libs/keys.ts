@@ -1,10 +1,11 @@
+import log from 'electron-log/node'
 import { ethers } from 'ethers'
 import { ByteVectorType, ContainerType, UintBigintType } from '@chainsafe/ssz'
 // // import { getSecretKeyFromKeystore } from '@myetherwallet/eth2-keystore'
 // import { init, SecretKey } from '@chainsafe/bls'
 // import { deriveChildSKMultiple, deriveMasterSK, pathToIndices } from '@chainsafe/bls-hd-key'
-// import * as bip39 from 'bip39'
-//
+import * as bip39 from 'bip39'
+
 const DOMAIN_DEPOSIT = Buffer.from('03000000', 'hex')
 const GENESIS_FORK_VERSION = Buffer.alloc(4)
 const AMOUNT = BigInt(3200000000000)
@@ -13,17 +14,19 @@ export const genMnemonic = (): string => {
   const mnemonic = ethers.Mnemonic.fromEntropy(entropy)
   return mnemonic.phrase
 }
-//
-// export const getDepositData = async (
-//   phrase: string,
-//   index: number = 0,
-//   withdrawalAddress: string
-// ) => {
-//   await init('herumi')
-//   const seed = bip39.mnemonicToSeedSync(phrase, '')
+
+export const getDepositData = async (
+  phrase: string,
+  index: number = 0,
+  withdrawalAddress: string
+) => {
+
+  const seed = bip39.mnemonicToSeedSync(phrase, '')
+  log.debug(bytesToHex(seed))
 //   const masterKey = deriveMasterSK(seed)
 //   const childKey = deriveChildSKMultiple(masterKey, pathToIndices(`m/12381/3600/${index}/0/0`))
-//
+
+  //   await init('herumi')
 //   const privateKey = SecretKey.fromBytes(childKey)
 //   const publicKey = privateKey.toPublicKey().toBytes()
 //
@@ -58,7 +61,8 @@ export const genMnemonic = (): string => {
 //     eth2_network_name: 'mainnet',
 //     deposit_cli_version: '1.2.0'
 //   }
-// }
+  return {}
+}
 //
 // // {
 // //   "pubkey": "8a2cd20834238644f9376951bf827dfed961e3b4dfa84cae226d3ed47a73862692b59f578c3616a38c7ecef1a9a8756b",
@@ -215,8 +219,5 @@ function bytesToHex(bytes: Uint8Array): string {
 //
 // // "@chainsafe/bls": "^6.0.3",
 // //   "@chainsafe/bls-hd-key": "^0.3.0",
-// //   "@chainsafe/ssz": "^0.14.3",
 // //
 // //   "@myetherwallet/eth2-keystore": "^0.3.1",
-// //   "bip39": "^3.1.0",
-// //   "ethers": "^6.11.1",
