@@ -26,6 +26,7 @@
     "@canvasjs/react-charts": "^1.0.0",
     "@canvasjs/react-stockcharts": "^1.0.0",
     "@canvasjs/stockcharts": "^1.7.39",
+    "@chainsafe/bls": "^6.0.3",
     "@chainsafe/bls-hd-key": "^0.3.0",
     "@chainsafe/ssz": "^0.14.3",
     "@electron-toolkit/preload": "^3.0.0",
@@ -38,7 +39,9 @@
     "electron-updater": "^6.1.7",
     "ethers": "^6.11.1",
     "migrate": "^2.1.0",
+    "node-gyp": "^9.0.0",
     "react-router-dom": "^6.22.0",
+    "scrypt-js": "^3.0.1",
     "styled-components": "^6.1.8"
   },
   "devDependencies": {
@@ -46,7 +49,7 @@
     "@electron-toolkit/eslint-config-ts": "^1.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@types/better-sqlite3": "^7.6.9",
-    "@types/node": "^18.19.5",
+    "@types/node": "^20.9.0",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
@@ -59,7 +62,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.3.3",
-    "vite": "^5.0.11"
+    "vite": "^5.1.5"
   },
   "build": {
     "buildDependenciesFromSource": true,

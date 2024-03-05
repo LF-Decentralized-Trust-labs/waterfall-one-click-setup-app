@@ -9,7 +9,7 @@ import Node from './node'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
-import { genMnemonic, getDepositData } from './libs/keys'
+import { genMnemonic, getDepositData, getSecretKeyFromKeystore, getKeyStore } from './libs/keys'
 
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
@@ -200,12 +200,20 @@ app.whenReady().then(async () => {
 
   const m = genMnemonic()
   log.debug('Mnemonic', m)
-  const depositData = await getDepositData(
-    'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick',
-    1,
-    '0x30c35895fe0f7768a261b5326e4332cbb4556ba3'
-  )
+  const prase =
+    'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick'
+  const depositData = await getDepositData(prase, 1, '0x30c35895fe0f7768a261b5326e4332cbb4556ba3')
   log.debug('depositData', depositData)
+  const keystore =
+    '{"crypto": {"kdf": {"function": "scrypt", "params": {"dklen": 32, "n": 262144, "r": 8, "p": 1, "salt": "dc8e0eb6cfd8b5c67288940873373a85333e77407f7d56a91e8ae97d52d3c201"}, "message": ""}, "checksum": {"function": "sha256", "params": {}, "message": "90bfdbec871d2a2e25ffe1edc27352add7d33331457f026c2a0156d41438e31a"}, "cipher": {"function": "aes-128-ctr", "params": {"iv": "ad3312b6841dbb483d07b2f48e96616e"}, "message": "3c79c61344cbafc1f5b632a0996595ebe40e1d75c052e1c93406b89808f5c02a"}}, "description": "", "pubkey": "865144c3f453813c1145617672b2abf16f0ed1b09365af178b3130819c0e6ad2a98d7c4342b43b2bb0ce61b6badeeae9", "path": "m/12381/3600/1/0/0", "uuid": "6cf3ddb3-9d9e-49db-8256-bf63a5991e1b", "version": 4}'
+  const keystoreObject = JSON.parse(keystore)
+  const pass = 'COORDINATOR_PASSWORD'
+  const pkey = await getSecretKeyFromKeystore(keystoreObject, pass)
+  log.debug(pkey)
+  const keystoreObject2 = await getKeyStore(prase, 1, pass)
+  log.debug(keystoreObject2)
+  const pkey2 = await getSecretKeyFromKeystore(keystoreObject2, pass)
+  log.debug(pkey2)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -224,7 +232,7 @@ const quit = async () => {
   statusWorker.postMessage({
     type: 'stop'
   })
-  statusWorker.terminate()
+  await statusWorker.terminate()
 
   await node.destroy()
 
