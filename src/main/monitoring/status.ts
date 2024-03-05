@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'worker_threads'
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
 import NodeModel, { Type as NodeType } from '../models/node'

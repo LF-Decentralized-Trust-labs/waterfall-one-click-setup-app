@@ -1,6 +1,6 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
 import fs from 'node:fs'
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 import { EventEmitter } from 'node:events'
 
 export enum StatusResult {

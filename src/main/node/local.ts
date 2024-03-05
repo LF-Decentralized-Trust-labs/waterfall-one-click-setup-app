@@ -1,5 +1,5 @@
 import * as crypto from 'crypto'
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 import { exec } from 'node:child_process'
 import Child, { StatusResult } from './child'
 import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket } from '../libs/fs'

@@ -1,6 +1,6 @@
 import { access, mkdir, writeFile, readFile, constants } from 'node:fs/promises'
 import * as net from 'node:net'
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 
 export const checkOrCreateDir = async (dirPath: string): Promise<boolean> => {
   try {

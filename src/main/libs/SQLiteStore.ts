@@ -2,7 +2,7 @@ import { app } from 'electron'
 import Database from 'better-sqlite3'
 import { FileStore, MigrationSet, FileStoreLoadCallback, Migration } from 'migrate'
 import path from 'path'
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 import { getMain } from './db'
 
 type Database = ReturnType<typeof Database>

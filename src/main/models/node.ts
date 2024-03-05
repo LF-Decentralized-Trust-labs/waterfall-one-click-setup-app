@@ -1,4 +1,4 @@
-import log from 'electron-log/main'
+import log from 'electron-log/node'
 import Database from 'better-sqlite3'
 import {
   Network,
