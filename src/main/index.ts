@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, Tray, Menu, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, Tray, Menu, ipcMain, globalShortcut } from 'electron'
 import { Event, HandlerDetails } from 'electron'
 import { join } from 'path'
 import log from 'electron-log/main'
@@ -9,6 +9,7 @@ import Node from './node'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
+// import { genMnemonic, getDepositData } from './libs/keys'
 
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
@@ -190,6 +191,21 @@ app.whenReady().then(async () => {
     }
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+  globalShortcut.register('CommandOrControl+Shift+I', () => {
+    if (mainWindow === null) {
+      return
+    }
+    mainWindow.webContents.toggleDevTools()
+  })
+
+  // const m = genMnemonic()
+  // log.debug('Mnemonic', m)
+  // const depositData = await getDepositData(
+  //   'empty slogan praise parent spin female ladder orange cost gospel split regret caught inquiry glad alter hundred cry write judge point assist trust kick',
+  //   1,
+  //   '0x30c35895fe0f7768a261b5326e4332cbb4556ba3'
+  // )
+  // log.debug('depositData', depositData)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -215,6 +231,7 @@ const quit = async () => {
   if (mainWindow !== null) {
     mainWindow.destroy()
   }
+  globalShortcut.unregisterAll()
   app.quit()
   console.log('Quit')
 }

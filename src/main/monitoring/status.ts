@@ -90,6 +90,11 @@ const appEnv = new AppEnv({
   appPath: workerData.appPath,
   userData: workerData.userData
 })
+log.debug({
+  isPackaged: workerData.isPackaged,
+  appPath: workerData.appPath,
+  userData: workerData.userData
+})
 
 const monitoring = new StatusMonitoring(appEnv, 4000)
 

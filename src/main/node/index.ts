@@ -109,8 +109,10 @@ class Node {
         coordinatorStatus: pids.coordinatorBeacon
           ? CoordinatorStatus.running
           : CoordinatorStatus.stopped,
+        coordinatorPeersCount: 0,
         validatorPid: pids.validator,
         validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
+        validatorPeersCount: 0,
         coordinatorValidatorPid: pids.coordinatorValidator,
         coordinatorValidatorStatus: pids.coordinatorValidator
           ? CoordinatorValidatorStatus.running

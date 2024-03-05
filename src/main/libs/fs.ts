@@ -74,6 +74,5 @@ export const checkSocket = async (ipcPath: string): Promise<boolean> => {
     client.on('error', () => {
       resolve(false)
     })
-
   })
 }
