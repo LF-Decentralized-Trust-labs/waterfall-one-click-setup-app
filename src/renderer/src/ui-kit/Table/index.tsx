@@ -2,10 +2,11 @@ import { Table as AntdTable, TableProps } from 'antd'
 import React from 'react'
 import { styled } from 'styled-components'
 
+export { type TableProps }
 export const Table: React.FC<TableProps> = ({ ...props }) => {
   return (
     <TableWrapper>
-      <StyledTable {...props} />
+      <StyledTable pagination={false} {...props} />
     </TableWrapper>
   )
 }

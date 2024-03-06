@@ -1,32 +1,34 @@
 import { TableColumnsType } from 'antd'
 import { NodesListDataTypes, NodesListDataFields } from '@renderer/types/node'
-import { routes } from '@renderer/constants/navigation'
-import { getViewLink } from '@renderer/helpers/navigation'
-import { Link } from '@renderer/ui-kit/Link'
+import { getDateTime } from '@renderer/helpers/date'
 
 export type DataType = NodesListDataTypes & {
   key: React.Key
 }
 
 export const columns: TableColumnsType<DataType> = [
+  { title: '#', dataIndex: NodesListDataFields.id, key: NodesListDataFields.id },
   { title: 'Name', dataIndex: NodesListDataFields.name, key: NodesListDataFields.name },
   {
-    title: 'Local/IP',
-    dataIndex: NodesListDataFields.localOrIp,
-    key: NodesListDataFields.localOrIp
+    title: 'Type',
+    dataIndex: NodesListDataFields.type,
+    key: NodesListDataFields.type
   },
-  { title: 'Up Time', dataIndex: NodesListDataFields.upTime, key: NodesListDataFields.upTime },
+  {
+    title: 'Location',
+    dataIndex: NodesListDataFields.locationDir,
+    key: NodesListDataFields.locationDir
+  },
 
   {
-    title: 'Workers#',
-    dataIndex: NodesListDataFields.workers,
-    key: NodesListDataFields.workers,
-    render: (data) => <div>{data?.join(' ')}</div>
+    title: 'Workers',
+    dataIndex: NodesListDataFields.workersCount,
+    key: NodesListDataFields.workersCount
   },
   {
-    title: 'Actions',
-    dataIndex: 'actions',
-    key: 'x',
-    render: ({ id }) => <Link to={getViewLink(routes.nodes.view, { id })}>View</Link>
+    title: 'Added',
+    dataIndex: NodesListDataFields.createdAt,
+    key: NodesListDataFields.createdAt,
+    render: (field) => getDateTime(field)
   }
 ]

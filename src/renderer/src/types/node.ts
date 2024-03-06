@@ -1,16 +1,24 @@
 // NODE LIST TABLE
+export enum Type {
+  local = 'local',
+  remote = 'remote'
+}
 export enum NodesListDataFields {
+  id = 'id',
   name = 'name',
-  localOrIp = 'localOrIp',
-  upTime = 'upTime',
-  workers = 'workers'
+  type = 'type',
+  locationDir = 'locationDir',
+  createdAt = 'createdAt',
+  workersCount = 'workersCount'
 }
 
 export type NodesListDataTypes = {
+  [NodesListDataFields.id]: number | bigint
   [NodesListDataFields.name]: string
-  [NodesListDataFields.localOrIp]: string
-  [NodesListDataFields.upTime]: number
-  [NodesListDataFields.workers]: string[]
+  [NodesListDataFields.type]: Type
+  [NodesListDataFields.locationDir]: string
+  [NodesListDataFields.createdAt]: string
+  [NodesListDataFields.workersCount]: number
 }
 
 // NODE WORKERS TABLE
