@@ -1,8 +1,10 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
+import { spawn, exec, ChildProcessWithoutNullStreams } from 'node:child_process'
+import util from 'node:util'
 import fs from 'node:fs'
 import log from 'electron-log/node'
 import { EventEmitter } from 'node:events'
 
+const execPromise = util.promisify(exec)
 export enum StatusResult {
   success = 'success',
   fail = 'fail'
@@ -94,6 +96,9 @@ class Child extends EventEmitter {
       return undefined
     }
     return this.child.pid
+  }
+  public async exec() {
+    return await execPromise(`${this.binPath} ${this.args.join(' ')}`)
   }
 }
 

@@ -2,7 +2,7 @@ import * as crypto from 'crypto'
 import log from 'electron-log/node'
 import { exec } from 'node:child_process'
 import Child, { StatusResult } from './child'
-import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket } from '../libs/fs'
+import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket, checkFile } from '../libs/fs'
 import AppEnv from '../libs/appEnv'
 import {
   getChainId,
@@ -313,12 +313,7 @@ class LocalNode extends EventEmitter {
     ) {
       return false
     }
-    if (
-      !(await checkOrCreateFile(
-        `${getValidatorPath(this.model.locationDir)}/gwat/nodekey`,
-        undefined
-      ))
-    ) {
+    if (!(await checkFile(`${getValidatorPath(this.model.locationDir)}/gwat/nodekey`))) {
       const child = new Child({
         binPath: this.appEnv.getValidatorBinPath(this.model.network),
         args: [
@@ -330,7 +325,10 @@ class LocalNode extends EventEmitter {
         outLogPath: `${getLogPath(this.model.locationDir)}/validator.out.log`,
         errLogPath: `${getLogPath(this.model.locationDir)}/validator.err.log`
       })
-      await child.start()
+      const result = await child.exec()
+      if (!result.stderr.search('Successfully wrote genesis state')) {
+        return false
+      }
     }
 
     if (!(await checkPort(this.model.validatorP2PPort))) {

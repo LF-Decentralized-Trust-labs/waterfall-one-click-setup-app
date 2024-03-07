@@ -45,6 +45,15 @@ export const checkOrCreateFile = async (
   }
   return false
 }
+export const checkFile = async (filePath: string): Promise<boolean> => {
+  try {
+    await readFile(filePath, { encoding: 'utf-8' })
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 export const checkPort = async (port: number): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     const server = net.createServer()

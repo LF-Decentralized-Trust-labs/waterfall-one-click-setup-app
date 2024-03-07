@@ -20,7 +20,7 @@ export const NodeViewValidator: React.FC<NodeViewTabProps> = ({ item }) => {
         label="Finalized Slot (Epoch)"
         value={
           item?.validatorFinalizedSlot
-            ? `item.validatorFinalizedSlot (${getEpochFromSlot(item.validatorFinalizedSlot)})`
+            ? `${item.validatorFinalizedSlot} (${getEpochFromSlot(item.validatorFinalizedSlot)})`
             : '-'
         }
       />
