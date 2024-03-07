@@ -3,7 +3,8 @@ import { Layout } from 'antd'
 import { PauseCircleOutlined, PlayCircleOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import { PageHeader } from '@renderer/components/Page/Header'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
-import { start, stop, getAll, add, Node, Network, Type } from '@renderer/api/node'
+import { start, stop, getAll, add } from '@renderer/api/node'
+import { Node, Network, Type } from '@renderer/types/node'
 
 export const DraftPage = () => {
   const [nodes, setNodes] = useState<Node[]>([])

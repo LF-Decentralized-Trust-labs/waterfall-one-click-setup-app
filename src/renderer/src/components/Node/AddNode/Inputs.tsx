@@ -3,7 +3,7 @@ import { Input, Radio, RadioChangeEvent, Space } from 'antd'
 import { LocalNodeNetworkOptions } from '@renderer/constants/network'
 import { DataFolder } from '@renderer/ui-kit/DataFolder'
 import { styled } from 'styled-components'
-import { NODE_TYPE } from '@renderer/types/node'
+import { Type as NODE_TYPE } from '@renderer/types/node'
 
 const node_type_options = [
   { value: NODE_TYPE.local, label: 'Local' },

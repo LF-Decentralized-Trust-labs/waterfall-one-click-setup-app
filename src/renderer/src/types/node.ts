@@ -1,8 +1,76 @@
 // NODE LIST TABLE
+export enum Network {
+  testnet8 = 'testnet8'
+}
 export enum Type {
   local = 'local',
   remote = 'remote'
 }
+
+export enum CoordinatorStatus {
+  stopped = 'stopped',
+  running = 'running'
+}
+
+export enum CoordinatorValidatorStatus {
+  stopped = 'stopped',
+  running = 'running'
+}
+
+export enum ValidatorStatus {
+  stopped = 'stopped',
+  running = 'running'
+}
+
+export interface Node {
+  id: number | bigint
+  name: string
+  network: Network
+  type: Type
+  locationDir: string
+  coordinatorStatus: CoordinatorStatus
+  coordinatorPeersCount: number
+  coordinatorHeadSlot: bigint
+  coordinatorSyncDistance: bigint
+  coordinatorPreviousJustifiedEpoch: number
+  coordinatorCurrentJustifiedEpoch: number
+  coordinatorFinalizedEpoch: number
+  coordinatorPid: number
+  coordinatorValidatorStatus: CoordinatorValidatorStatus
+  coordinatorValidatorPid: number
+  validatorStatus: ValidatorStatus
+  validatorPeersCount: number
+  validatorHeadSlot: bigint
+  validatorSyncDistance: bigint
+  validatorFinalizedSlot: bigint
+  validatorPid: number
+  workersCount: number
+  coordinatorHttpApiPort: number
+  coordinatorHttpValidatorApiPort: number
+  coordinatorP2PTcpPort: number
+  coordinatorP2PUdpPort: number
+  validatorP2PPort: number
+  validatorHttpApiPort: number
+  validatorWsApiPort: number
+  createdAt: string
+  updatedAt: string
+}
+
+type RequiredNewNodeFields = Pick<Node, 'name' | 'network' | 'type' | 'locationDir'>
+type OptionalNewNodeFields = Partial<
+  Pick<
+    Node,
+    | 'coordinatorHttpApiPort'
+    | 'coordinatorHttpValidatorApiPort'
+    | 'coordinatorP2PTcpPort'
+    | 'coordinatorP2PUdpPort'
+    | 'validatorP2PPort'
+    | 'validatorHttpApiPort'
+    | 'validatorWsApiPort'
+  >
+>
+export interface NewNode extends RequiredNewNodeFields, OptionalNewNodeFields {}
+export interface UpdateNode extends Partial<Omit<Node, 'id' | 'createdAt' | 'updatedAt'>> {}
 export enum NodesListDataFields {
   id = 'id',
   name = 'name',
@@ -42,7 +110,7 @@ export type NodesWorkersDataTypes = {
 }
 
 export type NodeViewTabProps = {
-  id?: string
+  item?: Node
 }
 
 // NODE ADD
@@ -58,9 +126,4 @@ export type AddNodeFormValuesT = {
   [AddNodeFields.network]: string
   [AddNodeFields.dataFolder]: string
   [AddNodeFields.name]: string
-}
-
-export enum NODE_TYPE {
-  local = 'local',
-  remote = 'remote'
 }

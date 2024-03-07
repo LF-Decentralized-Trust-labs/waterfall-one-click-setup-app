@@ -22,9 +22,9 @@ export const NodeListPage = () => {
           </ButtonPrimary>
         }
       />
-      <PageBody>
+      <PageBody isLoading={isLoading}>
         {error && <Alert message={error.message} type="error" />}
-        <NodesList isLoading={isLoading} data={data} onRowClick={goView} />
+        <NodesList data={data} onRowClick={goView} />
       </PageBody>
     </Layout>
   )

@@ -1,7 +1,7 @@
 import React from 'react'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
-import { AddNodeFields, NODE_TYPE } from '@renderer/types/node'
+import { AddNodeFields, Type as NODE_TYPE } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,

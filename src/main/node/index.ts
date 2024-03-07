@@ -39,6 +39,9 @@ class Node {
     this.ipcMain.handle('node:stop', (_event: IpcMainInvokeEvent, id) => this._stop(id))
     this.ipcMain.handle('node:restart', (_event: IpcMainInvokeEvent, id) => this._restart(id))
     this.ipcMain.handle('node:getAll', () => this.nodeModel.getAll())
+    this.ipcMain.handle('node:getById', (_event: IpcMainInvokeEvent, id) =>
+      this.nodeModel.getById(id)
+    )
     this.ipcMain.handle('node:add', (_event: IpcMainInvokeEvent, options: NewNode) =>
       this._add(options)
     )
@@ -60,6 +63,7 @@ class Node {
     this.ipcMain.removeHandler('node:stop')
     this.ipcMain.removeHandler('node:restart')
     this.ipcMain.removeHandler('node:getAll')
+    this.ipcMain.removeHandler('node:getById')
     this.ipcMain.removeHandler('node:add')
 
     for (const id of Object.keys(this.nodes)) {

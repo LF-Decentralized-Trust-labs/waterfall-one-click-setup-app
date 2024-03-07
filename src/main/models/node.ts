@@ -42,8 +42,8 @@ export interface Node {
   coordinatorPeersCount: number
   coordinatorHeadSlot: bigint
   coordinatorSyncDistance: bigint
-  coordinatorPreviousJustifiedEpoch: bigint
-  coordinatorCurrentJustifiedEpoch: bigint
+  coordinatorPreviousJustifiedEpoch: number
+  coordinatorCurrentJustifiedEpoch: number
   coordinatorFinalizedEpoch: bigint
   coordinatorPid: number
   coordinatorValidatorStatus: CoordinatorValidatorStatus

@@ -1,7 +1,19 @@
 import React, { PropsWithChildren } from 'react'
+import { Spin } from 'antd'
 import { styled } from 'styled-components'
 
-export const PageBody: React.FC<PropsWithChildren> = ({ children }) => {
+type PageBodyType = PropsWithChildren & {
+  isLoading?: boolean
+}
+export const PageBody: React.FC<PageBodyType> = ({ isLoading, children }) => {
+  if (isLoading)
+    return (
+      <StyledWrapper>
+        <Spin tip="Loading" size="large">
+          <div className="content" />
+        </Spin>
+      </StyledWrapper>
+    )
   return <StyledWrapper>{children}</StyledWrapper>
 }
 
