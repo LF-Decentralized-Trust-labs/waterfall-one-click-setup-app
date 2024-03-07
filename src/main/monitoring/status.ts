@@ -2,7 +2,7 @@ import { parentPort, workerData } from 'worker_threads'
 import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
-import NodeModel, { Type as NodeType } from '../models/node'
+import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../models/node'
 import LocalNode from '../node/local'
 
 const port = parentPort
@@ -21,7 +21,6 @@ class StatusMonitoring {
 
   constructor(appEnv, timeout: number | undefined) {
     this.appEnv = appEnv
-    console.log(this.appEnv.mainDB)
     const db = getMain(this.appEnv.mainDB)
     this.nodeModel = new NodeModel(db)
     if (timeout) {
@@ -47,7 +46,6 @@ class StatusMonitoring {
   }
 
   private async _start() {
-    console.log('_start')
     if (this.isStart) {
       return
     }
@@ -73,7 +71,15 @@ class StatusMonitoring {
         if (sync) {
           data = {
             ...data,
-            ...sync
+            ...sync,
+            coordinatorStatus:
+              sync.coordinatorSyncDistance && sync.coordinatorSyncDistance > 10
+                ? CoordinatorStatus.syncing
+                : CoordinatorStatus.running,
+            validatorStatus:
+              sync.validatorSyncDistance && sync.validatorSyncDistance > 50
+                ? ValidatorStatus.syncing
+                : ValidatorStatus.running
           }
         }
         if (Object.keys(data).length > 0) this.nodeModel.update(nodeModel.id, data)
