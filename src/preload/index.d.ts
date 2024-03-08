@@ -4,6 +4,10 @@ declare global {
   interface Window {
     electron: ElectronAPI
     node: node
-    platform: 'linux' | 'mac' | 'win' | null
+    os: {
+      platform: 'linux' | 'mac' | 'win' | null
+      homedir: string
+      selectDirectory: (defaultPath?: string) => Promise<string | null>
+    }
   }
 }

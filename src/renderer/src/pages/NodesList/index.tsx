@@ -12,10 +12,15 @@ import { useGetAll, useGoNode } from '@renderer/hooks/node'
 export const NodeListPage = () => {
   const { isLoading, data, error } = useGetAll()
   const { goView } = useGoNode()
+  const breadcrumb = [
+    {
+      title: 'Nodes'
+    }
+  ]
   return (
     <Layout>
       <PageHeader
-        title="Nodes"
+        breadcrumb={breadcrumb}
         actions={
           <ButtonPrimary href={routes.nodes.create}>
             Add <PlusCircleOutlined />

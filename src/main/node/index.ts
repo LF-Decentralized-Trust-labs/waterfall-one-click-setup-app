@@ -87,12 +87,16 @@ class Node {
     return this.nodes[id.toString()].restart()
   }
 
-  private async _add(options: NewNode): Promise<boolean | ErrorResults> {
+  private async _add(options: NewNode): Promise<NodeModelType | ErrorResults> {
     const nodeModel = this.nodeModel.insert(options)
     if (!nodeModel) {
       return ErrorResults.NODE_NOT_CREATED
     }
-    return await this._addNode(nodeModel)
+    const result = await this._addNode(nodeModel)
+    if (result) {
+      return nodeModel
+    }
+    return ErrorResults.NODE_NOT_CREATED
   }
 
   private async _addNode(nodeModel: NodeModelType) {

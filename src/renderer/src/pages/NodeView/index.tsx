@@ -4,7 +4,7 @@ import { PageHeader } from '@renderer/components/Page/Header'
 import { Flex, Layout } from 'antd'
 import { IconButton } from '@renderer/ui-kit/Button'
 import { PauseOutlined, CaretRightOutlined, ReloadOutlined } from '@ant-design/icons'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Tabs } from '@renderer/ui-kit/Tabs'
 import { Alert } from '@renderer/ui-kit/Alert'
 import { NodeViewInformation } from '@renderer/containers/Node/NodeViewInformation'
@@ -12,8 +12,11 @@ import { NodeViewCoordinator } from '@renderer/containers/Node/NodeViewCoordinat
 import { NodeViewValidator } from '@renderer/containers/Node/NodeViewValidator'
 import { NodeViewWorkers } from '@renderer/containers/Node/NodeViewWorkers'
 import { NodeViewStatistics } from '@renderer/containers/Node/NodeViewStatistics'
-import { useGetById } from '@renderer/hooks/node'
-import { Node } from '@renderer/types/node'
+import { useGetById, useControl } from '@renderer/hooks/node'
+import { Node, Status } from '@renderer/types/node'
+import { getNodeStatus } from '@renderer/helpers/node'
+import { getViewLink } from '@renderer/helpers/navigation'
+import { routes } from '@renderer/constants/navigation'
 
 const getTabs = (node?: Node) => [
   {
@@ -50,24 +53,47 @@ const getTabs = (node?: Node) => [
 
 export const NodeViewPage = () => {
   const nodeId = useParams()?.id
-  const navigate = useNavigate()
   const { isLoading, data: node, error } = useGetById(nodeId)
-  const goBack = () => navigate(-1)
+  const { onStop, onRestart, onStart } = useControl(nodeId)
 
   const tabs = useMemo(() => getTabs(node), [node])
   const [activeKey, setActiveKey] = useState(tabs[0].key)
   const onTabChange = (newActiveKey: string) => setActiveKey(newActiveKey)
 
+  const breadcrumb = [
+    {
+      title: 'Nodes',
+      link: getViewLink(routes.nodes.list)
+    },
+    {
+      title: node ? node.name : `Node #${nodeId}`
+    }
+  ]
+
   return (
     <Layout>
       <PageHeader
-        goBack={goBack}
-        title={node ? node.name : `Node #${nodeId}`}
+        breadcrumb={breadcrumb}
         actions={
           <Flex dir="row" gap={6}>
-            <IconButton icon={<PauseOutlined />} shape="default" size="middle" />
-            <IconButton icon={<CaretRightOutlined />} shape="default" size="middle" />
-            <IconButton icon={<ReloadOutlined />} shape="default" size="middle" />
+            {node && getNodeStatus(node) !== Status.stopped && (
+              <IconButton icon={<PauseOutlined />} shape="default" size="middle" onClick={onStop} />
+            )}
+            {node && getNodeStatus(node) === Status.stopped && (
+              <IconButton
+                icon={<CaretRightOutlined />}
+                shape="default"
+                size="middle"
+                onClick={onStart}
+              />
+            )}
+
+            <IconButton
+              icon={<ReloadOutlined />}
+              shape="default"
+              size="middle"
+              onClick={onRestart}
+            />
           </Flex>
         }
       />

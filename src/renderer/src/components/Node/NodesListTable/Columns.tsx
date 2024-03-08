@@ -1,10 +1,12 @@
 import { TableColumnsType } from 'antd'
-import { NodesListDataTypes, NodesListDataFields } from '@renderer/types/node'
+import { NodesListDataTypes, NodesListDataFields, Node } from '@renderer/types/node'
 import { getDateTime } from '@renderer/helpers/date'
+import { getNodeStatus } from '@renderer/helpers/node'
 
-export type DataType = NodesListDataTypes & {
-  key: React.Key
-}
+export type DataType = Node &
+  NodesListDataTypes & {
+    key: React.Key
+  }
 
 export const columns: TableColumnsType<DataType> = [
   { title: '#', dataIndex: NodesListDataFields.id, key: NodesListDataFields.id },
@@ -20,6 +22,12 @@ export const columns: TableColumnsType<DataType> = [
     key: NodesListDataFields.locationDir
   },
 
+  {
+    title: 'Status',
+    dataIndex: NodesListDataFields.createdAt,
+    key: NodesListDataFields.createdAt,
+    render: (_, node) => getNodeStatus(node)
+  },
   {
     title: 'Workers',
     dataIndex: NodesListDataFields.workersCount,

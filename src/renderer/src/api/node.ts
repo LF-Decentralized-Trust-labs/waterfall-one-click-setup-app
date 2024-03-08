@@ -18,6 +18,10 @@ export const stop = async (id: number | bigint): Promise<StatusResults> => {
   return await window.node.stop(id)
 }
 
+export const restart = async (id: number | bigint): Promise<StatusResults> => {
+  return await window.node.restart(id)
+}
+
 export const getAll = async (): Promise<Node[]> => {
   return await window.node.getAll()
 }

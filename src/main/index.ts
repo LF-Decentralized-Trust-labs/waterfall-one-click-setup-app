@@ -10,6 +10,7 @@ import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
 import { genMnemonic, getDepositData, getSecretKeyFromKeystore, getKeyStore } from './libs/keys'
+import FsHandle from './libs/FsHandle'
 
 let tray: null | Tray = null
 let mainWindow: null | BrowserWindow = null
@@ -20,6 +21,7 @@ const appEnv = new AppEnv({
   userData: app.getPath('userData')
 })
 const node = new Node(ipcMain, appEnv)
+const fsHandle = new FsHandle(ipcMain)
 const statusWorker = createStatusWorker({
   workerData: {
     isPackaged: appEnv.isPackaged,
@@ -139,6 +141,13 @@ app.whenReady().then(async () => {
     await node.initialize()
   } catch (e) {
     console.log('node.initialize', e)
+    return await quit()
+  }
+
+  try {
+    fsHandle.initialize()
+  } catch (e) {
+    console.log('fsHandle.initialize', e)
     return await quit()
   }
 

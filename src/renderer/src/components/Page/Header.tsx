@@ -1,15 +1,17 @@
 import { ArrowedButton } from '@renderer/ui-kit/Button'
 import { Title } from '@renderer/ui-kit/Typography'
+import { Breadcrumb, Item as BreadcrumbItem } from '@renderer/ui-kit/Breadcrumb'
 import React from 'react'
 import { styled } from 'styled-components'
 
 type PageHeaderPropsT = {
-  title: string
+  title?: string
   goBack?: () => void
+  breadcrumb?: BreadcrumbItem[]
   actions?: React.ReactNode
 }
 
-export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, goBack, actions }) => {
+export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, breadcrumb, goBack, actions }) => {
   return (
     <Wrapper>
       {goBack && (
@@ -17,7 +19,7 @@ export const PageHeader: React.FC<PageHeaderPropsT> = ({ title, goBack, actions 
           <ArrowedButton direction="back" onClick={goBack} />
         </GoBack>
       )}
-      <PageTitle level={3}>{title}</PageTitle>
+      {breadcrumb ? <Breadcrumb items={breadcrumb} /> : <PageTitle level={3}>{title}</PageTitle>}
       {actions && <Actions>{actions}</Actions>}
     </Wrapper>
   )

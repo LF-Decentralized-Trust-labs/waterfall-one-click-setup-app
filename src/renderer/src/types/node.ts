@@ -1,12 +1,18 @@
 // NODE LIST TABLE
 export enum Network {
-  testnet8 = 'testnet8'
+  testnet8 = 'testnet8',
+  mainnet = 'mainnet'
 }
 export enum Type {
   local = 'local',
   remote = 'remote'
 }
 
+export enum Status {
+  stopped = 'stopped',
+  running = 'running',
+  syncing = 'syncing'
+}
 export enum CoordinatorStatus {
   stopped = 'stopped',
   running = 'running',
@@ -79,7 +85,8 @@ export enum NodesListDataFields {
   type = 'type',
   locationDir = 'locationDir',
   createdAt = 'createdAt',
-  workersCount = 'workersCount'
+  workersCount = 'workersCount',
+  status = 'status'
 }
 
 export type NodesListDataTypes = {
@@ -89,6 +96,7 @@ export type NodesListDataTypes = {
   [NodesListDataFields.locationDir]: string
   [NodesListDataFields.createdAt]: string
   [NodesListDataFields.workersCount]: number
+  [NodesListDataFields.status]: Status
 }
 
 // NODE WORKERS TABLE
@@ -120,12 +128,6 @@ export type NodeViewTabProps = {
 export enum AddNodeFields {
   type = 'type',
   network = 'network',
-  dataFolder = 'dataFolder',
+  locationDir = 'locationDir',
   name = 'name'
-}
-
-export type AddNodeFormValuesT = {
-  [AddNodeFields.network]: string
-  [AddNodeFields.dataFolder]: string
-  [AddNodeFields.name]: string
 }
