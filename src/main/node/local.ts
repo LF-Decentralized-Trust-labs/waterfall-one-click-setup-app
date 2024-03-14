@@ -2,16 +2,14 @@ import * as crypto from 'crypto'
 import log from 'electron-log/node'
 import { exec } from 'node:child_process'
 import Child, { StatusResult } from './child'
-import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket, checkFile } from '../libs/fs'
+import { checkOrCreateDir, checkOrCreateFile, checkPort, checkSocket } from '../libs/fs'
 import AppEnv from '../libs/appEnv'
 import {
-  getChainId,
-  getCoordinatorBootnode,
+  getCoordinatorNetwork,
   getCoordinatorPath,
   getCoordinatorWalletPath,
   getLogPath,
-  getValidatorAddress,
-  getValidatorBootnode,
+  getValidatorNetwork,
   getValidatorPath
 } from '../libs/env'
 
@@ -313,23 +311,34 @@ class LocalNode extends EventEmitter {
     ) {
       return false
     }
-    if (!(await checkFile(`${getValidatorPath(this.model.locationDir)}/gwat/nodekey`))) {
-      const child = new Child({
-        binPath: this.appEnv.getValidatorBinPath(this.model.network),
-        args: [
-          `--datadir=${getValidatorPath(this.model.locationDir)}`,
-          `init`,
-          `${this.appEnv.getValidatorGenesisPath(this.model.network)}`,
-          `${this.appEnv.getValidatorGenesisDataPath(this.model.network)}`
-        ],
-        outLogPath: `${getLogPath(this.model.locationDir)}/validator.out.log`,
-        errLogPath: `${getLogPath(this.model.locationDir)}/validator.err.log`
-      })
-      const result = await child.exec()
-      if (!result.stderr.search('Successfully wrote genesis state')) {
-        return false
-      }
-    }
+    // if (!(await checkFile(`${getValidatorPath(this.model.locationDir)}/gwat/nodekey`))) {
+    //
+    //   const promise: Promise<string> = new Promise((resolve, reject) => {
+    //     if (this.model === null) {
+    //       return reject('')
+    //     }
+    //     exec(
+    //       `${this.appEnv.getValidatorBinPath(this.model.network)} init ${this.appEnv.getValidatorGenesisPath(this.model.network)} ${this.appEnv.getValidatorGenesisDataPath(this.model.network)}`,
+    //       (err, stdout, stderr) => {
+    //         if (err) {
+    //           return reject(err)
+    //         }
+    //         if (stderr) {
+    //           return resolve(stderr)
+    //         }
+    //         if (stdout) {
+    //           return resolve(stdout)
+    //         }
+    //       }
+    //     )
+    //   })
+    //   const result = await promise
+    //   log.debug(result)
+    //   if (!result.search('Successfully wrote genesis state')) {
+    //     return false
+    //   }
+    //
+    // }
 
     if (!(await checkPort(this.model.validatorP2PPort))) {
       return false
@@ -369,13 +378,14 @@ class LocalNode extends EventEmitter {
       args: [
         '--accept-terms-of-use',
         '--disable-peer-scorer',
+        `${getCoordinatorNetwork(this.model.network)}`,
         `--datadir=${getCoordinatorPath(this.model.locationDir)}`,
-        `--bootstrap-node=${getCoordinatorBootnode(this.model.network)}`,
-        `--genesis-state=${this.appEnv.getCoordinatorBeaconGenesisPath(this.model.network)}`,
-        `--chain-id=${getChainId(this.model.network)}`,
-        `--network-id=${getChainId(this.model.network)}`,
-        '--contract-deployment-block=0',
-        `--deposit-contract=${getValidatorAddress(this.model.network)}`,
+        // `--bootstrap-node=${getCoordinatorBootnode(this.model.network)}`,
+        // `--genesis-state=${this.appEnv.getCoordinatorBeaconGenesisPath(this.model.network)}`,
+        // `--chain-id=${getChainId(this.model.network)}`,
+        // `--network-id=${getChainId(this.model.network)}`,
+        // '--contract-deployment-block=0',
+        // `--deposit-contract=${getValidatorAddress(this.model.network)}`,
         `--p2p-tcp-port=${this.model.coordinatorP2PTcpPort}`,
         `--p2p-udp-port=${this.model.coordinatorP2PUdpPort}`,
         `--grpc-gateway-port=${this.model.coordinatorHttpApiPort}`,
@@ -399,9 +409,10 @@ class LocalNode extends EventEmitter {
     this.validator = new Child({
       binPath: this.appEnv.getValidatorBinPath(this.model.network),
       args: [
+        `${getValidatorNetwork(this.model.network)}`,
         `--datadir=${getValidatorPath(this.model.locationDir)}`,
-        `--bootnodes=${getValidatorBootnode(this.model.network)}`,
-        `--networkid=${getChainId(this.model.network)}`,
+        // `--bootnodes=${getValidatorBootnode(this.model.network)}`,
+        // `--networkid=${getChainId(this.model.network)}`,
         '--syncmode=full',
         `--port=${this.model.validatorP2PPort}`,
         `--ipcpath=${getValidatorPath(this.model.locationDir)}/validator.ipc`

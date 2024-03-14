@@ -1,4 +1,5 @@
 import { IpcMain, IpcMainInvokeEvent } from 'electron'
+import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
 import LocalNode, { StatusResult, StatusResults } from './local'
@@ -109,7 +110,7 @@ class Node {
     }
     const node = this.nodes[nodeModel.id.toString()]
     const initNodeStatus = await node.initialize()
-    console.log('initNodeStatus', initNodeStatus)
+    log.debug('initNodeStatus', initNodeStatus)
     node.on('stop', () => {
       const pids = node.getPids()
       this.nodeModel.update(nodeModel.id, {

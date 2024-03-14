@@ -1,12 +1,31 @@
 const ENV = import.meta.env
 
 export enum Network {
-  testnet8 = 'testnet8'
+  testnet8 = 'testnet8',
+  mainnet = 'mainnet'
 }
 
 export const DATA_PATH = ENV.VITE_DATA_PATH
 export const getCoordinatorBootnode = (network: Network): string =>
   ENV[`MAIN_VITE_COORDINATOR_BOOTNODE_${network.toUpperCase()}`]
+
+export const getCoordinatorNetwork = (network: Network): string => {
+  if (network === Network.testnet8) {
+    return '--testnet8'
+  } else if (network === Network.mainnet) {
+    return '--mainnet'
+  }
+  return ''
+}
+
+export const getValidatorNetwork = (network: Network): string => {
+  if (network === Network.testnet8) {
+    return '--testnet8'
+  } else if (network === Network.mainnet) {
+    return '--mainnet'
+  }
+  return ''
+}
 
 export const getValidatorBootnode = (network: Network): string =>
   ENV[`MAIN_VITE_VALIDATOR_BOOTNODE_${network.toUpperCase()}`]
