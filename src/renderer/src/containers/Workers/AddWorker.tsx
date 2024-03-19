@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Flex, Input, InputNumber, Select, StepProps } from 'antd'
 import { AddWorkerStepKeys } from '@renderer/helpers/workers'
+import { isAddress } from '../../helpers/common'
 import { useAddWorker } from '@renderer/hooks/workers'
 import { AddWorkerForm } from '@renderer/components/Workers/AddWorker/AddWorkerForm'
-import {
-  AddWorkerFields,
-  DisplayKeysFields,
-  WorkerTransactionTableFields
-} from '@renderer/types/workers'
+import { AddWorkerPreview } from '@renderer/components/Workers/AddWorker/AddWorkerPreview'
+import { AddWorkerFields, AddWorkerFormValuesT } from '@renderer/types/workers'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
 import { GenerateMnemonic } from '@renderer/ui-kit/Mnemonic/GenerateMnemonic'
 import { VerifyMnemonic } from '@renderer/ui-kit/Mnemonic/VerifyMnemonic'
-import { WorkerKeysTable } from '@renderer/components/Workers/AddWorker/WorkerKeysTable'
-import { WorkerTransactionTable } from '@renderer/components/Workers/AddWorker/WorkerTransactionTable'
+import { Node } from '@renderer/types/node'
 
 type AddWorkerPropsT = {
   steps: Partial<StepProps>[]
@@ -22,6 +19,8 @@ type AddWorkerPropsT = {
   onChangeStep: (value: number) => void
   goNextStep: () => void
   goPrevStep: () => void
+  nodes?: Node[]
+  node?: Node
 }
 
 export const AddWorker: React.FC<AddWorkerPropsT> = ({
@@ -30,13 +29,16 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   step,
   onChangeStep,
   goNextStep,
-  goPrevStep
+  goPrevStep,
+  nodes,
+  node
 }) => {
-  const { values, handleChange } = useAddWorker()
+  const { values, handleChange, handleSaveMnemonic, onAdd } = useAddWorker(node, nodes)
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
       <NodeSelect
+        data={nodes}
         value={values[AddWorkerFields.node]}
         onChange={handleChange(AddWorkerFields.node)}
         goNext={goNextStep}
@@ -44,15 +46,20 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
       />
     ),
     [AddWorkerStepKeys.saveMnemonic]: (
-      <SaveMnemonic goNext={goNextStep} goPrev={goPrevStep} phrase={values.mnemonic} />
+      <SaveMnemonic
+        goNext={goNextStep}
+        goPrev={goPrevStep}
+        phrase={values[AddWorkerFields.mnemonic]}
+        onSaveFile={handleSaveMnemonic}
+      />
     ),
     [AddWorkerStepKeys.verifyMnemonic]: (
       <VerifyMnemonicPhrase
         goNext={goNextStep}
         goPrev={goPrevStep}
-        phrase={values.mnemonic}
+        phrase={values[AddWorkerFields.mnemonic]}
         onChange={handleChange(AddWorkerFields.mnemonicVerify)}
-        value={values.mnemonicVerify}
+        value={values[AddWorkerFields.mnemonicVerify]}
       />
     ),
     [AddWorkerStepKeys.workersAmount]: (
@@ -60,7 +67,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         goNext={goNextStep}
         goPrev={goPrevStep}
         onChange={handleChange(AddWorkerFields.amount)}
-        value={values.amount}
+        value={values[AddWorkerFields.amount]}
       />
     ),
     [AddWorkerStepKeys.withdrawalAddress]: (
@@ -68,12 +75,11 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         goNext={goNextStep}
         goPrev={goPrevStep}
         onChange={handleChange(AddWorkerFields.withdrawalAddress)}
-        value={values.withdrawalAddress}
+        value={values[AddWorkerFields.withdrawalAddress]}
       />
     ),
-    [AddWorkerStepKeys.displayKeys]: <DisplayKeys goNext={goNextStep} goPrev={goPrevStep} />,
-    [AddWorkerStepKeys.sendTransaction]: (
-      <SendTransactionTable goNext={goNextStep} goPrev={goPrevStep} />
+    [AddWorkerStepKeys.preview]: (
+      <Preview values={values} node={node} nodes={nodes} goNext={onAdd} goPrev={goPrevStep} />
     )
   }
 
@@ -106,17 +112,24 @@ const NodeSelect: React.FC<
   BasePropsT & {
     value?: string
     onChange?: (val?: string) => void
+    data?: Node[]
   }
-> = ({ value, onChange, goNext }) => {
-  const options = [{ label: 'Test Node 1', value: '1' }]
+> = ({ value, onChange, goNext, data }) => {
+  const options = data?.map((node) => ({ label: node.name, value: node.id.toString() }))
+  const canGoNext = data && value && data.find((node) => node.id === parseInt(value))
   return (
-    <AddWorkerForm title="Select a Node" goNext={goNext} canGoNext={!!value}>
+    <AddWorkerForm title="Select a Node" goNext={goNext} canGoNext={!!canGoNext}>
       <Select options={options} onChange={onChange} value={value} style={{ width: '200px' }} />
     </AddWorkerForm>
   )
 }
 
-const SaveMnemonic: React.FC<BasePropsT & { phrase: string[] }> = ({ goNext, goPrev, phrase }) => {
+const SaveMnemonic: React.FC<BasePropsT & { phrase: string[]; onSaveFile: () => void }> = ({
+  goNext,
+  goPrev,
+  phrase,
+  onSaveFile
+}) => {
   const [copy, setCopy] = useState(false)
   const handleCopy = () => {
     navigator.clipboard.writeText(phrase.join(' '))
@@ -133,7 +146,7 @@ const SaveMnemonic: React.FC<BasePropsT & { phrase: string[] }> = ({ goNext, goP
           <ButtonPrimary ghost onClick={handleCopy}>
             {copy ? 'Copied' : 'Copy'}
           </ButtonPrimary>
-          <ButtonPrimary>Save in a file</ButtonPrimary>
+          <ButtonPrimary onClick={() => onSaveFile()}>Save in a file</ButtonPrimary>
         </Flex>
       }
       goNext={goNext}
@@ -183,7 +196,13 @@ const WorkersAmount: React.FC<
 const WithdrawalAddress: React.FC<
   BasePropsT & { value?: string; onChange: (value?: string) => void }
 > = ({ goNext, goPrev, value, onChange }) => {
+  const [status, setStatus] = useState<'' | 'error'>('')
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)
+
+  useEffect(() => {
+    setStatus(value && !isAddress(value) ? 'error' : '')
+  }, [value])
+
   return (
     <AddWorkerForm
       title="Enter your withdrawal address"
@@ -191,55 +210,27 @@ const WithdrawalAddress: React.FC<
       goPrev={goPrev}
       canGoNext={!!value}
     >
-      <Input value={value} onChange={handleChange} style={{ maxWidth: '400px' }} />
+      <Input status={status} value={value} onChange={handleChange} style={{ maxWidth: '400px' }} />
     </AddWorkerForm>
   )
 }
 
-const DisplayKeys: React.FC<BasePropsT> = ({ goNext, goPrev }) => {
-  const data = [
-    {
-      key: '1',
-      [DisplayKeysFields.id]: '1',
-      [DisplayKeysFields.coordinatorKey]: '3kj3kj3kj34l4kl4l3k4l',
-      [DisplayKeysFields.validatorKey]: '5dj3463kj34l4kl4l3k4l',
-      [DisplayKeysFields.withdrawalAddress]: '0xDccA352601a464e8d629A2E8CFBa9C1a27612751'
-    }
-  ]
-  return (
-    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={true}>
-      <WorkerKeysTable data={data} />
-    </AddWorkerForm>
-  )
-}
+const Preview: React.FC<
+  BasePropsT & { values: AddWorkerFormValuesT; node?: Node; nodes?: Node[] }
+> = ({ goNext, goPrev, values, node, nodes }) => {
+  const _node =
+    node || (nodes && nodes.find((node) => node.id === parseInt(values[AddWorkerFields.node])))
+  const canGoNext =
+    !!_node &&
+    !!values[AddWorkerFields.mnemonic] &&
+    !!values[AddWorkerFields.amount] &&
+    !!values[AddWorkerFields.withdrawalAddress] &&
+    values[AddWorkerFields.mnemonic].join('') ===
+      Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
 
-const SendTransactionTable: React.FC<BasePropsT> = ({ goNext, goPrev }) => {
-  const data = [
-    {
-      key: '1',
-      [WorkerTransactionTableFields.id]: '1',
-      [WorkerTransactionTableFields.depositAddress]: '0xDccA352601a464e8d629A2E8CFBa9C1a27612751',
-      [WorkerTransactionTableFields.hexData]: '1',
-      [WorkerTransactionTableFields.value]: '320',
-      [WorkerTransactionTableFields.qr]: ''
-    },
-    {
-      key: '2',
-      [WorkerTransactionTableFields.id]: '2',
-      [WorkerTransactionTableFields.depositAddress]: '0xDccA352601a464e8d629A2E8CFBa9C1a27612751',
-      [WorkerTransactionTableFields.hexData]: '1',
-      [WorkerTransactionTableFields.value]: '320',
-      [WorkerTransactionTableFields.qr]: 'test'
-    }
-  ]
   return (
-    <AddWorkerForm
-      goNext={goNext}
-      goPrev={goPrev}
-      canGoNext={true}
-      nextText="I have sent the deposits"
-    >
-      <WorkerTransactionTable data={data} />
+    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={canGoNext} nextText="Add">
+      <AddWorkerPreview data={values} node={_node} />
     </AddWorkerForm>
   )
 }

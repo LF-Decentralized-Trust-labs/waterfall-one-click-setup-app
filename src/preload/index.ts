@@ -4,9 +4,13 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
 
 import { node } from './node'
+import { worker } from './worker'
 
 const selectDirectory = (defaultPath?: string) =>
   ipcRenderer.invoke('os:selectDirectory', defaultPath)
+
+const saveTextFile = (text: string, title?: string, fileName?: string) =>
+  ipcRenderer.invoke('os:saveTextFile', text, title, fileName)
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -15,10 +19,12 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', { ...electronAPI })
     contextBridge.exposeInMainWorld('node', node)
+    contextBridge.exposeInMainWorld('worker', worker)
     contextBridge.exposeInMainWorld('os', {
       platform: getPlatform(),
       homedir: getHomeDir(),
-      selectDirectory: selectDirectory
+      selectDirectory: selectDirectory,
+      saveTextFile: saveTextFile
     })
   } catch (error) {
     console.error(error)
@@ -29,7 +35,14 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.node = node
   // @ts-ignore (define in dts)
-  window.os = { platform: getPlatform(), homedir: getHomeDir(), selectDirectory: selectDirectory }
+  window.worker = worker
+  // @ts-ignore (define in dts)
+  window.os = {
+    platform: getPlatform(),
+    homedir: getHomeDir(),
+    selectDirectory: selectDirectory,
+    saveTextFile: saveTextFile
+  }
 }
 
 function getPlatform(): 'linux' | 'mac' | 'win' | null {

@@ -10,7 +10,7 @@ import { routes } from '@renderer/constants/navigation'
 import { useGetAll, useGoNode } from '@renderer/hooks/node'
 
 export const NodeListPage = () => {
-  const { isLoading, data, error } = useGetAll()
+  const { isLoading, data, error } = useGetAll({ refetchInterval: 5000 })
   const { goView } = useGoNode()
   const breadcrumb = [
     {

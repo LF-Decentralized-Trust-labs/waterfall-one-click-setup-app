@@ -7,10 +7,14 @@ import { PageHeader } from '@renderer/components/Page/Header'
 import { ArrowedButton } from '@renderer/ui-kit/Button'
 import { PageBody } from '@renderer/components/Page/Body'
 import { AddWorker } from '@renderer/containers/Workers/AddWorker'
+import { useGetAll, useGetById } from '@renderer/hooks/node'
 
 export const AddWorkerPage = () => {
   const [searchParams] = useSearchParams()
   const fromNode = searchParams.get(SearchKeys.node)
+
+  const { data: nodes } = useGetAll()
+  const { data: node } = useGetById(fromNode || undefined)
 
   const { steps, stepsWithKeys } = getAddWorkerSteps(fromNode)
   const [step, setStep] = useState<number>(0)
@@ -37,6 +41,8 @@ export const AddWorkerPage = () => {
           onChangeStep={onStepsChange}
           goNextStep={goNext}
           goPrevStep={goPrev}
+          nodes={nodes}
+          node={node}
         />
       </PageBody>
     </Layout>

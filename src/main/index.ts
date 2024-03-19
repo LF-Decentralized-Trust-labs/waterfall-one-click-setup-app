@@ -6,6 +6,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/app/iconTemplate.png?asset'
 import trayIcon from '../../resources/tray/iconTemplate.png?asset'
 import Node from './node'
+import Worker from './worker'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
@@ -20,6 +21,7 @@ const appEnv = new AppEnv({
   userData: app.getPath('userData')
 })
 const node = new Node(ipcMain, appEnv)
+const worker = new Worker(ipcMain, appEnv)
 const fsHandle = new FsHandle(ipcMain)
 const statusWorker = createStatusWorker({
   workerData: {
@@ -33,8 +35,10 @@ log.initialize()
 
 function createUpdateWindow(): void {
   updateWindow = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    // width: 1024,
+    // height: 768,
+    width: 1200,
+    height: 900,
     icon: icon,
     center: true,
     title: 'Waterfall Update',
@@ -55,8 +59,10 @@ function createUpdateWindow(): void {
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    // width: 1024,
+    // height: 768,
+    width: 1200,
+    height: 900,
     show: false,
     autoHideMenuBar: true,
     icon: icon,
@@ -142,6 +148,14 @@ app.whenReady().then(async () => {
     log.debug('node.initialize Done')
   } catch (e) {
     console.log('node.initialize', e)
+    return await quit()
+  }
+
+  try {
+    await worker.initialize()
+    log.debug('worker.initialize Done')
+  } catch (e) {
+    console.log('worker.initialize', e)
     return await quit()
   }
 

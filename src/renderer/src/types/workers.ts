@@ -1,6 +1,86 @@
-// Worker LIST TABLE
+import { Node } from './node'
+export enum Status {
+  pending_initialized = 'pending_initialized',
+  pending_activation = 'pending_activation',
+  active = 'active',
+  active_exiting = 'active_exiting',
+  exited = 'exited'
+}
+
+export enum CoordinatorStatus {
+  pending_initialized = 'pending_initialized',
+  pending_queued = 'pending_queued',
+  pending_activation = 'pending_activation',
+  active_ongoing = 'active_ongoing',
+  active_exiting = 'active_exiting',
+  active_slashed = 'active_slashed',
+  exited_unslashed = 'exited_unslashed',
+  exited_slashed = 'exited_slashed',
+  withdrawal_possible = 'withdrawal_possible',
+  withdrawal_done = 'withdrawal_done'
+}
+
+export enum ValidatorStatus {
+  pending_initialized = 'pending_initialized',
+  pending_activation = 'pending_activation',
+  active = 'active',
+  exited = 'exited'
+}
+
+export interface Worker {
+  id: number | bigint
+  nodeId: number | bigint
+  node?: Node
+  number: number
+  coordinatorStatus: CoordinatorStatus
+  coordinatorPublicKey: string
+  coordinatorBalanceAmount: number | bigint
+  coordinatorActivationEpoch: number
+  coordinatorDeActivationEpoch: number
+  coordinatorBlockCreationCount: number
+  coordinatorAttestationCreationCount: number
+  validatorStatus: ValidatorStatus
+  validatorAddress: string
+  validatorBalanceAmount: number | bigint
+  validatorActivationEpoch: number
+  validatorDeActivationEpoch: number
+  validatorBlockCreationCount: number
+  withdrawalAddress: string
+  signature: string
+  stakeAmount: number | bigint
+  createdAt: string
+  updatedAt: string
+}
+
+type RequiredNewWorkerFields = Pick<
+  Worker,
+  'nodeId' | 'coordinatorPublicKey' | 'validatorAddress' | 'withdrawalAddress' | 'signature'
+>
+type OptionalNewWorkerFields = Partial<
+  Pick<
+    Worker,
+    | 'coordinatorStatus'
+    | 'coordinatorBalanceAmount'
+    | 'coordinatorActivationEpoch'
+    | 'coordinatorDeActivationEpoch'
+    | 'coordinatorBlockCreationCount'
+    | 'coordinatorAttestationCreationCount'
+    | 'validatorStatus'
+    | 'validatorBalanceAmount'
+    | 'validatorActivationEpoch'
+    | 'validatorDeActivationEpoch'
+    | 'validatorBlockCreationCount'
+    | 'stakeAmount'
+  >
+>
+
+export interface NewWorker extends RequiredNewWorkerFields, OptionalNewWorkerFields {}
+
+export interface UpdateWorker extends Partial<Omit<Worker, 'id' | 'createdAt' | 'updatedAt'>> {}
+
 export enum WorkersListDataFields {
   id = 'id',
+  nodeId = 'nodeId',
   node = 'node',
   status = 'status',
   workedHours = 'workedHours',
@@ -9,7 +89,8 @@ export enum WorkersListDataFields {
 
 export type WorkersListDataTypes = {
   [WorkersListDataFields.id]: string
-  [WorkersListDataFields.node]: string
+  [WorkersListDataFields.nodeId]: string
+  [WorkersListDataFields.node]: Node
   [WorkersListDataFields.status]?: string
   [WorkersListDataFields.workedHours]?: number
   [WorkersListDataFields.actions]?: {
@@ -27,7 +108,7 @@ export type WorkersT = {
 }
 
 export type WorkerViewTabProps = {
-  id?: string
+  item?: Worker
 }
 
 //ADD WORKER
@@ -36,17 +117,15 @@ export enum AddWorkerFields {
   mnemonic = 'mnemonic',
   mnemonicVerify = 'mnemonicVerify',
   amount = 'amount',
-  withdrawalAddress = 'withdrawalAddress',
-  keys = 'keys'
+  withdrawalAddress = 'withdrawalAddress'
 }
 
 export type AddWorkerFormValuesT = {
   [AddWorkerFields.node]: string
   [AddWorkerFields.mnemonic]: string[]
   [AddWorkerFields.mnemonicVerify]: Record<number, string>
-  [AddWorkerFields.amount]: number | null
+  [AddWorkerFields.amount]: number
   [AddWorkerFields.withdrawalAddress]: string
-  [AddWorkerFields.keys]: any
 }
 
 //IMPORT WORKER
@@ -61,7 +140,6 @@ export type ImportWorkerFormValuesT = {
   [AddWorkerFields.node]: string
   [AddWorkerFields.mnemonic]: Record<number, string>
   [AddWorkerFields.withdrawalAddress]: string
-  [AddWorkerFields.keys]: any
 }
 
 //DISPLAY KEYS TABLE
@@ -95,4 +173,21 @@ export type WorkerTransactionTableData = {
   [WorkerTransactionTableFields.hexData]: string
   [WorkerTransactionTableFields.value]: string
   [WorkerTransactionTableFields.qr]: string
+}
+
+export interface ActionTx {
+  from: string
+  to: string
+  value: number | bigint
+  hexData: string
+}
+
+export enum ActionTxType {
+  activate = 'activate',
+  deActivate = 'deActivate',
+  withdraw = 'withdraw'
+}
+
+export type ActionTxTypeMap = {
+  [key in ActionTxType]: boolean
 }

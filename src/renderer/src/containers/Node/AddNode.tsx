@@ -165,13 +165,18 @@ const NameSelection: React.FC<SelectionBasePropsT> = ({
 }
 
 const Preview: React.FC<PreviewPropsT> = ({ values, goNextStep, goPrevStep }) => {
+  const canGoNext =
+    !!values[AddNodeFields.type] &&
+    !!values[AddNodeFields.network] &&
+    !!values[AddNodeFields.locationDir] &&
+    !!values[AddNodeFields.name]
   return (
     <NodeAddForm
       title="Name your node"
       goNext={goNextStep}
       goNextTitle="Add"
       goPrev={goPrevStep}
-      canGoNext={true}
+      canGoNext={canGoNext}
     >
       <NodePreview values={values} />
     </NodeAddForm>

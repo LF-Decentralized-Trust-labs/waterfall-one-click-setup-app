@@ -44,17 +44,17 @@ export const useAddNode = () => {
   return { values, handleChange, onAdd, onSelectDirectory }
 }
 
-export const useGetAll = () => {
+export const useGetAll = (options?: { refetchInterval?: number }) => {
   const { isLoading, data, error } = useQuery({
     queryKey: ['node:all'],
     queryFn: getAll,
-    refetchInterval: 5000
+    refetchInterval: options?.refetchInterval
   })
 
   return { isLoading, data, error }
 }
 
-export const useGetById = (id?: string) => {
+export const useGetById = (id?: string, options?: { refetchInterval?: number }) => {
   const { isLoading, data, error } = useQuery({
     queryKey: ['node:one', id],
     queryFn: async () => {
@@ -63,7 +63,7 @@ export const useGetById = (id?: string) => {
       }
       return undefined
     },
-    refetchInterval: 1000
+    refetchInterval: options?.refetchInterval
   })
 
   return { isLoading, data, error }

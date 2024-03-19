@@ -3,7 +3,7 @@ import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
 import LocalNode, { StatusResult, StatusResults } from './local'
-import {
+import NodeModel, {
   Node as NodeModelType,
   NewNode,
   Type as NodeType,
@@ -11,7 +11,6 @@ import {
   ValidatorStatus,
   CoordinatorValidatorStatus
 } from '../models/node'
-import NodeModel from '../models/node'
 
 enum ErrorResults {
   NODE_NOT_FOUND = 'Node Not Found',
@@ -133,20 +132,20 @@ class Node {
       initNodeStatus.validator === StatusResult.success &&
       initNodeStatus.coordinatorValidator === StatusResult.success
     ) {
-      await node.start()
-      const pids = node.getPids()
-      this.nodeModel.update(nodeModel.id, {
-        coordinatorPid: pids.coordinatorBeacon,
-        coordinatorStatus: pids.coordinatorBeacon
-          ? CoordinatorStatus.running
-          : CoordinatorStatus.stopped,
-        validatorPid: pids.validator,
-        validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
-        coordinatorValidatorPid: pids.coordinatorValidator,
-        coordinatorValidatorStatus: pids.coordinatorValidator
-          ? CoordinatorValidatorStatus.running
-          : CoordinatorValidatorStatus.stopped
-      })
+      // await node.start()
+      // const pids = node.getPids()
+      // this.nodeModel.update(nodeModel.id, {
+      //   coordinatorPid: pids.coordinatorBeacon,
+      //   coordinatorStatus: pids.coordinatorBeacon
+      //     ? CoordinatorStatus.running
+      //     : CoordinatorStatus.stopped,
+      //   validatorPid: pids.validator,
+      //   validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
+      //   coordinatorValidatorPid: pids.coordinatorValidator,
+      //   coordinatorValidatorStatus: pids.coordinatorValidator
+      //     ? CoordinatorValidatorStatus.running
+      //     : CoordinatorValidatorStatus.stopped
+      // })
       return true
     }
     return false

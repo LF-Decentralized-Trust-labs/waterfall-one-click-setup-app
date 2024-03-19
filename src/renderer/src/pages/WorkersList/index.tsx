@@ -1,35 +1,27 @@
 import { PageHeader } from '@renderer/components/Page/Header'
 import { Layout } from 'antd'
+import { Alert } from '@renderer/ui-kit/Alert'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { PlusCircleOutlined } from '@ant-design/icons'
 import { PageBody } from '@renderer/components/Page/Body'
 import { WorkersList } from '@renderer/containers/Workers/WorkersList'
-import { WorkersT } from '@renderer/types/workers'
 import { routes } from '@renderer/constants/navigation'
-
-const data: WorkersT[] = [
-  {
-    id: '1',
-    node: 'test',
-    status: 'Active',
-    workedHours: 20,
-    depositData: null
-  },
-  {
-    id: '2',
-    node: 'Node Test 2',
-    status: 'Active',
-    workedHours: 100,
-    depositData: true
-  }
-]
+import { useGetAll } from '@renderer/hooks/workers'
 
 export const WorkersListPage = () => {
+  const { isLoading, data, error } = useGetAll({ refetchInterval: 5000 })
+
+  const breadcrumb = [
+    {
+      title: 'Workers'
+    }
+  ]
+
   const shouldAddNode = false
   return (
     <Layout>
       <PageHeader
-        title="Workers"
+        breadcrumb={breadcrumb}
         actions={
           shouldAddNode ? null : !data?.length ? (
             <ButtonPrimary href={routes.workers.import}>
@@ -44,7 +36,8 @@ export const WorkersListPage = () => {
           )
         }
       />
-      <PageBody>
+      <PageBody isLoading={isLoading}>
+        {error && <Alert message={error.message} type="error" />}
         <WorkersList shouldAddNode={shouldAddNode} data={data} />
       </PageBody>
     </Layout>

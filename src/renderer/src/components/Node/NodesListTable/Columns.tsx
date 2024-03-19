@@ -24,8 +24,8 @@ export const columns: TableColumnsType<DataType> = [
 
   {
     title: 'Status',
-    dataIndex: NodesListDataFields.createdAt,
-    key: NodesListDataFields.createdAt,
+    dataIndex: NodesListDataFields.status,
+    key: NodesListDataFields.status,
     render: (_, node) => getNodeStatus(node)
   },
   {

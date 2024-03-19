@@ -1,6 +1,7 @@
 import { Input } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { styled } from 'styled-components'
+import { shuffleArray } from '../../helpers/common'
 
 type VerifyMnemonicPropsT = {
   phrase: string[]
@@ -40,6 +41,9 @@ export const VerifyMnemonic: React.FC<VerifyMnemonicPropsT> = ({ phrase, value, 
       .filter((el) => el !== null)
     setEditableCells(editable)
   }, [])
+
+  const showPhrase = useMemo(() => shuffleArray(phrase), [phrase])
+
   return (
     <>
       <Wrapper ref={rootRef}>
@@ -58,9 +62,13 @@ export const VerifyMnemonic: React.FC<VerifyMnemonicPropsT> = ({ phrase, value, 
         ))}
       </Wrapper>
       <DNDContainer>
-        {phrase.map((el) => (
-          <DNDItem onClick={onCardClick(el)} $disabled={Object.values(value).includes(el)} key={el}>
-            {el}
+        {showPhrase.map(({ value: word, index }) => (
+          <DNDItem
+            onClick={onCardClick(word)}
+            $disabled={!!value?.[index]}
+            key={`${word}_${index}`}
+          >
+            {word}
           </DNDItem>
         ))}
       </DNDContainer>

@@ -1,3 +1,11 @@
+import {
+  Worker,
+  CoordinatorStatus,
+  ValidatorStatus,
+  Status,
+  ActionTxType
+} from '@renderer/types/workers'
+import { ActionTxTypeMap } from '../types/workers'
 export const ImportWorkersStepKeys = {
   node: 'node',
   mnemonic: 'mnemonic',
@@ -48,8 +56,7 @@ export const AddWorkerStepKeys = {
   verifyMnemonic: 'verifyMnemonic',
   workersAmount: 'workersAmount',
   withdrawalAddress: 'withdrawalAddress',
-  displayKeys: 'displayKeys',
-  sendTransaction: 'sendTransaction'
+  preview: 'preview'
 }
 
 export const getAddWorkerSteps = (node?: string | null) => {
@@ -71,12 +78,8 @@ export const getAddWorkerSteps = (node?: string | null) => {
       key: AddWorkerStepKeys.withdrawalAddress
     },
     {
-      title: 'Display Workers keys',
-      key: AddWorkerStepKeys.displayKeys
-    },
-    {
-      title: 'Send transaction to activate Worker',
-      key: AddWorkerStepKeys.sendTransaction
+      title: 'Preview',
+      key: AddWorkerStepKeys.preview
     }
   ]
   if (!node)
@@ -87,5 +90,51 @@ export const getAddWorkerSteps = (node?: string | null) => {
     steps: stepsWithKeys.map((el) => ({
       title: el.title
     }))
+  }
+}
+
+const StatusLabels = {
+  [Status.pending_initialized]: 'Pending Initialized',
+  [Status.pending_activation]: 'Pending Activation',
+  [Status.active]: 'Active',
+  [Status.active_exiting]: 'Exiting',
+  [Status.exited]: 'Exited'
+}
+
+export const getStatusLabel = (worker: Worker) => {
+  return StatusLabels[getStatus(worker)]
+}
+export const getStatus = (worker: Worker) => {
+  if (
+    worker.coordinatorStatus === CoordinatorStatus.pending_initialized &&
+    worker.validatorStatus === ValidatorStatus.pending_initialized
+  ) {
+    return Status.pending_initialized
+  } else if (
+    worker.coordinatorStatus === CoordinatorStatus.pending_queued ||
+    worker.coordinatorStatus === CoordinatorStatus.pending_activation ||
+    worker.validatorStatus === ValidatorStatus.pending_initialized ||
+    worker.validatorStatus === ValidatorStatus.pending_activation
+  ) {
+    return Status.pending_activation
+  } else if (
+    worker.coordinatorStatus === CoordinatorStatus.active_ongoing ||
+    worker.coordinatorStatus === CoordinatorStatus.active_exiting ||
+    worker.coordinatorStatus === CoordinatorStatus.active_slashed ||
+    worker.validatorStatus === ValidatorStatus.active
+  ) {
+    return Status.active
+  }
+  return Status.exited
+}
+
+export const getActions = (worker?: Worker): ActionTxTypeMap => {
+  return {
+    [ActionTxType.activate]: worker ? getStatus(worker) === Status.pending_initialized : false,
+    [ActionTxType.deActivate]: worker ? getStatus(worker) === Status.active : false,
+    [ActionTxType.withdraw]: worker
+      ? getStatus(worker) !== Status.pending_activation &&
+        getStatus(worker) !== Status.pending_initialized
+      : false
   }
 }

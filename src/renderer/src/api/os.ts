@@ -1,3 +1,11 @@
 export const selectDirectory = async (defaultPath?: string): Promise<string | null> => {
   return await window.os.selectDirectory(defaultPath)
 }
+
+export const saveTextFile = async (
+  text: string,
+  title?: string,
+  fileName?: string
+): Promise<boolean> => {
+  return await window.os.saveTextFile(text, title, fileName)
+}

@@ -194,7 +194,7 @@ class LocalNode extends EventEmitter {
       log.debug(error)
     }
     try {
-      const response = (await this._runValidatorCommand('admin.peers.length')) as string
+      const response = (await this.runValidatorCommand('admin.peers.length')) as string
       if (response !== '') {
         results.validatorPeersCount = parseInt(response)
       }
@@ -241,11 +241,11 @@ class LocalNode extends EventEmitter {
     }
 
     try {
-      const response = (await this._runValidatorCommand('eth.syncing')) as string
+      const response = (await this.runValidatorCommand('eth.syncing')) as string
 
       if (response !== 'false' && response !== '') {
-        const currentSlot = (await this._runValidatorCommand('eth.syncing.currentSlot')) as string
-        const finalizedSlot = (await this._runValidatorCommand(
+        const currentSlot = (await this.runValidatorCommand('eth.syncing.currentSlot')) as string
+        const finalizedSlot = (await this.runValidatorCommand(
           'eth.syncing.finalizedSlot'
         )) as string
         results.validatorHeadSlot = BigInt(finalizedSlot)
@@ -471,7 +471,8 @@ class LocalNode extends EventEmitter {
     return {}
   }
 
-  private async _runValidatorCommand(command: string) {
+  public async runValidatorCommand(command: string): Promise<string> {
+    console.log(command)
     if (!this.model) {
       return ''
     }
@@ -484,7 +485,7 @@ class LocalNode extends EventEmitter {
         return reject('')
       }
       exec(
-        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec "${command}" attach ${getValidatorPath(this.model.locationDir)}/validator.ipc`,
+        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec '${command}' attach ${getValidatorPath(this.model.locationDir)}/validator.ipc`,
         (err, stdout, stderr) => {
           if (err) {
             return reject(err)
@@ -493,7 +494,7 @@ class LocalNode extends EventEmitter {
             return reject(stderr)
           }
           if (stdout) {
-            return resolve(stdout)
+            return resolve(stdout.replaceAll('\n', '').replaceAll('"', ''))
           }
         }
       )

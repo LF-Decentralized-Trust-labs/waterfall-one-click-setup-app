@@ -36,6 +36,7 @@ export function up(next: () => void): void {
       validatorWsApiPort INTEGER NOT NULL,
       validatorPid INTEGER,
       workersCount INTEGER NOT NULL DEFAULT 0,
+      memoHash TEXT,
       createdAt DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
       updatedAt DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW'))
     );

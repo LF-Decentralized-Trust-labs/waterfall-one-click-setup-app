@@ -57,6 +57,7 @@ export interface Node {
   validatorFinalizedSlot: bigint
   validatorPid: number
   workersCount: number
+  memoHash?: string
   coordinatorHttpApiPort: number
   coordinatorHttpValidatorApiPort: number
   coordinatorP2PTcpPort: number
@@ -84,6 +85,9 @@ type OptionalNewNodeFields = Partial<
 export interface NewNode extends RequiredNewNodeFields, OptionalNewNodeFields {}
 export interface UpdateNode extends Partial<Omit<Node, 'id' | 'createdAt' | 'updatedAt'>> {}
 
+export interface Options {
+  ids?: number[]
+}
 class NodeModel {
   private db: Database | null = null
   constructor(db) {
@@ -140,6 +144,14 @@ class NodeModel {
     }
     const res = this.db.prepare('SELECT * FROM nodes')
     return res.all() as Node[]
+  }
+  getAllByIds(ids: (number | bigint)[]): Node[] {
+    if (!this.db) {
+      return []
+    }
+    const placeholders = ids.map(() => '?').join(', ')
+    const res = this.db.prepare(`SELECT * FROM nodes WHERE id IN (${placeholders})`)
+    return res.all(...ids) as Node[]
   }
   remove(id: number | bigint): boolean {
     if (!this.db) {

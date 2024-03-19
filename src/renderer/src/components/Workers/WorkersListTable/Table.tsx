@@ -1,23 +1,42 @@
 import { Table } from '@renderer/ui-kit/Table'
 import React from 'react'
-import { DataType, columns } from './Columns'
+import { columns } from './Columns'
+import { ActionTxType, Worker } from '../../../types/workers'
 
 type WorkersListTablePropsT = {
-  data: DataType[]
+  data: Worker[]
+  onRowClick: (id: number) => void
+  onAction: (action: null | ActionTxType, workerId: undefined | string) => void
 }
 
-export const WorkersListTable: React.FC<WorkersListTablePropsT> = ({ data }) => {
-  const onActivate = (id?: string) => alert(`Activated ${id}`)
-  const onDeactivate = (id?: string) => alert(`Deactivated ${id}`)
-  const onWithdraw = (id?: string) => alert(`Withdraw ${id}`)
+export const WorkersListTable: React.FC<WorkersListTablePropsT> = ({
+  data,
+  onRowClick,
+  onAction
+}) => {
+  const dataSource = data ? data.map((item) => ({ ...item, key: `${item.id}` })) : []
+  const onActivate = (id?: string) => onAction(ActionTxType.activate, id)
+  const onDeactivate = (id?: string) => onAction(ActionTxType.deActivate, id)
+  const onWithdraw = (id?: string) => onAction(ActionTxType.withdraw, id)
 
-  const generateFN = (id?: string) => console.log(`generate ${id}`)
   const getColumns = columns({
-    generateFN,
     activate: onActivate,
     deactivate: onDeactivate,
     withdraw: onWithdraw
   })
 
-  return <Table dataSource={data} columns={getColumns} />
+  return (
+    <Table
+      dataSource={dataSource}
+      columns={getColumns}
+      onRow={(record) => ({
+        style: {
+          cursor: 'pointer'
+        },
+        onClick: () => {
+          onRowClick(record.id)
+        }
+      })}
+    />
+  )
 }

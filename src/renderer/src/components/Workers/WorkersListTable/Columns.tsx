@@ -1,47 +1,55 @@
-import { Flex, TableColumnsType } from 'antd'
-import { WorkersListDataFields, WorkersListDataTypes } from '@renderer/types/workers'
-import { ButtonPrimary, IconButton } from '@renderer/ui-kit/Button'
-// import {
-//   PauseOutlined,
-//   CaretRightOutlined,
-//   ReloadOutlined,
-//   DeleteOutlined
-// } from '@ant-design/icons'
+import { Flex, TableColumnsType, Popover } from 'antd'
+import { WorkersListDataFields, WorkersListDataTypes, Worker } from '@renderer/types/workers'
+import { IconButton } from '@renderer/ui-kit/Button'
 import { CloseOutlined, CaretRightOutlined, WalletOutlined } from '@ant-design/icons'
-import { styled } from 'styled-components'
 import { Link } from '@renderer/ui-kit/Link'
 import { getViewLink } from '@renderer/helpers/navigation'
+import { getStatusLabel } from '@renderer/helpers/workers'
 import { routes } from '@renderer/constants/navigation'
+import React from 'react'
+import { getActions } from '../../../helpers/workers'
+import { ActionTxType } from '../../../types/workers'
 
-export type DataType = WorkersListDataTypes & {
-  key: React.Key
-}
+export type DataType = Worker &
+  WorkersListDataTypes & {
+    key: React.Key
+  }
 
 type getColumnsProps = {
-  generateFN?: (id?: string) => void
   activate: (id?: string) => void
   deactivate: (id?: string) => void
   withdraw: (id?: string) => void
 }
 
 export const columns = ({
-  generateFN,
   deactivate,
   activate,
   withdraw
 }: getColumnsProps): TableColumnsType<DataType> => [
   {
-    title: 'Worker #',
+    title: '#',
     dataIndex: WorkersListDataFields.id,
-    key: WorkersListDataFields.id,
-    render: (id) => <WorkerLink to={getViewLink(routes.workers.view, { id })}>{id}</WorkerLink>
+    key: WorkersListDataFields.id
   },
   {
     title: 'Node',
     dataIndex: WorkersListDataFields.node,
-    key: WorkersListDataFields.node
+    key: WorkersListDataFields.node,
+    render: (node) => (
+      <Link
+        to={getViewLink(routes.nodes.view, { id: node.id })}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {node.name}
+      </Link>
+    )
   },
-  { title: 'Status', dataIndex: WorkersListDataFields.status, key: WorkersListDataFields.status },
+  {
+    title: 'Status',
+    dataIndex: WorkersListDataFields.status,
+    key: WorkersListDataFields.status,
+    render: (_, worker) => getStatusLabel(worker)
+  },
 
   {
     title: 'Worked hours',
@@ -52,52 +60,57 @@ export const columns = ({
     title: 'Actions',
     dataIndex: WorkersListDataFields.actions,
     key: WorkersListDataFields.actions,
-    render: ({ data, id }) => {
-      const onClick = () => generateFN?.(id)
-
-      if (!data)
-        return (
-          <GenerateButton onClick={onClick} ghost>
-            Generate Deposit Data
-          </GenerateButton>
-        )
-
-      const onActivate = () => activate?.(id)
-      const onDeactivate = () => deactivate?.(id)
-      const onWithdraw = () => withdraw?.(id)
+    render: (_, worker) => {
+      const actions = getActions(worker)
+      const onActivate = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation()
+        activate?.(worker.id)
+      }
+      const onDeactivate = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation()
+        deactivate?.(worker.id)
+      }
+      const onWithdraw = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation()
+        withdraw?.(worker.id)
+      }
 
       return (
         <Flex gap={30} align="center">
           <Flex gap={6}>
-            <IconButton
-              icon={<CaretRightOutlined />}
-              shape="default"
-              size="small"
-              onClick={onActivate}
-            />
-            <IconButton
-              icon={<CloseOutlined />}
-              shape="default"
-              size="small"
-              onClick={onDeactivate}
-            />
-            <IconButton
-              icon={<WalletOutlined />}
-              shape="default"
-              size="small"
-              onClick={onWithdraw}
-            />
+            {actions[ActionTxType.activate] && (
+              <Popover content="Activate" placement="bottom">
+                <IconButton
+                  icon={<CaretRightOutlined />}
+                  shape="default"
+                  size="small"
+                  onClick={onActivate}
+                />
+              </Popover>
+            )}
+            {actions[ActionTxType.deActivate] && (
+              <Popover content="Deactivate" placement="bottom">
+                <IconButton
+                  icon={<CloseOutlined />}
+                  shape="default"
+                  size="small"
+                  onClick={onDeactivate}
+                />
+              </Popover>
+            )}
+            {actions[ActionTxType.withdraw] && (
+              <Popover content="Withdraw" placement="bottom">
+                <IconButton
+                  icon={<WalletOutlined />}
+                  shape="default"
+                  size="small"
+                  onClick={onWithdraw}
+                />
+              </Popover>
+            )}
           </Flex>
         </Flex>
       )
     }
   }
 ]
-
-const GenerateButton = styled(ButtonPrimary)`
-  height: 30px;
-  font-size: 11px;
-  padding: 4px 10px;
-`
-
-const WorkerLink = styled(Link)``

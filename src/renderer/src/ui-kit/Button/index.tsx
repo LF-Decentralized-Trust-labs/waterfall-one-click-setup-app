@@ -9,7 +9,7 @@ const IconButton: React.FC<
     shape?: 'circle' | 'default' | 'round' | undefined
     size?: SizeType
     icon: React.ReactNode
-    onClick?: () => void
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void
   } & ButtonProps
 > = ({ ...props }) => <Button type="primary" shape="circle" size="small" {...props} />
 

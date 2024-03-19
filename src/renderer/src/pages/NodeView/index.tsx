@@ -53,7 +53,7 @@ const getTabs = (node?: Node) => [
 
 export const NodeViewPage = () => {
   const nodeId = useParams()?.id
-  const { isLoading, data: node, error } = useGetById(nodeId)
+  const { isLoading, data: node, error } = useGetById(nodeId, { refetchInterval: 1000 })
   const { onStop, onRestart, onStart } = useControl(nodeId)
 
   const tabs = useMemo(() => getTabs(node), [node])
