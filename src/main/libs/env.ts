@@ -37,6 +37,7 @@ export const getValidatorAddress = (network: Network): string =>
 
 export const getCoordinatorPath = (path: string): string => `${path}/coordinator`
 export const getCoordinatorWalletPath = (path: string): string => `${path}/coordinator/wallet`
+export const getCoordinatorKeysPath = (path: string): string => `${path}/coordinator/wallet/keys`
 export const getValidatorPath = (path: string): string => `${path}/gwat`
 export const getLogPath = (path: string): string => `${path}/logs`
 

@@ -31,7 +31,7 @@ export const WorkerViewValidator: React.FC<WorkerViewTabProps> = ({ item }) => {
       />
       <TabTextRow
         label="Deactivation Epoch"
-        value={item?.validatorActivationEpoch ? item.validatorActivationEpoch : '-'}
+        value={item?.validatorDeActivationEpoch ? item.validatorDeActivationEpoch : '-'}
       />
       <TabTextRow
         label="Blocks created"

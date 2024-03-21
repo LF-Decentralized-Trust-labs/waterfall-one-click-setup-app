@@ -34,20 +34,20 @@ export interface Worker {
   number: number
   coordinatorStatus: CoordinatorStatus
   coordinatorPublicKey: string
-  coordinatorBalanceAmount: number | bigint
-  coordinatorActivationEpoch: number
-  coordinatorDeActivationEpoch: number
+  coordinatorBalanceAmount: string
+  coordinatorActivationEpoch: string
+  coordinatorDeActivationEpoch: string
   coordinatorBlockCreationCount: number
   coordinatorAttestationCreationCount: number
   validatorStatus: ValidatorStatus
   validatorAddress: string
-  validatorBalanceAmount: number | bigint
-  validatorActivationEpoch: number
-  validatorDeActivationEpoch: number
+  validatorBalanceAmount: string
+  validatorActivationEpoch: string
+  validatorDeActivationEpoch: string
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
-  stakeAmount: number | bigint
+  stakeAmount: string
   createdAt: string
   updatedAt: string
 }

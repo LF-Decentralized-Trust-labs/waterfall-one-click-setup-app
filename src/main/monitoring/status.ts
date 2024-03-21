@@ -3,7 +3,9 @@ import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
 import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../models/node'
+import WorkerModel from '../models/worker'
 import LocalNode from '../node/local'
+import { areObjectsEqual } from '../helpers/common'
 
 const port = parentPort
 if (!port) throw new Error('IllegalState')
@@ -16,13 +18,15 @@ class StatusMonitoring {
   private timeout: number = 4000
   private appEnv: AppEnv
   private nodeModel: NodeModel
+  private workerModel: WorkerModel
   private interval: NodeJS.Timeout | null = null
   private isStart = false
 
-  constructor(appEnv, timeout: number | undefined) {
+  constructor(appEnv: AppEnv, timeout: number | undefined) {
     this.appEnv = appEnv
     const db = getMain(this.appEnv.mainDB)
     this.nodeModel = new NodeModel(db)
+    this.workerModel = new WorkerModel(db)
     if (timeout) {
       this.timeout = timeout
     }
@@ -83,10 +87,25 @@ class StatusMonitoring {
           }
         }
         if (Object.keys(data).length > 0) this.nodeModel.update(nodeModel.id, data)
+
+        if(sync?.coordinatorFinalizedEpoch && nodeModel.coordinatorFinalizedEpoch !== sync.coordinatorFinalizedEpoch) {
+          const workers = this.workerModel.getByNodeId(nodeModel.id)
+          for (const workerModel of workers) {
+            try {
+              const workerStatus = await node.getWorkerStatus(workerModel)
+              if (!areObjectsEqual(workerStatus, workerModel))
+                this.workerModel.update(workerModel.id, workerStatus)
+            } catch (error) {
+              log.error(error)
+            }
+          }
+        }
       } catch (error) {
         log.error(error)
       }
+
     }
+
     this.isStart = false
   }
 }

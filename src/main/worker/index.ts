@@ -3,7 +3,8 @@ import AppEnv from '../libs/appEnv'
 import NodeModel, { Type as NodeType } from '../models/node'
 import WorkerModel, {
   NewWorker as NewWorkerModelType,
-  Worker as WorkerModelType
+  Worker as WorkerModelType,
+  WorkerStatus
 } from '../models/worker'
 import { getMain } from '../libs/db'
 import Web3 from 'web3'
@@ -13,6 +14,7 @@ import {
   GetKeyStoreResponseType
 } from 'web3/utils'
 import LocalNode from '../node/local'
+import crypto from 'crypto'
 
 enum ErrorResults {
   NODE_NOT_FOUND = 'Node is Not Found',
@@ -21,13 +23,16 @@ enum ErrorResults {
   AMOUNT_NOT_PROVIDED = 'Amount is not provided',
   WITHDRAWAL_NOT_PROVIDED = 'Withdrawal Address is not provided',
   WORKER_NOT_FOUND = 'Worker Is Not Found',
-  ACTION_NOT_FOUND = 'Action is not provided'
+  ACTION_NOT_FOUND = 'Action is not provided',
+  PASSWORD_NOT_GENERATE = 'Password was not generated'
 }
 
 export interface Key {
   depositData: GetDepositDataResponse
   coordinatorKey: GetKeyStoreResponseType
   validatorKey: GetValidatorsKeysResponseType
+  coordinatorPassword: string
+  validatorPassword: string
 }
 
 export interface addParams {
@@ -89,6 +94,49 @@ class Worker {
     this.ipcMain.removeHandler('worker:getActionTx')
   }
 
+  public async getStatus(worker: WorkerModelType) {
+    if (!worker) {
+      return ErrorResults.WORKER_NOT_FOUND
+    }
+    if (!worker.node) {
+      return ErrorResults.NODE_NOT_FOUND
+    }
+    const results: WorkerStatus = {
+      coordinatorStatus: worker.coordinatorStatus,
+      coordinatorBalanceAmount: worker.coordinatorBalanceAmount,
+      coordinatorActivationEpoch: worker.coordinatorActivationEpoch,
+      coordinatorDeActivationEpoch: worker.coordinatorDeActivationEpoch,
+      validatorStatus: worker.validatorStatus,
+      validatorBalanceAmount: worker.validatorBalanceAmount,
+      validatorActivationEpoch: worker.validatorActivationEpoch,
+      validatorDeActivationEpoch: worker.validatorDeActivationEpoch,
+      stakeAmount: worker.stakeAmount
+    }
+
+    const node =
+      worker.node.type === NodeType.local
+        ? new LocalNode(worker.node, this.appEnv)
+        : new LocalNode(worker.node, this.appEnv)
+
+    const coordinatorResponse = await node.runCoordinatorCommand(
+      `/eth/v1/beacon/states/head/validators/0x${worker.coordinatorPublicKey}`
+    )
+
+    if (coordinatorResponse?.data) {
+      results.coordinatorStatus = coordinatorResponse.data.status
+      results.coordinatorBalanceAmount = coordinatorResponse.data.balance
+      results.coordinatorActivationEpoch = coordinatorResponse.data.validator.activation_epoch
+      results.coordinatorDeActivationEpoch = coordinatorResponse.data.validator.exit_epoch
+      results.stakeAmount = coordinatorResponse.data.validator.effective_balance
+    }
+    const validatorResponse = await node.runValidatorCommand(
+      `wat.validator.getInfo("0x${worker.validatorAddress}")`
+    )
+
+    console.log(validatorResponse)
+
+    return results
+  }
   private _genMnemonic() {
     return Web3.utils.genMnemonic()
   }
@@ -110,25 +158,38 @@ class Worker {
     if (!data.withdrawalAddress) {
       return ErrorResults.WITHDRAWAL_NOT_PROVIDED
     }
-    const node = this.nodeModel.getById(data.nodeId)
-    if (!node) {
+    const nodeModel = this.nodeModel.getById(data.nodeId)
+    if (!nodeModel) {
       return ErrorResults.NODE_NOT_FOUND
     }
-    if (node.memoHash && node.memoHash !== memoHash) {
+    if (nodeModel.memoHash && nodeModel.memoHash !== memoHash) {
       return ErrorResults.MNEMONIC_NOT_MATCHED
     }
 
-    const lastWorker = this.workerModel.getByNodeIdLast(node.id)
+    const node =
+      nodeModel.type === NodeType.local
+        ? new LocalNode(nodeModel, this.appEnv)
+        : new LocalNode(nodeModel, this.appEnv)
+
+    const coordinatorPassword = await node.getCoordinatorValidatorPassword()
+    if (!coordinatorPassword) {
+      return ErrorResults.PASSWORD_NOT_GENERATE
+    }
+
+    const lastWorker = this.workerModel.getByNodeIdLast(nodeModel.id)
 
     let index = lastWorker ? lastWorker.number + 1 : 0
     const lastIndex = lastWorker ? lastWorker.number + data.amount : data.amount
     const keys: Key[] = []
     const newWorkers: NewWorkerModelType[] = []
     for (index; index < lastIndex; index++) {
+      const validatorPassword = crypto.randomBytes(16).toString('hex')
       const key = {
         depositData: await Web3.utils.getDepositData(data.mnemonic, index, data.withdrawalAddress),
-        coordinatorKey: await Web3.utils.getKeyStore(data.mnemonic, index, ''),
-        validatorKey: Web3.utils.getValidatorKeys(data.mnemonic, index, '')
+        coordinatorKey: await Web3.utils.getKeyStore(data.mnemonic, index, coordinatorPassword),
+        validatorKey: Web3.utils.getValidatorKeys(data.mnemonic, index, validatorPassword),
+        validatorPassword,
+        coordinatorPassword
       }
       const worker: NewWorkerModelType = {
         nodeId: data.nodeId,
@@ -141,10 +202,12 @@ class Worker {
       newWorkers.push(worker)
     }
 
-    if (memoHash && !node.memoHash) {
-      node.memoHash = memoHash
+    if (memoHash && !nodeModel.memoHash) {
+      nodeModel.memoHash = memoHash
     }
-    const workers = this.workerModel.insert(newWorkers, node)
+    const workers = this.workerModel.insert(newWorkers, nodeModel)
+
+    await node.addWorkers(keys)
 
     return workers
   }
@@ -193,7 +256,7 @@ class Worker {
     return {
       hexData,
       value,
-      to: await node.runValidatorCommand('wat.validator.depositAddress()'),
+      to: (await node.runValidatorCommand('wat.validator.depositAddress()')) as string,
       from: `0x${worker.withdrawalAddress}`
     }
   }

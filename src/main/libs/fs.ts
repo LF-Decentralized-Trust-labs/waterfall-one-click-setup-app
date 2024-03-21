@@ -1,4 +1,4 @@
-import { access, mkdir, writeFile, readFile, constants } from 'node:fs/promises'
+import { access, mkdir, writeFile, readFile, appendFile, constants } from 'node:fs/promises'
 import * as net from 'node:net'
 import log from 'electron-log/node'
 
@@ -30,24 +30,32 @@ export const checkOrCreateDir = async (dirPath: string): Promise<boolean> => {
 export const checkOrCreateFile = async (
   filePath: string,
   data: undefined | string
-): Promise<boolean> => {
+): Promise<null | string> => {
   try {
-    await readFile(filePath, { encoding: 'utf-8' })
-    return true
+    return await readFile(filePath, { encoding: 'utf-8' })
   } catch (error) {
     const nodeError = error as NodeJS.ErrnoException
     if (nodeError.code === 'ENOENT') {
       if (data !== undefined) {
         await writeFile(filePath, data)
-        return true
+        return data
       }
     }
   }
-  return false
+  return null
 }
 export const checkFile = async (filePath: string): Promise<boolean> => {
   try {
     await readFile(filePath, { encoding: 'utf-8' })
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+export const appendToFile = async (filePath: string, data: string): Promise<boolean> => {
+  try {
+    await appendFile(filePath, data)
     return true
   } catch (error) {
     return false

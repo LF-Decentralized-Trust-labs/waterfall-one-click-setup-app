@@ -20,30 +20,34 @@ export enum ValidatorStatus {
   pending_initialized = 'pending_initialized',
   pending_activation = 'pending_activation',
   active = 'active',
+  pending_exiting = 'pending_exiting',
   exited = 'exited'
 }
 
-export interface Worker {
+export interface WorkerStatus {
+  coordinatorStatus: CoordinatorStatus
+  coordinatorBalanceAmount: string
+  coordinatorActivationEpoch: string
+  coordinatorDeActivationEpoch: string
+  validatorStatus: ValidatorStatus
+  validatorBalanceAmount: string
+  validatorActivationEpoch: string
+  validatorDeActivationEpoch: string
+  stakeAmount: string
+}
+
+export interface Worker extends WorkerStatus {
   id: number | bigint
   nodeId: number | bigint
   node?: Node
   number: number
-  coordinatorStatus: CoordinatorStatus
   coordinatorPublicKey: string
-  coordinatorBalanceAmount: number | bigint
-  coordinatorActivationEpoch: number
-  coordinatorDeActivationEpoch: number
   coordinatorBlockCreationCount: number
   coordinatorAttestationCreationCount: number
-  validatorStatus: ValidatorStatus
   validatorAddress: string
-  validatorBalanceAmount: number | bigint
-  validatorActivationEpoch: number
-  validatorDeActivationEpoch: number
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
-  stakeAmount: number | bigint
   createdAt: string
   updatedAt: string
 }
