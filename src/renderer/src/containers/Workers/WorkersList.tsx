@@ -6,6 +6,8 @@ import { useGoWorker } from '@renderer/hooks/workers'
 import { useState } from 'react'
 import { ActionTxType } from '../../types/workers'
 import { ActionModal } from './ActionModal'
+import { routes } from '@renderer/constants/navigation'
+
 type WorkersListPropsT = {
   data?: Worker[]
   shouldAddNode?: boolean
@@ -24,13 +26,13 @@ export const WorkersList: React.FC<WorkersListPropsT> = ({ shouldAddNode, data }
     return (
       <Empty description={<span>Nothing to display here. Please add your first Node</span>}>
         <Flex justify="center">
-          <ButtonPrimary>Add Node</ButtonPrimary>
+          <ButtonPrimary href={routes.nodes.create}>Add Node</ButtonPrimary>
         </Flex>
       </Empty>
     )
   if (!data?.length)
     return (
-      <Empty description={<span>Nothing to display here. Please import your workers</span>}></Empty>
+      <Empty description={<span>Nothing to display here. Please add your workers</span>}></Empty>
     )
 
   return (

@@ -31,11 +31,11 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
           <ButtonPrimary href={addParams(routes.workers.add, { node: item?.id.toString() })}>
             Add Worker
           </ButtonPrimary>
-          {data?.length === 0 && (
-            <ButtonPrimary href={addParams(routes.workers.import, { node: item?.id.toString() })}>
-              Import Worker
-            </ButtonPrimary>
-          )}
+          {/*{data?.length === 0 && (*/}
+          {/*  <ButtonPrimary href={addParams(routes.workers.import, { node: item?.id.toString() })}>*/}
+          {/*    Import Worker*/}
+          {/*  </ButtonPrimary>*/}
+          {/*)}*/}
         </Actions>
       )}
       {error && <Alert message={error.message} type="error" />}
