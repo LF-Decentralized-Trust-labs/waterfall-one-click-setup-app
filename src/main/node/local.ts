@@ -286,56 +286,95 @@ class LocalNode extends EventEmitter {
       return results
     }
 
-    const coordinatorResponse = await this.runCoordinatorCommand(
-      `/eth/v1/beacon/states/head/validators/0x${worker.coordinatorPublicKey}`
-    )
-
-    if (coordinatorResponse?.data) {
-      results.coordinatorStatus = coordinatorResponse.data.status
-      results.coordinatorBalanceAmount = Web3.utils.fromWei(
-        Web3.utils.toWei(coordinatorResponse.data.balance, 'gwei'),
-        'ether'
+    try {
+      const coordinatorResponse = await this.runCoordinatorCommand(
+        `/eth/v1/beacon/states/head/validators/0x${worker.coordinatorPublicKey}`
       )
-      results.coordinatorActivationEpoch = coordinatorResponse.data.validator.activation_epoch
-      results.coordinatorDeActivationEpoch = coordinatorResponse.data.validator.exit_epoch
-      results.stakeAmount = Web3.utils.fromWei(
-        Web3.utils.toWei(coordinatorResponse.data.validator.effective_balance, 'gwei'),
-        'ether'
-      )
-    }
-    const [validatorResponse, currentEra, validatorBalanceAmount] = await Promise.all([
-      this.runValidatorCommand(`wat.validator.getInfo("0x${worker.validatorAddress}")`, 'json'),
-      this.runValidatorCommand('wat.getEra()', 'json'),
-      this.runValidatorCommand(`eth.getBalance("0x${worker.validatorAddress}")`)
-    ])
 
-    if (isValidatorInfo(validatorResponse)) {
-      const activationEra =
-        validatorResponse.activationEra === 18446744073709552000
-          ? null
-          : await this.runValidatorCommand(`wat.getEra(${validatorResponse.activationEra})`, 'json')
-      const exitEra =
-        validatorResponse.exitEra === 18446744073709552000
-          ? null
-          : await this.runValidatorCommand(`wat.getEra(${validatorResponse.exitEra})`, 'json')
-      results.validatorStatus = ValidatorStatus.pending_initialized
-      if (isEraInfo(activationEra) && isEraInfo(currentEra)) {
-        results.validatorStatus =
-          activationEra.number <= currentEra.number
-            ? ValidatorStatus.active
-            : ValidatorStatus.pending_activation
-        results.validatorActivationEpoch = activationEra.fromEpoch.toString()
+      if (coordinatorResponse?.data) {
+        results.coordinatorStatus = coordinatorResponse.data.status
+        results.coordinatorBalanceAmount = Web3.utils.fromWei(
+          Web3.utils.toWei(coordinatorResponse.data.balance, 'gwei'),
+          'ether'
+        )
+        if (coordinatorResponse.data.validator.activation_epoch !== '18446744073709551615') {
+          results.coordinatorActivationEpoch = coordinatorResponse.data.validator.activation_epoch
+        }
+        if (coordinatorResponse.data.validator.exit_epoch !== '18446744073709551615') {
+          results.coordinatorDeActivationEpoch = coordinatorResponse.data.validator.exit_epoch
+        }
+        results.stakeAmount = Web3.utils.fromWei(
+          Web3.utils.toWei(coordinatorResponse.data.validator.effective_balance, 'gwei'),
+          'ether'
+        )
       }
-      if (isEraInfo(exitEra) && isEraInfo(currentEra)) {
-        results.validatorStatus =
-          exitEra.number <= currentEra.number
-            ? ValidatorStatus.exited
-            : ValidatorStatus.pending_exiting
-        results.validatorActivationEpoch = exitEra.fromEpoch.toString()
-      }
+    } catch (e) {
+      log.error(e)
     }
-    if (validatorBalanceAmount && typeof validatorBalanceAmount === 'string') {
-      results.validatorBalanceAmount = Web3.utils.fromWei(validatorBalanceAmount, 'ether')
+
+    try {
+      const [validatorResponse, currentEra, validatorBalanceAmount] = await Promise.all([
+        this.runValidatorCommand(`wat.validator.getInfo("0x${worker.validatorAddress}")`, 'json'),
+        this.runValidatorCommand('wat.getEra()', 'json'),
+        this.runValidatorCommand(`eth.getBalance("0x${worker.validatorAddress}")`)
+      ])
+
+      console.log({ validatorResponse, currentEra, validatorBalanceAmount })
+      if (isValidatorInfo(validatorResponse)) {
+        let activationEra: null | object | string = null
+        let exitEra: null | object | string = null
+        try {
+          activationEra =
+            validatorResponse.activationEra === 18446744073709552000
+              ? null
+              : await this.runValidatorCommand(
+                  `wat.getEra(${validatorResponse.activationEra})`,
+                  'json'
+                )
+        } catch (e) {
+          log.error(e)
+        }
+        try {
+          exitEra =
+            validatorResponse.exitEra === 18446744073709552000
+              ? null
+              : await this.runValidatorCommand(`wat.getEra(${validatorResponse.exitEra})`, 'json')
+        } catch (e) {
+          log.error(e)
+        }
+
+        results.validatorStatus = ValidatorStatus.pending_initialized
+        if (isEraInfo(currentEra)) {
+          if (validatorResponse.activationEra !== 18446744073709552000) {
+            results.validatorStatus =
+              validatorResponse.activationEra <= currentEra.number
+                ? ValidatorStatus.active
+                : ValidatorStatus.pending_activation
+          }
+          if (isEraInfo(activationEra)) {
+            results.validatorActivationEpoch = activationEra.fromEpoch.toString()
+          } else if (validatorResponse.activationEra === currentEra.number + 1) {
+            results.validatorActivationEpoch = (currentEra.toEpoch + 1).toString()
+          }
+
+          if (validatorResponse.exitEra !== 18446744073709552000) {
+            results.validatorStatus =
+              validatorResponse.exitEra <= currentEra.number
+                ? ValidatorStatus.exited
+                : ValidatorStatus.pending_exiting
+          }
+          if (isEraInfo(exitEra)) {
+            results.validatorDeActivationEpoch = exitEra.fromEpoch.toString()
+          } else if (validatorResponse.exitEra === currentEra.number + 1) {
+            results.validatorDeActivationEpoch = (currentEra.toEpoch + 1).toString()
+          }
+        }
+      }
+      if (validatorBalanceAmount && typeof validatorBalanceAmount === 'string') {
+        results.validatorBalanceAmount = Web3.utils.fromWei(validatorBalanceAmount, 'ether')
+      }
+    } catch (e) {
+      log.error(e)
     }
 
     return results

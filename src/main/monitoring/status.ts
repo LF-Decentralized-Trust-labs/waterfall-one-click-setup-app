@@ -88,14 +88,20 @@ class StatusMonitoring {
         }
         if (Object.keys(data).length > 0) this.nodeModel.update(nodeModel.id, data)
 
-        if(sync?.coordinatorFinalizedEpoch && nodeModel.coordinatorFinalizedEpoch !== sync.coordinatorFinalizedEpoch) {
+        if (
+          sync?.coordinatorFinalizedEpoch &&
+          nodeModel.coordinatorFinalizedEpoch.toString() !==
+            sync.coordinatorFinalizedEpoch.toString()
+        ) {
           const workers = this.workerModel.getByNodeId(nodeModel.id)
           for (const workerModel of workers) {
             try {
               const workerStatus = await node.getWorkerStatus(workerModel)
+              console.log('workerStatus', workerStatus)
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {
+              console.log('err')
               log.error(error)
             }
           }
@@ -103,7 +109,6 @@ class StatusMonitoring {
       } catch (error) {
         log.error(error)
       }
-
     }
 
     this.isStart = false

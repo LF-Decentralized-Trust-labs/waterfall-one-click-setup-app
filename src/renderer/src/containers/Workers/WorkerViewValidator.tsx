@@ -23,7 +23,7 @@ export const WorkerViewValidator: React.FC<WorkerViewTabProps> = ({ item }) => {
       />
       <TabTextRow
         label="Current balance"
-        value={item ? `${item.coordinatorBalanceAmount} WATER` : '-'}
+        value={item ? `${item.validatorBalanceAmount} WATER` : '-'}
       />
       <TabTextRow
         label="Activation Epoch"

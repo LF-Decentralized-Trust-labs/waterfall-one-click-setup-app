@@ -7,11 +7,11 @@ import { PageBody } from '@renderer/components/Page/Body'
 import { WorkersList } from '@renderer/containers/Workers/WorkersList'
 import { routes } from '@renderer/constants/navigation'
 import { useGetAll } from '@renderer/hooks/workers'
-import { useGetAll as useGetAllNode  } from '@renderer/hooks/node'
+import { useGetAll as useGetAllNode } from '@renderer/hooks/node'
 
 export const WorkersListPage = () => {
   const { isLoading, data, error } = useGetAll({ refetchInterval: 5000 })
-  const { data : nodes }  = useGetAllNode()
+  const { data: nodes } = useGetAllNode()
 
   const breadcrumb = [
     {
@@ -30,7 +30,8 @@ export const WorkersListPage = () => {
           //     <PlusCircleOutlined />
           //   </ButtonPrimary>
           // ) : (
-          nodes && nodes.length > 0 && (
+          nodes &&
+          nodes.length > 0 && (
             <ButtonPrimary href={routes.workers.add}>
               Add Worker
               <PlusCircleOutlined />
