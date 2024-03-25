@@ -53,6 +53,7 @@ export interface Node {
   validatorFinalizedSlot: bigint
   validatorPid: number
   workersCount: number
+  memoHash?: string
   coordinatorHttpApiPort: number
   coordinatorHttpValidatorApiPort: number
   coordinatorP2PTcpPort: number

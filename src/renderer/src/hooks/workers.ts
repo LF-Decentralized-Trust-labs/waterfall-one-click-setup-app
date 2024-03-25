@@ -1,5 +1,5 @@
 import { routes } from '@renderer/constants/navigation'
-import { getViewLink } from '@renderer/helpers/navigation'
+import { getViewLink, addParams } from '@renderer/helpers/navigation'
 import {
   AddWorkerFields,
   AddWorkerFormValuesT,
@@ -8,7 +8,6 @@ import {
 } from '@renderer/types/workers'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import {
   genMnemonic,
   add as addWorkers,
@@ -23,7 +22,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ActionTxType } from '../types/workers'
 
 const addInitialValues = {
-  [AddWorkerFields.node]: '',
   [AddWorkerFields.mnemonic]: [],
   [AddWorkerFields.mnemonicVerify]: Object.assign(
     {},
@@ -33,11 +31,15 @@ const addInitialValues = {
   [AddWorkerFields.withdrawalAddress]: ''
 }
 
-export const useAddWorker = (node?: Node, nodes?: Node[]) => {
+export const useAddWorker = (node?: Node) => {
   const navigate = useNavigate()
   const [values, setValues] = useState<AddWorkerFormValuesT>({
     ...addInitialValues
   })
+
+  const handleChangeNode = (value?: string) => {
+    if (value) navigate(addParams(routes.workers.add, { node: value }))
+  }
 
   useEffect(() => {
     const _genMnemonic = async () => {
@@ -51,20 +53,16 @@ export const useAddWorker = (node?: Node, nodes?: Node[]) => {
       mnemonicVerify[20] = ''
       setValues((prev) => ({ ...prev, mnemonic, mnemonicVerify }))
     }
-    _genMnemonic()
-  }, [])
-
-  useEffect(() => {
-    if (values.node) {
-      return
+    if (node && node.workersCount === 0) {
+      _genMnemonic()
+    } else {
+      setValues((prev) => ({
+        ...prev,
+        mnemonic: addInitialValues[AddWorkerFields.mnemonic],
+        mnemonicVerify: addInitialValues[AddWorkerFields.mnemonicVerify]
+      }))
     }
-    if (node) {
-      return setValues((prev) => ({ ...prev, node: node.id.toString() }))
-    }
-    if (nodes && nodes.length > 0) {
-      return setValues((prev) => ({ ...prev, node: nodes[0].id.toString() }))
-    }
-  }, [node, nodes, values])
+  }, [node?.id])
 
   const handleChange =
     (field: AddWorkerFields) => (value?: string | Record<number, string> | number | null) =>
@@ -74,21 +72,31 @@ export const useAddWorker = (node?: Node, nodes?: Node[]) => {
     await saveTextFile(values.mnemonic.join(' '), 'Save Mnemonic phrase to file', 'memo.txt')
   }, [values])
 
-  const onAdd = async () => {
+  const onAdd = useCallback(async () => {
+    if (!node) {
+      return
+    }
     const workers = await addWorkers({
-      nodeId: parseInt(values[AddWorkerFields.node]),
-      mnemonic: values[AddWorkerFields.mnemonic].join(' '),
+      nodeId: node.id,
+      mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
       amount: values[AddWorkerFields.amount],
       withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
     })
-    console.log(workers)
+    console.log(
+      {
+        nodeId: node.id,
+        mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
+        amount: values[AddWorkerFields.amount],
+        withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
+      },
+      workers
+    )
     if (workers?.length > 0) {
       return navigate(routes.workers.list)
     }
-    alert(workers)
-  }
+  }, [node?.id, values])
 
-  return { values, handleChange, handleSaveMnemonic, onAdd }
+  return { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode }
 }
 
 const importInitialValues = {

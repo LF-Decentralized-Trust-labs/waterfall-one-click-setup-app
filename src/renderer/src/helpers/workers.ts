@@ -3,9 +3,11 @@ import {
   CoordinatorStatus,
   ValidatorStatus,
   Status,
-  ActionTxType
+  ActionTxType,
+  ActionTxTypeMap
 } from '@renderer/types/workers'
-import { ActionTxTypeMap } from '../types/workers'
+import { Node } from '../types/node'
+import { ethers } from 'ethers'
 export const ImportWorkersStepKeys = {
   node: 'node',
   mnemonic: 'mnemonic',
@@ -54,36 +56,59 @@ export const AddWorkerStepKeys = {
   node: 'node',
   saveMnemonic: 'saveMnemonic',
   verifyMnemonic: 'verifyMnemonic',
+  getMnemonic: 'getMnemonic',
   workersAmount: 'workersAmount',
   withdrawalAddress: 'withdrawalAddress',
   preview: 'preview'
 }
 
-export const getAddWorkerSteps = (node?: string | null) => {
-  let stepsWithKeys = [
-    {
-      title: 'Save a mnemonic phrase',
-      key: AddWorkerStepKeys.saveMnemonic
-    },
-    {
-      title: 'Verify a mnemonic phrase',
-      key: AddWorkerStepKeys.verifyMnemonic
-    },
-    {
-      title: 'Select an amount of new Workers',
-      key: AddWorkerStepKeys.workersAmount
-    },
-    {
-      title: 'Select withdrawal address for Worker',
-      key: AddWorkerStepKeys.withdrawalAddress
-    },
-    {
-      title: 'Preview',
-      key: AddWorkerStepKeys.preview
+export const getAddWorkerSteps = (node?: Node) => {
+  let stepsWithKeys = [{ title: 'Select a Node', key: AddWorkerStepKeys.node }]
+
+  if (node) {
+    if (node.workersCount === 0) {
+      stepsWithKeys = [
+        ...stepsWithKeys,
+        ...[
+          {
+            title: 'Save a mnemonic phrase',
+            key: AddWorkerStepKeys.saveMnemonic
+          },
+          {
+            title: 'Verify a mnemonic phrase',
+            key: AddWorkerStepKeys.verifyMnemonic
+          }
+        ]
+      ]
+    } else {
+      stepsWithKeys = [
+        ...stepsWithKeys,
+        ...[
+          {
+            title: 'Provide a mnemonic phrase',
+            key: AddWorkerStepKeys.getMnemonic
+          }
+        ]
+      ]
     }
-  ]
-  if (!node)
-    stepsWithKeys = [{ title: 'Select a Node', key: AddWorkerStepKeys.node }, ...stepsWithKeys]
+    stepsWithKeys = [
+      ...stepsWithKeys,
+      ...[
+        {
+          title: 'Select an amount of new Workers',
+          key: AddWorkerStepKeys.workersAmount
+        },
+        {
+          title: 'Select withdrawal address for Worker',
+          key: AddWorkerStepKeys.withdrawalAddress
+        },
+        {
+          title: 'Preview',
+          key: AddWorkerStepKeys.preview
+        }
+      ]
+    ]
+  }
 
   return {
     stepsWithKeys,
@@ -137,4 +162,11 @@ export const getActions = (worker?: Worker): ActionTxTypeMap => {
         getStatus(worker) !== Status.pending_initialized
       : false
   }
+}
+
+export const verifyMnemonic = (memo: string, memoHash: string) => {
+  const bytes = ethers.toUtf8Bytes(memo)
+  const hexStr = ethers.hexlify(bytes)
+  const hash = ethers.keccak256(hexStr)
+  return hash === memoHash
 }

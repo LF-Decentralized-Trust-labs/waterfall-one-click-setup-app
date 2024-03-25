@@ -319,7 +319,6 @@ class LocalNode extends EventEmitter {
         this.runValidatorCommand(`eth.getBalance("0x${worker.validatorAddress}")`)
       ])
 
-      console.log({ validatorResponse, currentEra, validatorBalanceAmount })
       if (isValidatorInfo(validatorResponse)) {
         let activationEra: null | object | string = null
         let exitEra: null | object | string = null
@@ -682,7 +681,7 @@ class LocalNode extends EventEmitter {
   }
 
   public async runValidatorCommand(command: string, format?: 'json'): Promise<string | object> {
-    console.log(command)
+    // console.log(command)
     if (!this.model) {
       return ''
     }

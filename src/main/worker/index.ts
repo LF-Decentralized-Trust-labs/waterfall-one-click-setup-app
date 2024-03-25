@@ -179,7 +179,7 @@ class Worker {
     const lastWorker = this.workerModel.getByNodeIdLast(nodeModel.id)
 
     let index = lastWorker ? lastWorker.number + 1 : 0
-    const lastIndex = lastWorker ? lastWorker.number + data.amount : data.amount
+    const lastIndex = lastWorker ? lastWorker.number + data.amount + 1 : data.amount
     const keys: Key[] = []
     const newWorkers: NewWorkerModelType[] = []
     for (index; index < lastIndex; index++) {

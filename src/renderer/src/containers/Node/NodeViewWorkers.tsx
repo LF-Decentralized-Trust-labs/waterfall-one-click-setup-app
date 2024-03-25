@@ -9,6 +9,7 @@ import { routes } from '@renderer/constants/navigation'
 import { WorkersList } from '@renderer/containers/Workers/WorkersList'
 import { useGetAllByNodeId } from '../../hooks/workers'
 import { styled } from 'styled-components'
+import { SearchKeys } from '../../constants/navigation'
 
 export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
   const { isLoading, data, error } = useGetAllByNodeId(item?.id.toString(), {
@@ -28,7 +29,12 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
     <TabContent>
       {item && (
         <Actions align="center" justify="flex-end" gap={10}>
-          <ButtonPrimary href={addParams(routes.workers.add, { node: item?.id.toString() })}>
+          <ButtonPrimary
+            href={addParams(routes.workers.add, {
+              [SearchKeys.node]: item?.id.toString(),
+              [SearchKeys.step]: '1'
+            })}
+          >
             Add Worker
           </ButtonPrimary>
           {/*{data?.length === 0 && (*/}

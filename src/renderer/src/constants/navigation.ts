@@ -24,7 +24,8 @@ const sub_routes = {
 }
 
 const SearchKeys = {
-  node: 'node'
+  node: 'node',
+  step: 'step'
 }
 
 export { sub_routes as routes, root_routes, SearchKeys }

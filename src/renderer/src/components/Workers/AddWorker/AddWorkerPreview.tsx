@@ -11,7 +11,10 @@ export const AddWorkerPreview: React.FC<{
   return (
     <TabContentWrapper>
       <TextRow label="Node" value={node?.name || data[AddWorkerFields.node]} />
-      <TextRow label="Mnemonic" value={data[AddWorkerFields.mnemonic].join(' ')} />
+      <TextRow
+        label="Mnemonic"
+        value={Object.values(data[AddWorkerFields.mnemonicVerify]).join(' ')}
+      />
       <TextRow label="Withdrawal Address" value={data[AddWorkerFields.withdrawalAddress]} />
       <TextRow label="Amount" value={data[AddWorkerFields.amount]} />
     </TabContentWrapper>

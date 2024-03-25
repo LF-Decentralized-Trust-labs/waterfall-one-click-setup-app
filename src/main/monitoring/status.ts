@@ -97,7 +97,7 @@ class StatusMonitoring {
           for (const workerModel of workers) {
             try {
               const workerStatus = await node.getWorkerStatus(workerModel)
-              console.log('workerStatus', workerStatus)
+              // console.log('workerStatus', workerStatus)
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {

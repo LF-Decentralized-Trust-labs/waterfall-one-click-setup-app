@@ -10,7 +10,9 @@ import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
 import { GenerateMnemonic } from '@renderer/ui-kit/Mnemonic/GenerateMnemonic'
 import { VerifyMnemonic } from '@renderer/ui-kit/Mnemonic/VerifyMnemonic'
+import { MnemonicInput } from '@renderer/ui-kit/Mnemonic/MnemonicInput'
 import { Node } from '@renderer/types/node'
+import { verifyMnemonic } from '../../helpers/workers'
 
 type AddWorkerPropsT = {
   steps: Partial<StepProps>[]
@@ -21,6 +23,7 @@ type AddWorkerPropsT = {
   goPrevStep: () => void
   nodes?: Node[]
   node?: Node
+  nodeId?: string
 }
 
 export const AddWorker: React.FC<AddWorkerPropsT> = ({
@@ -33,14 +36,14 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   nodes,
   node
 }) => {
-  const { values, handleChange, handleSaveMnemonic, onAdd } = useAddWorker(node, nodes)
+  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode } = useAddWorker(node)
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
       <NodeSelect
         data={nodes}
-        value={values[AddWorkerFields.node]}
-        onChange={handleChange(AddWorkerFields.node)}
+        value={node && node.id.toString()}
+        onChange={handleChangeNode}
         goNext={goNextStep}
         goPrev={goPrevStep}
       />
@@ -62,6 +65,15 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         value={values[AddWorkerFields.mnemonicVerify]}
       />
     ),
+    [AddWorkerStepKeys.getMnemonic]: (
+      <GetMnemonicPhrase
+        goNext={goNextStep}
+        goPrev={goPrevStep}
+        memoHash={node?.memoHash}
+        value={values[AddWorkerFields.mnemonicVerify]}
+        onChange={handleChange(AddWorkerFields.mnemonicVerify)}
+      />
+    ),
     [AddWorkerStepKeys.workersAmount]: (
       <WorkersAmount
         goNext={goNextStep}
@@ -79,7 +91,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
       />
     ),
     [AddWorkerStepKeys.preview]: (
-      <Preview values={values} node={node} nodes={nodes} goNext={onAdd} goPrev={goPrevStep} />
+      <Preview values={values} node={node} goNext={onAdd} goPrev={goPrevStep} />
     )
   }
 
@@ -178,6 +190,31 @@ const VerifyMnemonicPhrase: React.FC<
   )
 }
 
+const GetMnemonicPhrase: React.FC<
+  BasePropsT & {
+    memoHash?: string
+    value: Record<number, string>
+    onChange: (value: Record<number, string>) => void
+  }
+> = ({ goNext, goPrev, memoHash, value, onChange }) => {
+  let isValid = Object.values(value).filter((el) => el).length === 24
+  isValid = isValid && !!memoHash
+  if (isValid && memoHash) {
+    isValid = verifyMnemonic(Object.values(value).join(' '), memoHash)
+  }
+
+  return (
+    <AddWorkerForm
+      title="Verify a mnemonic phrase. Select the words in correct order"
+      goNext={goNext}
+      goPrev={goPrev}
+      canGoNext={isValid}
+    >
+      <MnemonicInput value={value} onChange={onChange} />
+    </AddWorkerForm>
+  )
+}
+
 const WorkersAmount: React.FC<
   BasePropsT & { value: number | null; onChange: (value: number | null) => void }
 > = ({ goNext, goPrev, value, onChange }) => {
@@ -215,22 +252,34 @@ const WithdrawalAddress: React.FC<
   )
 }
 
-const Preview: React.FC<
-  BasePropsT & { values: AddWorkerFormValuesT; node?: Node; nodes?: Node[] }
-> = ({ goNext, goPrev, values, node, nodes }) => {
-  const _node =
-    node || (nodes && nodes.find((node) => node.id === parseInt(values[AddWorkerFields.node])))
-  const canGoNext =
-    !!_node &&
-    !!values[AddWorkerFields.mnemonic] &&
+const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node }> = ({
+  goNext,
+  goPrev,
+  values,
+  node
+}) => {
+  let canGoNext =
+    !!node &&
+    !!values[AddWorkerFields.mnemonicVerify] &&
     !!values[AddWorkerFields.amount] &&
-    !!values[AddWorkerFields.withdrawalAddress] &&
-    values[AddWorkerFields.mnemonic].join('') ===
-      Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
+    !!values[AddWorkerFields.withdrawalAddress]
+
+  if (canGoNext) {
+    if (node && node.memoHash) {
+      canGoNext = verifyMnemonic(
+        Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
+        node.memoHash
+      )
+    } else {
+      canGoNext =
+        values[AddWorkerFields.mnemonic].join('') ===
+        Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
+    }
+  }
 
   return (
     <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={canGoNext} nextText="Add">
-      <AddWorkerPreview data={values} node={_node} />
+      <AddWorkerPreview data={values} node={node} />
     </AddWorkerForm>
   )
 }

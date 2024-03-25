@@ -121,7 +121,6 @@ export enum AddWorkerFields {
 }
 
 export type AddWorkerFormValuesT = {
-  [AddWorkerFields.node]: string
   [AddWorkerFields.mnemonic]: string[]
   [AddWorkerFields.mnemonicVerify]: Record<number, string>
   [AddWorkerFields.amount]: number
