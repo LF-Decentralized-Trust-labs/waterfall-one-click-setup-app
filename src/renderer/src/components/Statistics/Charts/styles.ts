@@ -14,5 +14,5 @@ export const ChartWrapper = styled.div`
     display: none;
   }
   max-width: 100%;
-  overflow-x: scroll;
+  overflow-x: auto;
 `

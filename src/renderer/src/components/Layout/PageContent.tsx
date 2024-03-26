@@ -15,6 +15,6 @@ const StyledContent = styled(Content)`
     background-color: ${({ theme }) => theme.palette.layout.white};
     height: 100%;
     max-height: calc(100vh - ${HEADER_HEIGHT}px - ${FOOTER_HEIGHT}px);
-    overflow: scroll;
+    overflow: auto;
   }
 `

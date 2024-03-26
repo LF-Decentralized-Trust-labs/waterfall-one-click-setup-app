@@ -20,5 +20,5 @@ export const PageBody: React.FC<PageBodyType> = ({ isLoading, children }) => {
 const StyledWrapper = styled.div`
   padding: 30px 40px 20px 40px;
   box-sizing: border-box;
-  overflow: scroll;
+  overflow: auto;
 `

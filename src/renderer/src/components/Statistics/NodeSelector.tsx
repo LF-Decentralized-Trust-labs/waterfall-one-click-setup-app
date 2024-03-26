@@ -20,6 +20,6 @@ const SelectWrapper = styled.div`
   .ant-select-selector {
     max-width: 200px;
     max-height: 40px;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 `
