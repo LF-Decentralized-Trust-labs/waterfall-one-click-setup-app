@@ -126,9 +126,39 @@ export type NodeViewTabProps = {
 
 // NODE ADD
 
-export enum AddNodeFields {
+export enum CommonNodeFields {
   type = 'type',
   network = 'network',
   locationDir = 'locationDir',
   name = 'name'
+}
+export enum PortsNodeFields {
+  coordinatorHttpApiPort = 'coordinatorHttpApiPort',
+  coordinatorHttpValidatorApiPort = 'coordinatorHttpValidatorApiPort',
+  coordinatorP2PTcpPort = 'coordinatorP2PTcpPort',
+  coordinatorP2PUdpPort = 'coordinatorP2PUdpPort',
+  validatorP2PPort = 'validatorP2PPort',
+  validatorHttpApiPort = 'validatorHttpApiPort',
+  validatorWsApiPort = 'validatorWsApiPort'
+}
+// Объединяем оба перечисления в одно
+export enum AddNodeFields {
+  type = CommonNodeFields.type,
+  network = CommonNodeFields.network,
+  locationDir = CommonNodeFields.locationDir,
+  name = CommonNodeFields.name,
+  coordinatorHttpApiPort = PortsNodeFields.coordinatorHttpApiPort,
+  coordinatorHttpValidatorApiPort = PortsNodeFields.coordinatorHttpValidatorApiPort,
+  coordinatorP2PTcpPort = PortsNodeFields.coordinatorP2PTcpPort,
+  coordinatorP2PUdpPort = PortsNodeFields.coordinatorP2PUdpPort,
+  validatorP2PPort = PortsNodeFields.validatorP2PPort,
+  validatorHttpApiPort = PortsNodeFields.validatorHttpApiPort,
+  validatorWsApiPort = PortsNodeFields.validatorWsApiPort
+}
+
+export type Ports = {
+  [K in PortsNodeFields]?: number
+}
+export type CheckPorts = {
+  [K in PortsNodeFields]?: boolean
 }

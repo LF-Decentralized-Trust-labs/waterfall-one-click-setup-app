@@ -1,10 +1,13 @@
 import React from 'react'
-import { Input, Radio, RadioChangeEvent, Space, Flex } from 'antd'
+import { Input, InputNumber, Radio, RadioChangeEvent, Space, Flex } from 'antd'
 import { NetworkOptions } from '@renderer/constants/network'
 import { DataFolder } from '@renderer/ui-kit/DataFolder'
 import { Text } from '@renderer/ui-kit/Typography'
 import { styled } from 'styled-components'
 import { Type as NODE_TYPE, NewNode, AddNodeFields } from '@renderer/types/node'
+import { IconButton } from '../../../ui-kit/Button'
+import { ReloadOutlined } from '@ant-design/icons'
+import { PortsNodeFields } from '../../../types/node'
 
 const node_type_options = [
   { value: NODE_TYPE.local, label: 'Local' },
@@ -73,6 +76,34 @@ export const NodeNameInput: React.FC<{
   return <StyledInput placeholder="Type Name here" onChange={onChange} value={value} />
 }
 
+export const NodePortInput: React.FC<{
+  label: string
+  value: number
+  handleChange: (val: number | null) => void
+  error?: string
+  isCheck?: boolean
+  onCheck: () => void
+}> = ({ handleChange, label, value, isCheck, onCheck }) => {
+  return (
+    <TextItem gap={6} align="center">
+      <Label>{label}:</Label>
+      <InputNumber
+        placeholder="Type Port here"
+        onChange={handleChange}
+        value={value}
+        status={isCheck ? undefined : 'warning'}
+      />
+      <IconButton
+        icon={<ReloadOutlined />}
+        shape="default"
+        size="middle"
+        type={'default'}
+        onClick={onCheck}
+      />
+    </TextItem>
+  )
+}
+
 export const NodePreview: React.FC<{
   values: NewNode
 }> = ({ values }) => {
@@ -82,6 +113,12 @@ export const NodePreview: React.FC<{
       <TextRow label="Type" value={values[AddNodeFields.type]} />
       <TextRow label="Network" value={values[AddNodeFields.network]} />
       <TextRow label="Path" value={values[AddNodeFields.locationDir]} />
+      <TextRow
+        label="Ports"
+        value={Object.keys(PortsNodeFields)
+          .map((key) => values[key])
+          .join(', ')}
+      />
     </TabContentWrapper>
   )
 }
@@ -111,4 +148,7 @@ const TextItem = styled(Flex)`
 const StyledInput = styled(Input)`
   width: 100%;
   max-width: 360px;
+`
+const Label = styled(Text)`
+  min-width: 200px;
 `

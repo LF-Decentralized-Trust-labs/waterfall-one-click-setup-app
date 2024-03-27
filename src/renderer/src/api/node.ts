@@ -33,3 +33,7 @@ export const getById = async (id: number | bigint): Promise<Node> => {
 export const add = async (newNode: NewNode): Promise<Node> => {
   return await window.node.add(newNode)
 }
+
+export const checkPorts = async (ports: number[]): Promise<boolean[]> => {
+  return await window.node.checkPorts(ports)
+}

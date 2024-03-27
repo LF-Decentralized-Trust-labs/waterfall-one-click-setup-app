@@ -11,6 +11,7 @@ import NodeModel, {
   ValidatorStatus,
   CoordinatorValidatorStatus
 } from '../models/node'
+import { checkPort } from '../libs/fs'
 
 enum ErrorResults {
   NODE_NOT_FOUND = 'Node Not Found',
@@ -45,6 +46,9 @@ class Node {
     this.ipcMain.handle('node:add', (_event: IpcMainInvokeEvent, options: NewNode) =>
       this._add(options)
     )
+    this.ipcMain.handle('node:checkPorts', (_event: IpcMainInvokeEvent, ports) =>
+      this._checkPorts(ports)
+    )
 
     const nodeModels = this.nodeModel.getAll()
 
@@ -65,6 +69,7 @@ class Node {
     this.ipcMain.removeHandler('node:getAll')
     this.ipcMain.removeHandler('node:getById')
     this.ipcMain.removeHandler('node:add')
+    this.ipcMain.removeHandler('node:checkPorts')
 
     for (const id of Object.keys(this.nodes)) {
       await this.nodes[id].stop()
@@ -149,6 +154,9 @@ class Node {
       return true
     }
     return false
+  }
+  private async _checkPorts(ports: number[]) {
+    return await Promise.all(ports.map((port) => checkPort(port)))
   }
 }
 

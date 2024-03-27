@@ -8,7 +8,7 @@ import { useState } from 'react'
 export const AddNodePage = () => {
   const [step, setStep] = useState<number>(0)
   const onStepsChange = (value: number) => setStep(value)
-  const goNext = () => setStep((prev) => (prev + 1 <= 4 ? prev + 1 : prev))
+  const goNext = () => setStep((prev) => (prev + 1 <= 5 ? prev + 1 : prev))
   const goPrev = () => setStep((prev) => (prev - 1 >= 0 ? prev - 1 : prev))
   return (
     <Layout>
@@ -17,7 +17,7 @@ export const AddNodePage = () => {
         actions={
           <Flex align="center" gap={4}>
             {step > 0 && <ArrowedButton direction="back" onClick={goPrev} />}
-            {step < 4 && <ArrowedButton direction="forward" onClick={goNext} />}
+            {step < 5 && <ArrowedButton direction="forward" onClick={goNext} />}
           </Flex>
         }
       />

@@ -1,12 +1,13 @@
 import React from 'react'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
-import { AddNodeFields, NewNode } from '@renderer/types/node'
+import { AddNodeFields, NewNode, CheckPorts } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
   NodeNameInput,
   NodeTypeInput,
+  NodePortInput,
   NodePreview
 } from '@renderer/components/Node/AddNode/Inputs'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
@@ -29,6 +30,9 @@ const stepItems = [
     title: 'Select a data folder'
   },
   {
+    title: 'Select ports'
+  },
+  {
     title: 'Name your node'
   },
   {
@@ -42,7 +46,7 @@ export const AddNode: React.FC<AddNodePropsT> = ({
   goNextStep,
   goPrevStep
 }) => {
-  const { handleChange, values, onAdd, onSelectDirectory } = useAddNode()
+  const { handleChange, values, onAdd, onSelectDirectory, checkPorts, onCheckPorts } = useAddNode()
   const stepsComponents = {
     0: (
       <NodeTypeSelection
@@ -76,6 +80,16 @@ export const AddNode: React.FC<AddNodePropsT> = ({
       />
     ),
     3: (
+      <PortsSelection
+        values={values}
+        checkPorts={checkPorts}
+        onCheckPorts={onCheckPorts}
+        handleChange={handleChange}
+        goNextStep={goNextStep}
+        goPrevStep={goPrevStep}
+      />
+    ),
+    4: (
       <NameSelection
         value={values[AddNodeFields.name]}
         values={values}
@@ -85,7 +99,7 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    4: <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} />
+    5: <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} />
   }
   const stepsWithComponents = stepItems.map((el, index) => ({
     title: el?.title,
@@ -151,6 +165,69 @@ const FolderSelection: React.FC<SelectionBasePropsT & { onSelectDirectory: () =>
   )
 }
 
+const PortsSelection: React.FC<PortsSelectionT> = ({
+  values,
+  checkPorts,
+  onCheckPorts,
+  handleChange,
+  goNextStep,
+  goPrevStep
+}) => {
+  return (
+    <NodeAddForm title="Select ports" goNext={goNextStep} goPrev={goPrevStep}>
+      <NodePortInput
+        label="Coordinator P2P Tcp"
+        handleChange={handleChange(AddNodeFields.coordinatorP2PTcpPort)}
+        value={Number(values[AddNodeFields.coordinatorP2PTcpPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.coordinatorP2PTcpPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="Coordinator P2P Udp"
+        handleChange={handleChange(AddNodeFields.coordinatorP2PUdpPort)}
+        value={Number(values[AddNodeFields.coordinatorP2PUdpPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.coordinatorP2PUdpPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="Coordinator HTTP api"
+        handleChange={handleChange(AddNodeFields.coordinatorHttpValidatorApiPort)}
+        value={Number(values[AddNodeFields.coordinatorHttpValidatorApiPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.coordinatorHttpValidatorApiPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="HTTP api"
+        handleChange={handleChange(AddNodeFields.coordinatorHttpApiPort)}
+        value={Number(values[AddNodeFields.coordinatorHttpApiPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.coordinatorHttpApiPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="Validator P2P"
+        handleChange={handleChange(AddNodeFields.validatorP2PPort)}
+        value={Number(values[AddNodeFields.validatorP2PPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorP2PPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="Validator HTTP api"
+        handleChange={handleChange(AddNodeFields.validatorHttpApiPort)}
+        value={Number(values[AddNodeFields.validatorHttpApiPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorHttpApiPort] : true}
+        onCheck={onCheckPorts}
+      />
+      <NodePortInput
+        label="Validator WS api"
+        handleChange={handleChange(AddNodeFields.validatorWsApiPort)}
+        value={Number(values[AddNodeFields.validatorWsApiPort])}
+        isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorWsApiPort] : true}
+        onCheck={onCheckPorts}
+      />
+    </NodeAddForm>
+  )
+}
+
 const NameSelection: React.FC<SelectionBasePropsT> = ({
   value,
   handleChange,
@@ -190,11 +267,22 @@ type PreviewPropsT = {
   goPrevStep: () => void
 }
 
+type PortsSelectionT = {
+  values: NewNode
+  checkPorts?: CheckPorts
+  onCheckPorts: () => void
+
+  handleChange: (field: AddNodeFields) => (value: number | null) => void
+  //steps
+  goNextStep: () => void | Promise<void>
+  goPrevStep: () => void
+}
+
 type SelectionBasePropsT = {
   value: string
   values: NewNode
   field: AddNodeFields
-  handleChange: (value?: string) => void
+  handleChange: (value?: string | number) => void
 
   //steps
   goNextStep: () => void | Promise<void>

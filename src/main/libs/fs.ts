@@ -1,5 +1,6 @@
 import { access, mkdir, writeFile, readFile, appendFile, constants } from 'node:fs/promises'
 import * as net from 'node:net'
+import * as os from 'node:os'
 import log from 'electron-log/node'
 
 export const checkOrCreateDir = async (dirPath: string): Promise<boolean> => {
@@ -62,21 +63,34 @@ export const appendToFile = async (filePath: string, data: string): Promise<bool
   }
 }
 
-export const checkPort = async (port: number): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
+const _checkPortHost = async (port: number, address): Promise<boolean> => {
+  return new Promise((resolve) => {
     const server = net.createServer()
-    server.once('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(false)
-      } else {
-        reject(err)
+    server
+      .listen(port, address, () => {
+        server.close(() => resolve(true))
+      })
+      .on('error', (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EADDRINUSE') {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+  })
+}
+export const checkPort = async (port: number): Promise<boolean> => {
+  const interfaces = os.networkInterfaces()
+  const checks: Promise<boolean>[] = [_checkPortHost(port, '0.0.0.0')]
+  Object.values(interfaces).forEach((interfaceInfos) => {
+    interfaceInfos?.forEach((info) => {
+      if (info.family === 'IPv4') {
+        checks.push(_checkPortHost(port, info.address))
       }
     })
-    server.once('listening', () => {
-      server.close()
-      resolve(true)
-    })
-    server.listen(port)
+  })
+  return Promise.all(checks).then((results) => {
+    return results.every((isAvailable) => isAvailable)
   })
 }
 

@@ -8,5 +8,6 @@ export const node = {
   restart: (id: number) => ipcRenderer.invoke('node:restart', id),
   getAll: () => ipcRenderer.invoke('node:getAll'),
   getById: (id: number) => ipcRenderer.invoke('node:getById', id),
-  add: (newNode: NewNode) => ipcRenderer.invoke('node:add', newNode)
+  add: (newNode: NewNode) => ipcRenderer.invoke('node:add', newNode),
+  checkPorts: (ports: number[]) => ipcRenderer.invoke('node:checkPorts', ports)
 }
