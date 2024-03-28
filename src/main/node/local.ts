@@ -27,6 +27,7 @@ import { isValidatorInfo, isEraInfo } from '../helpers/worker'
 
 import Web3 from 'web3'
 import { Key } from '../worker'
+import { isSyncInfo } from '../helpers/node'
 
 export { StatusResult }
 
@@ -263,6 +264,14 @@ class LocalNode extends EventEmitter {
         results.validatorHeadSlot = BigInt(finalizedSlot)
         results.validatorSyncDistance = BigInt(currentSlot) - BigInt(finalizedSlot)
         results.validatorFinalizedSlot = BigInt(finalizedSlot)
+      } else {
+        const response = await this.runValidatorCommand('wat.info', 'json')
+
+        if (isSyncInfo(response)) {
+          results.validatorHeadSlot = BigInt(response.currSlot)
+          results.validatorSyncDistance = BigInt(response.currSlot) - BigInt(response.maxDagSlot)
+          results.validatorFinalizedSlot = BigInt(response.cpSlot)
+        }
       }
     } catch (error) {
       log.debug(error)

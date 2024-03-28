@@ -53,6 +53,7 @@ const _checkPorts = async (values) => {
   return results
 }
 export const useAddNode = () => {
+  const [isLoading, setLoading] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [values, setValues] = useState<NewNode>(initialValues)
@@ -76,12 +77,17 @@ export const useAddNode = () => {
     setValues((prev) => ({ ...prev, [field]: value }))
 
   const onAdd = async () => {
+    setLoading(true)
     const node = await add(values)
-    console.log(node)
-    if (node?.id) {
-      return navigate(getViewLink(routes.nodes.view, { id: node.id.toString() }))
-    }
-    alert(node)
+    setTimeout(()=>{
+      setLoading(false)
+      console.log(node)
+      if (node?.id) {
+        return navigate(getViewLink(routes.nodes.view, { id: node.id.toString() }))
+      }
+      alert(node)
+    }, 10000)
+
   }
 
   const onSelectDirectory = useCallback(async () => {
@@ -102,7 +108,7 @@ export const useAddNode = () => {
     }
   }, [values])
 
-  return { values, handleChange, onAdd, onSelectDirectory, onCheckPorts, checkPorts }
+  return { values, handleChange, onAdd, onSelectDirectory, onCheckPorts, checkPorts, isLoading }
 }
 
 export const useGetAll = (options?: { refetchInterval?: number }) => {
@@ -131,6 +137,7 @@ export const useGetById = (id?: string, options?: { refetchInterval?: number }) 
 }
 
 export const useControl = (id?: string) => {
+  const [status, setStatus] = useState<null | 'start' | 'stop' | 'restart'>(null)
   const startMutation = useMutation({
     mutationFn: async (id: number) => {
       return await start(id)
@@ -152,22 +159,34 @@ export const useControl = (id?: string) => {
     if (!id) {
       return
     }
+    setStatus('start')
     await startMutation.mutateAsync(parseInt(id))
+    setTimeout(() => {
+      setStatus(null)
+    }, 1000)
   }, [id])
 
   const onStop = useCallback(async () => {
     if (!id) {
       return
     }
+    setStatus('stop')
     await stopMutation.mutateAsync(parseInt(id))
+    setTimeout(() => {
+      setStatus(null)
+    }, 1000)
   }, [id])
 
   const onRestart = useCallback(async () => {
     if (!id) {
       return
     }
+    setStatus('restart')
     await restartMutation.mutateAsync(parseInt(id))
+    setTimeout(() => {
+      setStatus(null)
+    }, 1000)
   }, [id])
 
-  return { onStart, onStop, onRestart }
+  return { onStart, onStop, onRestart, status }
 }

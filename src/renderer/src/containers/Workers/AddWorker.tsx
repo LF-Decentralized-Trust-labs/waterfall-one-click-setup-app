@@ -36,7 +36,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   nodes,
   node
 }) => {
-  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode } = useAddWorker(node)
+  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } = useAddWorker(node)
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
@@ -91,7 +91,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
       />
     ),
     [AddWorkerStepKeys.preview]: (
-      <Preview values={values} node={node} goNext={onAdd} goPrev={goPrevStep} />
+      <Preview values={values} node={node} goNext={onAdd} goPrev={goPrevStep} isLoading={isLoading}/>
     )
   }
 
@@ -118,6 +118,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
 type BasePropsT = {
   goNext: () => void
   goPrev: () => void
+  isLoading?: boolean
 }
 
 const NodeSelect: React.FC<
@@ -256,7 +257,8 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
   goNext,
   goPrev,
   values,
-  node
+  node,
+  isLoading
 }) => {
   let canGoNext =
     !!node &&
@@ -278,7 +280,7 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
   }
 
   return (
-    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={canGoNext} nextText="Add">
+    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={canGoNext} nextText="Add" isLoading={isLoading}>
       <AddWorkerPreview data={values} node={node} />
     </AddWorkerForm>
   )

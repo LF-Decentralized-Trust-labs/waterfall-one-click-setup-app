@@ -32,6 +32,7 @@ const addInitialValues = {
 }
 
 export const useAddWorker = (node?: Node) => {
+  const [isLoading, setLoading] = useState(false)
   const navigate = useNavigate()
   const [values, setValues] = useState<AddWorkerFormValuesT>({
     ...addInitialValues
@@ -76,6 +77,7 @@ export const useAddWorker = (node?: Node) => {
     if (!node) {
       return
     }
+    setLoading(true)
     const workers = await addWorkers({
       nodeId: node.id,
       mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
@@ -91,12 +93,13 @@ export const useAddWorker = (node?: Node) => {
       },
       workers
     )
+    setLoading(false)
     if (workers?.length > 0) {
       return navigate(routes.workers.list)
     }
   }, [node?.id, values])
 
-  return { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode }
+  return { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading }
 }
 
 const importInitialValues = {

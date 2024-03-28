@@ -10,6 +10,7 @@ type FormPropsT = PropsWithChildren & {
   canGoNext?: boolean
   extra?: React.ReactNode
   nextText?: string
+  isLoading?: boolean
 }
 
 export const AddWorkerForm: React.FC<FormPropsT> = ({
@@ -19,7 +20,8 @@ export const AddWorkerForm: React.FC<FormPropsT> = ({
   goPrev,
   title,
   extra,
-  nextText = 'Next'
+  nextText = 'Next',
+  isLoading
 }) => {
   return (
     <StyledCard type="inner" title={title} extra={extra}>
@@ -28,7 +30,7 @@ export const AddWorkerForm: React.FC<FormPropsT> = ({
         <ButtonPrimary onClick={goPrev} ghost={!goPrev} disabled={!goPrev}>
           Back
         </ButtonPrimary>
-        <ButtonPrimary onClick={goNext} disabled={!canGoNext} ghost={!canGoNext}>
+        <ButtonPrimary onClick={goNext} disabled={!canGoNext} ghost={!canGoNext} loading={isLoading ? isLoading : false}>
           {nextText}
         </ButtonPrimary>
       </Actions>

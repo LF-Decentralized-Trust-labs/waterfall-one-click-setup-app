@@ -54,7 +54,7 @@ const getTabs = (node?: Node) => [
 export const NodeViewPage = () => {
   const nodeId = useParams()?.id
   const { isLoading, data: node, error } = useGetById(nodeId, { refetchInterval: 1000 })
-  const { onStop, onRestart, onStart } = useControl(nodeId)
+  const { onStop, onRestart, onStart, status } = useControl(nodeId)
 
   const tabs = useMemo(() => getTabs(node), [node])
   const [activeKey, setActiveKey] = useState(tabs[0].key)
@@ -77,7 +77,7 @@ export const NodeViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {node && getNodeStatus(node) !== Status.stopped && (
-              <IconButton icon={<PauseOutlined />} shape="default" size="middle" onClick={onStop} />
+              <IconButton icon={<PauseOutlined />} shape="default" size="middle" onClick={onStop} loading={status ? status === 'stop' : false}/>
             )}
             {node && getNodeStatus(node) === Status.stopped && (
               <IconButton
@@ -85,6 +85,7 @@ export const NodeViewPage = () => {
                 shape="default"
                 size="middle"
                 onClick={onStart}
+                loading={status ? status === 'start' : false}
               />
             )}
 
@@ -93,6 +94,7 @@ export const NodeViewPage = () => {
               shape="default"
               size="middle"
               onClick={onRestart}
+              loading={status ? status === 'restart' : false}
             />
           </Flex>
         }
