@@ -38,6 +38,7 @@
     "migrate": "^2.1.0",
     "node-gyp": "^9.0.0",
     "react-router-dom": "^6.22.0",
+    "rotating-file-stream": "^3.2.1",
     "styled-components": "^6.1.8",
     "web3": "git+https://npm:qfA6p-4tGi7J9qPAfNKv@gitlab.moonion.com/waterfall/web3.git"
   },

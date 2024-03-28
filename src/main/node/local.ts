@@ -518,8 +518,8 @@ class LocalNode extends EventEmitter {
         `--rpc-port=${this.model.coordinatorHttpValidatorApiPort}`,
         `--http-web3provider=${getValidatorPath(this.model.locationDir)}/validator.ipc`
       ],
-      outLogPath: `${getLogPath(this.model.locationDir)}/coordinator-beacon.out.log`,
-      errLogPath: `${getLogPath(this.model.locationDir)}/coordinator-beacon.err.log`
+      logPath: getLogPath(this.model.locationDir),
+      logName: 'coordinator-beacon.log'
     })
     this.coordinatorBeacon.on('stop', () => {
       this.emit('stop', 'coordinatorBeacon')
@@ -543,8 +543,8 @@ class LocalNode extends EventEmitter {
         `--port=${this.model.validatorP2PPort}`,
         `--ipcpath=${getValidatorPath(this.model.locationDir)}/validator.ipc`
       ],
-      outLogPath: `${getLogPath(this.model.locationDir)}/validator.out.log`,
-      errLogPath: `${getLogPath(this.model.locationDir)}/validator.err.log`
+      logPath: getLogPath(this.model.locationDir),
+      logName: 'validator.log'
     })
     this.validator.on('stop', () => {
       this.emit('stop', 'validator')
@@ -565,8 +565,8 @@ class LocalNode extends EventEmitter {
         `--wallet-dir=${getCoordinatorWalletPath(this.model.locationDir)}`,
         `--wallet-password-file=${getCoordinatorWalletPath(this.model.locationDir)}/password.txt`
       ],
-      outLogPath: `${getLogPath(this.model.locationDir)}/coordinator-validator.out.log`,
-      errLogPath: `${getLogPath(this.model.locationDir)}/coordinator-validator.err.log`
+      logPath: getLogPath(this.model.locationDir),
+      logName: 'coordinator-validator.log'
     })
     this.coordinatorValidator.on('stop', () => {
       this.emit('stop', 'coordinatorValidator')

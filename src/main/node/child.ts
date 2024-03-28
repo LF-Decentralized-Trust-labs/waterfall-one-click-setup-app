@@ -1,8 +1,8 @@
 import { spawn, exec, ChildProcessWithoutNullStreams } from 'node:child_process'
 import util from 'node:util'
-import fs from 'node:fs'
 import log from 'electron-log/node'
 import { EventEmitter } from 'node:events'
+import * as rfs from 'rotating-file-stream'
 
 const execPromise = util.promisify(exec)
 export enum StatusResult {
@@ -13,8 +13,8 @@ export enum StatusResult {
 type Options = {
   binPath: string
   args: string[]
-  outLogPath: string
-  errLogPath: string
+  logPath: string
+  logName: string
 }
 
 class Child extends EventEmitter {
@@ -22,15 +22,15 @@ class Child extends EventEmitter {
 
   readonly binPath: string
   readonly args: string[]
-  readonly outLogPath: string
-  readonly errLogPath: string
+  readonly logPath: string
+  readonly logName: string
 
   constructor(options: Options) {
     super()
     this.binPath = options.binPath
     this.args = options.args
-    this.outLogPath = options.outLogPath
-    this.errLogPath = options.errLogPath
+    this.logPath = options.logPath
+    this.logName = options.logName
     log.debug(`Child constructor ${this.binPath}`)
   }
 
@@ -39,20 +39,24 @@ class Child extends EventEmitter {
   }
 
   public async start(): Promise<StatusResult> {
-    const outLogStream = fs.createWriteStream(this.outLogPath, { flags: 'a' })
-    const errLogStream = fs.createWriteStream(this.errLogPath, { flags: 'a' })
+    const logStream = rfs.createStream(this.logName, {
+      size: '50M',
+      interval: '1d',
+      compress: 'gzip',
+      maxFiles: 10,
+      path: this.logPath
+    })
 
     this.child = spawn(this.binPath, this.args)
 
-    this.child.stdout.pipe(outLogStream)
-    this.child.stderr.pipe(errLogStream)
+    this.child.stdout.pipe(logStream, { end: false })
+    this.child.stderr.pipe(logStream, { end: false })
 
     this.child.on('spawn', () => {
       this.emit('start', this.child ? this.child.pid : null)
     })
-    this.child.on('close', () => {
-      outLogStream.end()
-      errLogStream.end()
+    this.child.on('close', (code: number) => {
+      logStream.write(`Exit wit code ${code}\n`)
       this.child = null
       this.emit('stop')
     })
