@@ -1,4 +1,3 @@
-
 export interface SyncInfo {
   cpSlot: number
   currSlot: number

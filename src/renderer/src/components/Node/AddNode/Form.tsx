@@ -29,7 +29,12 @@ export const NodeAddForm: React.FC<FormPropsT> = ({
         <ButtonPrimary onClick={goPrev} ghost={!goPrev} disabled={!goPrev}>
           {goPrevTitle}
         </ButtonPrimary>
-        <ButtonPrimary onClick={goNext} disabled={!canGoNext} ghost={!canGoNext} loading={isLoading ? isLoading : false}>
+        <ButtonPrimary
+          onClick={goNext}
+          disabled={!canGoNext}
+          ghost={!canGoNext}
+          loading={isLoading ? isLoading : false}
+        >
           {goNextTitle}
         </ButtonPrimary>
       </Actions>

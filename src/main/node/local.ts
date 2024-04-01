@@ -694,7 +694,9 @@ class LocalNode extends EventEmitter {
     if (!this.model) {
       return ''
     }
-    const isWorking = await checkSocket(`${this.appEnv.getValidatorSocket(this.model.id.toString())}`)
+    const isWorking = await checkSocket(
+      `${this.appEnv.getValidatorSocket(this.model.id.toString())}`
+    )
     if (!isWorking) {
       return ''
     }
@@ -704,15 +706,11 @@ class LocalNode extends EventEmitter {
       }
       const execCommand = format && format === 'json' ? `JSON.stringify(${command})` : command
       exec(
-        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec "${execCommand}" attach ${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
+        `${this.appEnv.getValidatorBinPath(this.model.network)} --verbosity 0 --exec "${execCommand}" attach ${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
         (err, stdout, stderr) => {
           if (err) {
             log.error(err)
-            return reject(err)
-          }
-          if (stderr) {
-            log.error(stderr)
-            return reject(stderr)
+            return reject('')
           }
           if (stdout) {
             if (stdout.search('Error') !== -1) {
@@ -729,7 +727,11 @@ class LocalNode extends EventEmitter {
               }
               return resolve(json)
             }
-            return resolve(stdout.replaceAll('\n', '').replaceAll('"', ''))
+            return resolve(stdout.replaceAll('\n', '').replaceAll('"', '').trim())
+          }
+          if (stderr) {
+            log.error(stderr)
+            return reject('')
           }
         }
       )

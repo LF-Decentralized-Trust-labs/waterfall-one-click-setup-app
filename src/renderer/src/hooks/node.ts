@@ -79,7 +79,7 @@ export const useAddNode = () => {
   const onAdd = async () => {
     setLoading(true)
     const node = await add(values)
-    setTimeout(()=>{
+    setTimeout(() => {
       setLoading(false)
       console.log(node)
       if (node?.id) {
@@ -87,7 +87,6 @@ export const useAddNode = () => {
       }
       alert(node)
     }, 10000)
-
   }
 
   const onSelectDirectory = useCallback(async () => {

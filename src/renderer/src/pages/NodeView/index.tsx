@@ -77,7 +77,13 @@ export const NodeViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {node && getNodeStatus(node) !== Status.stopped && (
-              <IconButton icon={<PauseOutlined />} shape="default" size="middle" onClick={onStop} loading={status ? status === 'stop' : false}/>
+              <IconButton
+                icon={<PauseOutlined />}
+                shape="default"
+                size="middle"
+                onClick={onStop}
+                loading={status ? status === 'stop' : false}
+              />
             )}
             {node && getNodeStatus(node) === Status.stopped && (
               <IconButton

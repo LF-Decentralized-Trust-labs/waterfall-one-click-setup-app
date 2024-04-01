@@ -30,7 +30,12 @@ export const AddWorkerForm: React.FC<FormPropsT> = ({
         <ButtonPrimary onClick={goPrev} ghost={!goPrev} disabled={!goPrev}>
           Back
         </ButtonPrimary>
-        <ButtonPrimary onClick={goNext} disabled={!canGoNext} ghost={!canGoNext} loading={isLoading ? isLoading : false}>
+        <ButtonPrimary
+          onClick={goNext}
+          disabled={!canGoNext}
+          ghost={!canGoNext}
+          loading={isLoading ? isLoading : false}
+        >
           {nextText}
         </ButtonPrimary>
       </Actions>

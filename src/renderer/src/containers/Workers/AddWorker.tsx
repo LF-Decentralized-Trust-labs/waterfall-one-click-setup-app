@@ -36,7 +36,8 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   nodes,
   node
 }) => {
-  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } = useAddWorker(node)
+  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } =
+    useAddWorker(node)
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
@@ -91,7 +92,13 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
       />
     ),
     [AddWorkerStepKeys.preview]: (
-      <Preview values={values} node={node} goNext={onAdd} goPrev={goPrevStep} isLoading={isLoading}/>
+      <Preview
+        values={values}
+        node={node}
+        goNext={onAdd}
+        goPrev={goPrevStep}
+        isLoading={isLoading}
+      />
     )
   }
 
@@ -280,7 +287,13 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
   }
 
   return (
-    <AddWorkerForm goNext={goNext} goPrev={goPrev} canGoNext={canGoNext} nextText="Add" isLoading={isLoading}>
+    <AddWorkerForm
+      goNext={goNext}
+      goPrev={goPrev}
+      canGoNext={canGoNext}
+      nextText="Add"
+      isLoading={isLoading}
+    >
       <AddWorkerPreview data={values} node={node} />
     </AddWorkerForm>
   )

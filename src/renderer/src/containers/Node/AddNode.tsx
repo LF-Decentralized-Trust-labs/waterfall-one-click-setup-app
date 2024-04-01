@@ -46,7 +46,8 @@ export const AddNode: React.FC<AddNodePropsT> = ({
   goNextStep,
   goPrevStep
 }) => {
-  const { handleChange, values, onAdd, onSelectDirectory, checkPorts, onCheckPorts, isLoading } = useAddNode()
+  const { handleChange, values, onAdd, onSelectDirectory, checkPorts, onCheckPorts, isLoading } =
+    useAddNode()
   const stepsComponents = {
     0: (
       <NodeTypeSelection
@@ -99,7 +100,7 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    5: <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} isLoading={isLoading}/>
+    5: <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} isLoading={isLoading} />
   }
   const stepsWithComponents = stepItems.map((el, index) => ({
     title: el?.title,
