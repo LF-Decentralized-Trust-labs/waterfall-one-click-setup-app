@@ -525,7 +525,7 @@ class LocalNode extends EventEmitter {
         `--p2p-udp-port=${this.model.coordinatorP2PUdpPort}`,
         `--grpc-gateway-port=${this.model.coordinatorHttpApiPort}`,
         `--rpc-port=${this.model.coordinatorHttpValidatorApiPort}`,
-        `--http-web3provider=${getValidatorPath(this.model.locationDir)}/validator.ipc`
+        `--http-web3provider=${this.appEnv.getValidatorSocket(this.model.id.toString())}`
       ],
       logPath: getLogPath(this.model.locationDir),
       logName: 'coordinator-beacon.log'
@@ -550,7 +550,7 @@ class LocalNode extends EventEmitter {
         // `--networkid=${getChainId(this.model.network)}`,
         '--syncmode=full',
         `--port=${this.model.validatorP2PPort}`,
-        `--ipcpath=${getValidatorPath(this.model.locationDir)}/validator.ipc`
+        `--ipcpath=${this.appEnv.getValidatorSocket(this.model.id.toString())}`
       ],
       logPath: getLogPath(this.model.locationDir),
       logName: 'validator.log'
@@ -694,7 +694,7 @@ class LocalNode extends EventEmitter {
     if (!this.model) {
       return ''
     }
-    const isWorking = await checkSocket(`${getValidatorPath(this.model.locationDir)}/validator.ipc`)
+    const isWorking = await checkSocket(`${this.appEnv.getValidatorSocket(this.model.id.toString())}`)
     if (!isWorking) {
       return ''
     }
@@ -704,7 +704,7 @@ class LocalNode extends EventEmitter {
       }
       const execCommand = format && format === 'json' ? `JSON.stringify(${command})` : command
       exec(
-        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec '${execCommand}' attach ${getValidatorPath(this.model.locationDir)}/validator.ipc`,
+        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec '${execCommand}' attach ${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
         (err, stdout, stderr) => {
           if (err) {
             log.error(err)

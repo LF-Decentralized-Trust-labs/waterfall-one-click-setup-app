@@ -13,12 +13,14 @@ class AppEnv {
   public appPath: string = ''
   public userData: string = ''
   public mainDB: string = ''
+
   constructor(options: Options) {
     this.isPackaged = options.isPackaged
     this.appPath = options.appPath
     this.userData = options.userData
     this.mainDB = path.join(this.userData, 'wf.db')
   }
+
   getPlatform(): 'linux' | 'mac' | 'win' | null {
     switch (platform()) {
       case 'aix':
@@ -36,16 +38,19 @@ class AppEnv {
         return null
     }
   }
+
   getBinariesPath(): string {
     return this.isPackaged
       ? path.join(process.resourcesPath, './bin')
       : path.join(this.appPath, 'resources', this.getPlatform()!)
   }
+
   getGenesisPath(): string {
     return this.isPackaged
       ? path.join(process.resourcesPath, './genesis')
       : path.join(this.appPath, 'resources', 'genesis')
   }
+
   getValidatorBinPath = (network: Network) =>
     path.resolve(path.join(this.getBinariesPath(), `./validator-${network}`))
   getCoordinatorBeaconBinPath = (network: Network) =>
@@ -61,6 +66,15 @@ class AppEnv {
 
   getValidatorGenesisDataPath = (network: Network) =>
     path.resolve(path.join(this.getGenesisPath(), `./validator-genesis-data-${network}.json`))
+
+  getValidatorSocket = (num: string) => {
+    const platform = this.getPlatform()
+    if (platform === 'win') {
+      return `\\\\.\\pipe\\wf-${num}.ipc`
+    } else {
+      return `/tmp/wf-${num}.ipc`
+    }
+  }
 }
 
 export default AppEnv
