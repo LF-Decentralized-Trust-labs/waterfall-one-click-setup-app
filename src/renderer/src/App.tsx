@@ -2,13 +2,13 @@ import { AppLayout } from './containers/Layout'
 import { AppNavigator } from './containers/Navigator/AppNavigator'
 import { ThemeProvider } from 'styled-components'
 import { theme } from './ui-kit/theme'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 function App(): JSX.Element {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <AppLayout>
@@ -16,7 +16,7 @@ function App(): JSX.Element {
           </AppLayout>
         </QueryClientProvider>
       </ThemeProvider>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
