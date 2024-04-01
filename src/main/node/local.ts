@@ -323,9 +323,9 @@ class LocalNode extends EventEmitter {
 
     try {
       const [validatorResponse, currentEra, validatorBalanceAmount] = await Promise.all([
-        this.runValidatorCommand(`wat.validator.getInfo("0x${worker.validatorAddress}")`, 'json'),
+        this.runValidatorCommand(`wat.validator.getInfo('0x${worker.validatorAddress}')`, 'json'),
         this.runValidatorCommand('wat.getEra()', 'json'),
-        this.runValidatorCommand(`eth.getBalance("0x${worker.validatorAddress}")`)
+        this.runValidatorCommand(`eth.getBalance('0x${worker.validatorAddress}')`)
       ])
 
       if (isValidatorInfo(validatorResponse)) {
@@ -645,7 +645,7 @@ class LocalNode extends EventEmitter {
 
     for (const key of keys) {
       await this.runValidatorCommand(
-        `personal.importRawKey("${key.validatorKey.privateKey.replace('0x', '')}","${key.validatorPassword}")`
+        `personal.importRawKey('${key.validatorKey.privateKey.replace('0x', '')}','${key.validatorPassword}')`
       )
       await appendToFile(
         `${getValidatorPath(this.model.locationDir)}/password.txt`,
@@ -704,7 +704,7 @@ class LocalNode extends EventEmitter {
       }
       const execCommand = format && format === 'json' ? `JSON.stringify(${command})` : command
       exec(
-        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec '${execCommand}' attach ${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
+        `${this.appEnv.getValidatorBinPath(this.model.network)} --exec "${execCommand}" attach ${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
         (err, stdout, stderr) => {
           if (err) {
             log.error(err)
