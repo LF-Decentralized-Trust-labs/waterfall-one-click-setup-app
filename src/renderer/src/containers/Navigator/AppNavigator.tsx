@@ -6,7 +6,8 @@ import { AddNodePage } from '@renderer/pages/NodeAdd'
 import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
 import { NodeViewPage } from '@renderer/pages/NodeView'
-import { DraftPage } from '@renderer/pages/Draft'
+import { SettingsPage } from '@renderer/pages/Settings'
+import { NotificationsPage } from '@renderer/pages/Notifications'
 import { WorkerViewPage } from '@renderer/pages/WorkerView'
 import { AddWorkerPage } from '@renderer/pages/WorkerAdd'
 import { ImportWorkerPage } from '@renderer/pages/WorkersImport'
@@ -14,15 +15,6 @@ import { ImportWorkerPage } from '@renderer/pages/WorkersImport'
 export const AppNavigator = () => {
   return (
     <Routes>
-      <Route
-        key="draft"
-        path={routes.draft}
-        element={
-          <PageRender>
-            <DraftPage />
-          </PageRender>
-        }
-      />
       <Route
         key="nodes-list"
         path={routes.nodes.list}
@@ -92,6 +84,24 @@ export const AppNavigator = () => {
         element={
           <PageRender>
             <StatisticsPage />
+          </PageRender>
+        }
+      />
+      <Route
+        key="settings"
+        path={routes.settings}
+        element={
+          <PageRender>
+            <SettingsPage />
+          </PageRender>
+        }
+      />
+      <Route
+        key="notifications"
+        path={routes.notifications}
+        element={
+          <PageRender>
+            <NotificationsPage />
           </PageRender>
         }
       />

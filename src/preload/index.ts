@@ -1,5 +1,5 @@
 /// <reference types="./index.d.ts" />
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, shell } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
 
@@ -24,7 +24,8 @@ if (process.contextIsolated) {
       platform: getPlatform(),
       homedir: getHomeDir(),
       selectDirectory: selectDirectory,
-      saveTextFile: saveTextFile
+      saveTextFile: saveTextFile,
+      openExternal: shell.openExternal
     })
   } catch (error) {
     console.error(error)
@@ -41,7 +42,8 @@ if (process.contextIsolated) {
     platform: getPlatform(),
     homedir: getHomeDir(),
     selectDirectory: selectDirectory,
-    saveTextFile: saveTextFile
+    saveTextFile: saveTextFile,
+    openExternal: shell.openExternal
   }
 }
 

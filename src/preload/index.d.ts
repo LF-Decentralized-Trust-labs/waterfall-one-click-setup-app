@@ -12,6 +12,7 @@ declare global {
       homedir: string
       selectDirectory: (defaultPath?: string) => Promise<string | null>
       saveTextFile: (text: string, title?: string, fileName?: string) => Promise<boolean>
+      openExternal: (url: string) => void
     }
   }
 }
