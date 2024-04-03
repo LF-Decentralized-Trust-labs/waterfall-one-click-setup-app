@@ -1,5 +1,5 @@
-import { ComingSoon } from '@renderer/components/Layout/ComingSoon'
+import { Page } from '@renderer/components/ComingSoon/Page'
 
 export const NotificationsPage = () => {
-  return <ComingSoon title="Notifications" />
+  return <Page title="Notifications" />
 }

@@ -1,4 +1,13 @@
-import { app, shell, BrowserWindow, Tray, Menu, ipcMain, globalShortcut } from 'electron'
+import {
+  app,
+  shell,
+  BrowserWindow,
+  Tray,
+  Menu,
+  ipcMain,
+  globalShortcut,
+  powerSaveBlocker
+} from 'electron'
 import { Event, HandlerDetails } from 'electron'
 import { join } from 'path'
 import log from 'electron-log/main'
@@ -13,6 +22,7 @@ import createStatusWorker from './monitoring/status?nodeWorker'
 import FsHandle from './libs/FsHandle'
 
 let tray: null | Tray = null
+let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
 let updateWindow: null | BrowserWindow = null
 const appEnv = new AppEnv({
@@ -172,6 +182,8 @@ app.whenReady().then(async () => {
   })
   log.debug('statusWorker.postMessage start')
 
+  preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
+
   tray = new Tray(trayIcon)
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -266,7 +278,15 @@ const quit = async () => {
   })
   await statusWorker.terminate()
 
+  await worker.destroy()
+
   await node.destroy()
+
+  await fsHandle.destroy()
+
+  if (preventSleepId !== null) {
+    powerSaveBlocker.stop(preventSleepId)
+  }
 
   if (mainWindow !== null) {
     mainWindow.destroy()
