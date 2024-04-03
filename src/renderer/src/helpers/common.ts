@@ -1,6 +1,6 @@
 //eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-export const isWindows = window?.electron?.platform === 'win'
+export const isWindows = window?.os?.platform === 'win'
 
 export const shuffleArray = (array: any[]) => {
   return array

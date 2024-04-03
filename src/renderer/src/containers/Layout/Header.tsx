@@ -5,10 +5,10 @@ import { SettingOutlined, FileOutlined, HomeOutlined, InfoCircleOutlined } from 
 const APP_TITLE = 'Waterfall Node App'
 
 const RightActions: LayoutHeaderActionT[] = [
-  { key: 'home', onClick: () => {}, icon: <HomeOutlined /> },
-  { key: 'file', onClick: () => {}, icon: <FileOutlined /> },
-  { key: 'settings', onClick: () => {}, icon: <SettingOutlined /> },
-  { key: 'info', onClick: () => {}, icon: <InfoCircleOutlined /> }
+  { key: 'home', onClick: () => {alert('home')}, icon: <HomeOutlined /> },
+  { key: 'file', onClick: () => {alert('file')}, icon: <FileOutlined /> },
+  { key: 'settings', onClick: () => {alert('settings')}, icon: <SettingOutlined /> },
+  { key: 'info', onClick: () => {alert('info')}, icon: <InfoCircleOutlined /> }
 ]
 
 export const Header = () => {
