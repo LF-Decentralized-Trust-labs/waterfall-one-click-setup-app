@@ -130,7 +130,7 @@ class Worker {
       results.stakeAmount = coordinatorResponse.data.validator.effective_balance
     }
     const validatorResponse = await node.runValidatorCommand(
-      `wat.validator.getInfo("0x${worker.validatorAddress}")`
+      `wat.validator.getInfo('0x${worker.validatorAddress}')`
     )
 
     console.log(validatorResponse)
@@ -238,18 +238,18 @@ class Worker {
     let hexData, value
     if (action === ActionTxType.activate) {
       hexData = await node.runValidatorCommand(
-        `wat.validator.depositData({pubkey:"0x${worker.coordinatorPublicKey}", creator_address:"0x${worker.validatorAddress}", withdrawal_address:"0x${worker.withdrawalAddress}", signature:"0x${worker.signature}"})`
+        `wat.validator.depositData({pubkey:'0x${worker.coordinatorPublicKey}', creator_address:'0x${worker.validatorAddress}', withdrawal_address:'0x${worker.withdrawalAddress}', signature:'0x${worker.signature}'})`
       )
       value = 3200
     } else if (action === ActionTxType.deActivate) {
       hexData = await node.runValidatorCommand(
-        `wat.validator.exitData({pubkey:"0x${worker.coordinatorPublicKey}" , creator_address:"0x${worker.validatorAddress}"})`
+        `wat.validator.exitData({pubkey:'0x${worker.coordinatorPublicKey}' , creator_address:'0x${worker.validatorAddress}'})`
       )
       value = 0
     } else if (action === ActionTxType.withdraw) {
       value = 0
       hexData = await node.runValidatorCommand(
-        `wat.validator.withdrawalData({creator_address:"0x${worker.validatorAddress}", amount:web3.toWei("${amount}", "ether")})`
+        `wat.validator.withdrawalData({creator_address:'0x${worker.validatorAddress}', amount:web3.toWei('${amount}', 'ether')})`
       )
     }
 
