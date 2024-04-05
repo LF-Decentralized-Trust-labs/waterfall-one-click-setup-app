@@ -1,5 +1,5 @@
 /// <reference types="./index.d.ts" />
-import { contextBridge, ipcRenderer, shell } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
 import path from 'node:path'
@@ -12,6 +12,8 @@ const selectDirectory = (defaultPath?: string) =>
 
 const saveTextFile = (text: string, title?: string, fileName?: string) =>
   ipcRenderer.invoke('os:saveTextFile', text, title, fileName)
+
+const openExternal = (url: string) => ipcRenderer.invoke('os:openExternal', url)
 
 const quit = () => ipcRenderer.invoke('app:quit')
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -30,7 +32,7 @@ if (process.contextIsolated) {
       homedir: getHomeDir(),
       selectDirectory: selectDirectory,
       saveTextFile: saveTextFile,
-      openExternal: shell.openExternal,
+      openExternal: openExternal,
       path
     })
   } catch (error) {
@@ -49,7 +51,7 @@ if (process.contextIsolated) {
     homedir: getHomeDir(),
     selectDirectory: selectDirectory,
     saveTextFile: saveTextFile,
-    openExternal: shell.openExternal,
+    openExternal: openExternal,
     path
   }
   // @ts-ignore (define in dts)

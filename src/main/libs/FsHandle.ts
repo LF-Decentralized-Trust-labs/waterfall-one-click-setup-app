@@ -1,4 +1,4 @@
-import { IpcMain, dialog, IpcMainInvokeEvent } from 'electron'
+import { IpcMain, dialog, shell, IpcMainInvokeEvent } from 'electron'
 import { writeFile } from 'node:fs/promises'
 
 class FsHandle {
@@ -15,11 +15,19 @@ class FsHandle {
     this.ipcMain.handle('os:saveTextFile', (_event: IpcMainInvokeEvent, text, title, fileName) =>
       this._saveTextFile(text, title, fileName)
     )
+    this.ipcMain.handle('os:openExternal', (_event: IpcMainInvokeEvent, url) =>
+      this._openExternal(url)
+    )
   }
 
   public async destroy() {
     this.ipcMain.removeHandler('os:selectDirectory')
     this.ipcMain.removeHandler('os:saveTextFile')
+    this.ipcMain.removeHandler('os:openUrl')
+  }
+
+  private async _openExternal(url: string): Promise<void> {
+    return await shell.openExternal(url)
   }
 
   private async _selectDirectory(defaultPath?: string): Promise<string | null> {
