@@ -56,7 +56,6 @@ export const getValidatorPasswordPath = (dataPath: string): string =>
   path.resolve(path.join(getValidatorPath(dataPath), 'password.txt'))
 export const getLogPath = (dataPath: string): string => path.resolve(path.join(dataPath, 'logs'))
 
-
 export const COORDINATOR_HTTP_API_PORT = ENV.VITE_COORDINATOR_HTTP_API_PORT
 export const COORDINATOR_HTTP_VALIDATOR_API_PORT = ENV.VITE_COORDINATOR_HTTP_VALIDATOR_API_PORT
 export const COORDINATOR_P2P_TCP_PORT = ENV.VITE_COORDINATOR_P2P_TCP_PORT

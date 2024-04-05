@@ -17,7 +17,10 @@ import {
   getCoordinatorKeysPath,
   getLogPath,
   getValidatorNetwork,
-  getValidatorPath, getValidatorPasswordPath, getCoordinatorWalletPasswordPath, getCoordinatorKeyPath
+  getValidatorPath,
+  getValidatorPasswordPath,
+  getCoordinatorWalletPasswordPath,
+  getCoordinatorKeyPath
 } from '../libs/env'
 
 import { Node } from '../models/node'
@@ -604,7 +607,10 @@ class LocalNode extends EventEmitter {
     const now = Date.now()
     for (const key of keys) {
       await checkOrCreateFile(
-        getCoordinatorKeyPath(this.model.locationDir, `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`),
+        getCoordinatorKeyPath(
+          this.model.locationDir,
+          `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`
+        ),
         JSON.stringify(key.coordinatorKey)
       )
     }
