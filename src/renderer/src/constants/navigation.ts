@@ -2,6 +2,7 @@ const root_routes = {
   nodes: 'nodes',
   workers: 'workers',
   statistics: 'statistics',
+  settings: 'settings',
   notifications: 'notifications'
 }
 
@@ -20,7 +21,8 @@ const sub_routes = {
   statistics: {
     view: `/${root_routes.statistics}/view`
   },
-  draft: `/draft`
+  settings: `/settings`,
+  notifications: `/notifications`
 }
 
 const SearchKeys = {

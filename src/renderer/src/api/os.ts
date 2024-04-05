@@ -9,3 +9,5 @@ export const saveTextFile = async (
 ): Promise<boolean> => {
   return await window.os.saveTextFile(text, title, fileName)
 }
+
+export const openExternal = (url: string): void => window.os.openExternal(url)

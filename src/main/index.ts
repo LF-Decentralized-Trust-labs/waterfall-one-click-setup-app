@@ -1,5 +1,15 @@
-import { app, shell, BrowserWindow, Tray, Menu, ipcMain, globalShortcut } from 'electron'
+import {
+  app,
+  shell,
+  BrowserWindow,
+  Tray,
+  Menu,
+  ipcMain,
+  globalShortcut,
+  powerSaveBlocker
+} from 'electron'
 import { Event, HandlerDetails } from 'electron'
+// import { autoUpdater } from 'electron-updater'
 import { join } from 'path'
 import log from 'electron-log/main'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -13,6 +23,7 @@ import createStatusWorker from './monitoring/status?nodeWorker'
 import FsHandle from './libs/FsHandle'
 
 let tray: null | Tray = null
+let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
 let updateWindow: null | BrowserWindow = null
 const appEnv = new AppEnv({
@@ -172,6 +183,8 @@ app.whenReady().then(async () => {
   })
   log.debug('statusWorker.postMessage start')
 
+  preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
+
   tray = new Tray(trayIcon)
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -188,6 +201,14 @@ app.whenReady().then(async () => {
         console.log('Show')
       }
     },
+    // {
+    //   label: 'Check Updates',
+    //   click: (): void => {
+    //     autoUpdater.channel = 'beta'
+    //     autoUpdater.checkForUpdatesAndNotify()
+    //     console.log('Show')
+    //   }
+    // },
     {
       label: 'Quit',
       click: async () => {
@@ -198,6 +219,7 @@ app.whenReady().then(async () => {
 
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall')
+  ipcMain.handle('app:quit', async () => await quit())
 
   // setTimeout(async () => {
   //   console.log('start add')
@@ -266,7 +288,15 @@ const quit = async () => {
   })
   await statusWorker.terminate()
 
+  await worker.destroy()
+
   await node.destroy()
+
+  await fsHandle.destroy()
+
+  if (preventSleepId !== null) {
+    powerSaveBlocker.stop(preventSleepId)
+  }
 
   if (mainWindow !== null) {
     mainWindow.destroy()

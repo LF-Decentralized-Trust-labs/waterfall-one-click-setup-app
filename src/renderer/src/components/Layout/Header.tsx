@@ -34,7 +34,6 @@ const Button = styled(IconButton)`
 const AppHeader = styled(Layout.Header)`
   height: 40px;
   background-color: ${({ theme }) => theme.palette.background.blue};
-  padding: 0;
   -webkit-app-region: drag;
   display: flex;
   justify-content: space-between;

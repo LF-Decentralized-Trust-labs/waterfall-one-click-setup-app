@@ -1,3 +1,4 @@
+import { Page } from '@renderer/components/ComingSoon/Page'
 import { PageBody } from '@renderer/components/Page/Body'
 import { PageHeader } from '@renderer/components/Page/Header'
 import { StatisticsCards } from '@renderer/components/Statistics/Cards'
@@ -48,6 +49,9 @@ const epochLeaderBoardsData: LeaderBoardTableDataTypes[] = [
 ]
 
 export const StatisticsPage = () => {
+  return <Page title="Statistics" />
+}
+export const StatisticsPage2 = () => {
   const [nodeFilter, setNodeFilter] = useState([nodeOptions[0].value])
   const [, setDateFilter] = useState<[string, string] | string | null>(null)
 

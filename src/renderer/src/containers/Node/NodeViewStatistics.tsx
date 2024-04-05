@@ -1,7 +1,15 @@
 import { NodeViewTabProps } from '@renderer/types/node'
 import React from 'react'
-import { Text } from '../../ui-kit/Typography'
+import { Layout } from 'antd'
+import { Content } from '../../components/ComingSoon/Content'
+import { TabContent } from '@renderer/ui-kit/Tabs'
 
 export const NodeViewStatistics: React.FC<NodeViewTabProps> = () => {
-  return <Text size="md">Coming Soon...</Text>
+  return (
+    <TabContent>
+      <Layout>
+        <Content />
+      </Layout>
+    </TabContent>
+  )
 }

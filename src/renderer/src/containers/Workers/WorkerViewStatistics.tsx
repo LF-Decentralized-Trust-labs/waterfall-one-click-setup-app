@@ -1,7 +1,15 @@
 import React from 'react'
 import { WorkerViewTabProps } from '@renderer/types/workers'
-import { Text } from '../../ui-kit/Typography'
+import { Layout } from 'antd'
+import { Content } from '../../components/ComingSoon/Content'
+import { TabContent } from '@renderer/ui-kit/Tabs'
 
 export const WorkerViewStatistics: React.FC<WorkerViewTabProps> = () => {
-  return <Text size="md">Coming Soon...</Text>
+  return (
+    <TabContent>
+      <Layout>
+        <Content />
+      </Layout>
+    </TabContent>
+  )
 }

@@ -1,16 +1,48 @@
 import { HeaderComponent } from '@renderer/components/Layout/Header'
-import { LayoutHeaderActionT } from '@renderer/types/layout'
-import { SettingOutlined, FileOutlined, HomeOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import {
+  SettingOutlined,
+  ReadOutlined,
+  HomeOutlined,
+  BellOutlined,
+  PoweroffOutlined
+} from '@ant-design/icons'
+import { useNavigation } from '../../hooks/navigation'
+import { routes } from '../../constants/navigation'
+import React from 'react'
+import { styled } from 'styled-components'
 
-const APP_TITLE = 'Waterfall Node App'
+const APP_TITLE = 'Waterfall App'
 
-const RightActions: LayoutHeaderActionT[] = [
-  { key: 'home', onClick: () => {alert('home')}, icon: <HomeOutlined /> },
-  { key: 'file', onClick: () => {alert('file')}, icon: <FileOutlined /> },
-  { key: 'settings', onClick: () => {alert('settings')}, icon: <SettingOutlined /> },
-  { key: 'info', onClick: () => {alert('info')}, icon: <InfoCircleOutlined /> }
+type RightActionsType = {
+  key: string
+  to: string
+  icon: React.ReactNode
+}
+const RightActions: RightActionsType[] = [
+  { key: 'home', to: 'https://waterfall.network', icon: <HomeOutlined /> },
+  { key: 'docs', to: 'https://docs.waterfall.network', icon: <ReadOutlined /> },
+  { key: 'settings', to: routes.settings, icon: <SettingOutlined /> },
+  { key: 'notification', to: routes.notifications, icon: <BellOutlined /> }
 ]
 
 export const Header = () => {
-  return <HeaderComponent title={APP_TITLE} rightActions={RightActions} />
+  const { goRoute, goBrowser, quit } = useNavigation()
+  let rightActions = RightActions.map((el) => ({
+    ...el,
+    onClick: () => {
+      if (el.to.search('http') > -1) {
+        return goBrowser(el.to)
+      }
+      return goRoute(el.to)
+    }
+  }))
+  rightActions = rightActions.concat([
+    { key: 'quit', onClick: () => quit(), icon: <QuitIcon />, to: '' }
+  ])
+
+  return <HeaderComponent title={APP_TITLE} rightActions={rightActions} />
 }
+
+const QuitIcon = styled(PoweroffOutlined)`
+  color: red;
+`
