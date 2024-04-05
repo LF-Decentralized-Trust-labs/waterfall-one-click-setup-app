@@ -2,10 +2,10 @@
   "name": "waterfall-app",
   "productName": "Waterfall",
   "version": "0.2.0-beta",
-  "description": "An Electron application with React and TypeScript",
+  "description": "Waterfall Node App",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "Waterfall",
+  "homepage": "https://waterfall.network",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
