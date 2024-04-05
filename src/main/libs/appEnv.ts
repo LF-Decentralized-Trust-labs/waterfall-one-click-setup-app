@@ -72,7 +72,7 @@ class AppEnv {
     if (platform === 'win') {
       return `\\\\.\\pipe\\wf-${num}.ipc`
     } else {
-      return `/tmp/wf-${num}.ipc`
+      return path.resolve(`/tmp/wf-${num}.ipc`)
     }
   }
 }

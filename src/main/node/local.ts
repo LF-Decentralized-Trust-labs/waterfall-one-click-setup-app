@@ -17,7 +17,7 @@ import {
   getCoordinatorKeysPath,
   getLogPath,
   getValidatorNetwork,
-  getValidatorPath
+  getValidatorPath, getValidatorPasswordPath, getCoordinatorWalletPasswordPath, getCoordinatorKeyPath
 } from '../libs/env'
 
 import { Node } from '../models/node'
@@ -440,7 +440,7 @@ class LocalNode extends EventEmitter {
       return false
     }
     const chekPassword = await checkOrCreateFile(
-      `${getValidatorPath(this.model.locationDir)}/password.txt`,
+      getValidatorPasswordPath(this.model.locationDir),
       ''
     )
     if (null === chekPassword) {
@@ -495,7 +495,7 @@ class LocalNode extends EventEmitter {
     const password = crypto.randomBytes(16).toString('hex')
 
     const savedPassword = await checkOrCreateFile(
-      `${getCoordinatorWalletPath(this.model.locationDir)}/password.txt`,
+      getCoordinatorWalletPasswordPath(this.model.locationDir),
       password
     )
     if (!savedPassword) {
@@ -572,7 +572,7 @@ class LocalNode extends EventEmitter {
         '--grpc-max-msg-size=15900000',
         `--beacon-rpc-provider=localhost:${this.model.coordinatorHttpValidatorApiPort}`,
         `--wallet-dir=${getCoordinatorWalletPath(this.model.locationDir)}`,
-        `--wallet-password-file=${getCoordinatorWalletPath(this.model.locationDir)}/password.txt`
+        `--wallet-password-file=${getCoordinatorWalletPasswordPath(this.model.locationDir)}`
       ],
       logPath: getLogPath(this.model.locationDir),
       logName: 'coordinator-validator.log'
@@ -589,7 +589,7 @@ class LocalNode extends EventEmitter {
     }
     const password = crypto.randomBytes(16).toString('hex')
     return await checkOrCreateFile(
-      `${getCoordinatorWalletPath(this.model.locationDir)}/password.txt`,
+      getCoordinatorWalletPasswordPath(this.model.locationDir),
       password
     )
   }
@@ -604,7 +604,7 @@ class LocalNode extends EventEmitter {
     const now = Date.now()
     for (const key of keys) {
       await checkOrCreateFile(
-        `${getCoordinatorKeysPath(this.model.locationDir)}/keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`,
+        getCoordinatorKeyPath(this.model.locationDir, `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`),
         JSON.stringify(key.coordinatorKey)
       )
     }
@@ -613,7 +613,7 @@ class LocalNode extends EventEmitter {
         return resolve(0)
       }
       exec(
-        `${this.appEnv.getCoordinatorValidatorBinPath(this.model.network)} accounts import  --accept-terms-of-use --keys-dir=${getCoordinatorKeysPath(this.model.locationDir)} --wallet-dir=${getCoordinatorWalletPath(this.model.locationDir)} --wallet-password-file=${getCoordinatorWalletPath(this.model.locationDir)}/password.txt --account-password-file=${getCoordinatorWalletPath(this.model.locationDir)}/password.txt`,
+        `${this.appEnv.getCoordinatorValidatorBinPath(this.model.network)} accounts import  --accept-terms-of-use --keys-dir=${getCoordinatorKeysPath(this.model.locationDir)} --wallet-dir=${getCoordinatorWalletPath(this.model.locationDir)} --wallet-password-file=${getCoordinatorWalletPasswordPath(this.model.locationDir)} --account-password-file=${getCoordinatorWalletPasswordPath(this.model.locationDir)}`,
         (err, stdout, stderr) => {
           if (err) {
             return resolve(0)
@@ -648,7 +648,7 @@ class LocalNode extends EventEmitter {
         `personal.importRawKey('${key.validatorKey.privateKey.replace('0x', '')}','${key.validatorPassword}')`
       )
       await appendToFile(
-        `${getValidatorPath(this.model.locationDir)}/password.txt`,
+        getValidatorPasswordPath(this.model.locationDir),
         `${key.validatorPassword}\n`
       )
     }

@@ -2,6 +2,7 @@
 import { contextBridge, ipcRenderer, shell } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
+import path from 'node:path'
 
 import { node } from './node'
 import { worker } from './worker'
@@ -29,7 +30,8 @@ if (process.contextIsolated) {
       homedir: getHomeDir(),
       selectDirectory: selectDirectory,
       saveTextFile: saveTextFile,
-      openExternal: shell.openExternal
+      openExternal: shell.openExternal,
+      path
     })
   } catch (error) {
     console.error(error)
@@ -47,7 +49,8 @@ if (process.contextIsolated) {
     homedir: getHomeDir(),
     selectDirectory: selectDirectory,
     saveTextFile: saveTextFile,
-    openExternal: shell.openExternal
+    openExternal: shell.openExternal,
+    path
   }
   // @ts-ignore (define in dts)
   window.app = { quit }
