@@ -14,7 +14,7 @@ asarUnpack:
   - node_modules/bcrypto
   - resources/**
 win:
-  executableName: waterfall-app
+  executableName: waterfall
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
