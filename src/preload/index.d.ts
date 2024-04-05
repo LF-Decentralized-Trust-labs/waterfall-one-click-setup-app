@@ -14,5 +14,8 @@ declare global {
       saveTextFile: (text: string, title?: string, fileName?: string) => Promise<boolean>
       openExternal: (url: string) => void
     }
+    app: {
+      quit: () => void
+    }
   }
 }

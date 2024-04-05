@@ -1,7 +1,7 @@
 {
   "name": "waterfall-app",
   "productName": "Waterfall",
-  "version": "1.0.0",
+  "version": "0.2.0-beta",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -34,7 +34,7 @@
     "better-sqlite3": "^9.4.1",
     "dayjs": "^1.11.10",
     "electron-log": "^5.1.1",
-    "electron-updater": "^6.1.7",
+    "electron-updater": "^6.1.8",
     "migrate": "^2.1.0",
     "node-gyp": "^9.0.0",
     "react-router-dom": "^6.22.0",

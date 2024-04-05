@@ -14,7 +14,7 @@ asarUnpack:
   - node_modules/bcrypto
   - resources/**
 win:
-  executableName: waterfall-app
+  executableName: waterfall
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -22,6 +22,10 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
+#  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
+#  target:
+#    - dmg
+#    - zip
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -40,6 +44,19 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+build:
+  buildDependenciesFromSource: true
+  extraFiles:
+    - from: 'resources/${os}'
+      to: 'Resources/bin'
+      filter:
+        - '**/*'
+    - from: 'resources/genesis'
+      to: 'Resources/genesis'
+      filter:
+        - '**/*'
+#publish:
+#  provider: generic
+#  url: https://docs.waterfall.network/files/app
+#  generateUpdateFilesForAllChannels: true
+#  publishAutoUpdates: true

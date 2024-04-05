@@ -9,6 +9,7 @@ import {
   powerSaveBlocker
 } from 'electron'
 import { Event, HandlerDetails } from 'electron'
+// import { autoUpdater } from 'electron-updater'
 import { join } from 'path'
 import log from 'electron-log/main'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -200,6 +201,14 @@ app.whenReady().then(async () => {
         console.log('Show')
       }
     },
+    // {
+    //   label: 'Check Updates',
+    //   click: (): void => {
+    //     autoUpdater.channel = 'beta'
+    //     autoUpdater.checkForUpdatesAndNotify()
+    //     console.log('Show')
+    //   }
+    // },
     {
       label: 'Quit',
       click: async () => {
@@ -210,6 +219,7 @@ app.whenReady().then(async () => {
 
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall')
+  ipcMain.handle('app:quit', async () => await quit())
 
   // setTimeout(async () => {
   //   console.log('start add')

@@ -12,6 +12,7 @@ const selectDirectory = (defaultPath?: string) =>
 const saveTextFile = (text: string, title?: string, fileName?: string) =>
   ipcRenderer.invoke('os:saveTextFile', text, title, fileName)
 
+const quit = () => ipcRenderer.invoke('app:quit')
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -20,6 +21,9 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', { ...electronAPI })
     contextBridge.exposeInMainWorld('node', node)
     contextBridge.exposeInMainWorld('worker', worker)
+    contextBridge.exposeInMainWorld('app', {
+      quit
+    })
     contextBridge.exposeInMainWorld('os', {
       platform: getPlatform(),
       homedir: getHomeDir(),
@@ -45,6 +49,8 @@ if (process.contextIsolated) {
     saveTextFile: saveTextFile,
     openExternal: shell.openExternal
   }
+  // @ts-ignore (define in dts)
+  window.app = { quit }
 }
 
 function getPlatform(): 'linux' | 'mac' | 'win' | null {

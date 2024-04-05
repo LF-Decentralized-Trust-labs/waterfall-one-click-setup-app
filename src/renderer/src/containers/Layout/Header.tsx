@@ -1,8 +1,15 @@
 import { HeaderComponent } from '@renderer/components/Layout/Header'
-import { SettingOutlined, ReadOutlined, HomeOutlined, BellOutlined } from '@ant-design/icons'
+import {
+  SettingOutlined,
+  ReadOutlined,
+  HomeOutlined,
+  BellOutlined,
+  PoweroffOutlined
+} from '@ant-design/icons'
 import { useNavigation } from '../../hooks/navigation'
 import { routes } from '../../constants/navigation'
 import React from 'react'
+import { styled } from 'styled-components'
 
 const APP_TITLE = 'Waterfall App'
 
@@ -19,8 +26,8 @@ const RightActions: RightActionsType[] = [
 ]
 
 export const Header = () => {
-  const { goRoute, goBrowser } = useNavigation()
-  const rightActions = RightActions.map((el) => ({
+  const { goRoute, goBrowser, quit } = useNavigation()
+  let rightActions = RightActions.map((el) => ({
     ...el,
     onClick: () => {
       if (el.to.search('http') > -1) {
@@ -29,5 +36,13 @@ export const Header = () => {
       return goRoute(el.to)
     }
   }))
+  rightActions = rightActions.concat([
+    { key: 'quit', onClick: () => quit(), icon: <QuitIcon />, to: '' }
+  ])
+
   return <HeaderComponent title={APP_TITLE} rightActions={rightActions} />
 }
+
+const QuitIcon = styled(PoweroffOutlined)`
+  color: red;
+`
