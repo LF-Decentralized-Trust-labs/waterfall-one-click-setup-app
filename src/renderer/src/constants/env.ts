@@ -2,6 +2,8 @@ const path = window.os.path
 
 const ENV = import.meta.env
 
+export const APP_TITLE = ENV.VITE_APP_TITLE
+
 export const DEFAULT_WF_PATH = path.resolve(path.join(window.os.homedir, ENV.VITE_DATA_PATH))
 
 export const COORDINATOR_HTTP_API_PORT = ENV.VITE_COORDINATOR_HTTP_API_PORT

@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
+  readonly VITE_APP_TITLE: string
   readonly VITE_DATA_PATH: string
   readonly VITE_COORDINATOR_HTTP_API_PORT: string
   readonly VITE_COORDINATOR_HTTP_VALIDATOR_API_PORT: string
