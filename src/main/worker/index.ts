@@ -3,8 +3,7 @@ import AppEnv from '../libs/appEnv'
 import NodeModel, { Type as NodeType } from '../models/node'
 import WorkerModel, {
   NewWorker as NewWorkerModelType,
-  Worker as WorkerModelType,
-  WorkerStatus
+  Worker as WorkerModelType
 } from '../models/worker'
 import { getMain } from '../libs/db'
 import Web3 from 'web3'
@@ -94,49 +93,6 @@ class Worker {
     this.ipcMain.removeHandler('worker:getActionTx')
   }
 
-  public async getStatus(worker: WorkerModelType) {
-    if (!worker) {
-      return ErrorResults.WORKER_NOT_FOUND
-    }
-    if (!worker.node) {
-      return ErrorResults.NODE_NOT_FOUND
-    }
-    const results: WorkerStatus = {
-      coordinatorStatus: worker.coordinatorStatus,
-      coordinatorBalanceAmount: worker.coordinatorBalanceAmount,
-      coordinatorActivationEpoch: worker.coordinatorActivationEpoch,
-      coordinatorDeActivationEpoch: worker.coordinatorDeActivationEpoch,
-      validatorStatus: worker.validatorStatus,
-      validatorBalanceAmount: worker.validatorBalanceAmount,
-      validatorActivationEpoch: worker.validatorActivationEpoch,
-      validatorDeActivationEpoch: worker.validatorDeActivationEpoch,
-      stakeAmount: worker.stakeAmount
-    }
-
-    const node =
-      worker.node.type === NodeType.local
-        ? new LocalNode(worker.node, this.appEnv)
-        : new LocalNode(worker.node, this.appEnv)
-
-    const coordinatorResponse = await node.runCoordinatorCommand(
-      `/eth/v1/beacon/states/head/validators/0x${worker.coordinatorPublicKey}`
-    )
-
-    if (coordinatorResponse?.data) {
-      results.coordinatorStatus = coordinatorResponse.data.status
-      results.coordinatorBalanceAmount = coordinatorResponse.data.balance
-      results.coordinatorActivationEpoch = coordinatorResponse.data.validator.activation_epoch
-      results.coordinatorDeActivationEpoch = coordinatorResponse.data.validator.exit_epoch
-      results.stakeAmount = coordinatorResponse.data.validator.effective_balance
-    }
-    const validatorResponse = await node.runValidatorCommand(
-      `wat.validator.getInfo('0x${worker.validatorAddress}')`
-    )
-
-    console.log(validatorResponse)
-
-    return results
-  }
   private _genMnemonic() {
     return Web3.utils.genMnemonic()
   }

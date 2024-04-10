@@ -326,11 +326,13 @@ class LocalNode extends EventEmitter {
 
     try {
       const [validatorResponse, currentEra, validatorBalanceAmount] = await Promise.all([
-        this.runValidatorCommand(`wat.validator.getInfo('0x${worker.validatorAddress}')`, 'json'),
+        this.runValidatorCommand(
+          `wat.validator.getInfo('0x${worker.validatorAddress}')`,
+          'json'
+        ).catch(() => null),
         this.runValidatorCommand('wat.getEra()', 'json'),
         this.runValidatorCommand(`eth.getBalance('0x${worker.validatorAddress}')`)
       ])
-
       if (isValidatorInfo(validatorResponse)) {
         let activationEra: null | object | string = null
         let exitEra: null | object | string = null
@@ -716,12 +718,11 @@ class LocalNode extends EventEmitter {
         (err, stdout, stderr) => {
           if (err) {
             log.error(err)
-            return reject('')
+            return reject(err)
           }
           if (stdout) {
             if (stdout.search('Error') !== -1) {
-              log.error(stdout)
-              return reject('')
+              return reject(stdout)
             }
             if (format && format === 'json') {
               let json = ''
@@ -729,7 +730,8 @@ class LocalNode extends EventEmitter {
                 json = JSON.parse(stdout)
                 json = JSON.parse(json)
               } catch (err) {
-                return reject('')
+                log.error(err)
+                return reject(err)
               }
               return resolve(json)
             }
@@ -737,7 +739,7 @@ class LocalNode extends EventEmitter {
           }
           if (stderr) {
             log.error(stderr)
-            return reject('')
+            return reject(stderr)
           }
         }
       )
