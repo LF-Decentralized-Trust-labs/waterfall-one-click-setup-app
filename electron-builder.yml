@@ -1,18 +1,30 @@
 appId: com.electron.app
 productName: Waterfall
 directories:
+  output: dist
   buildResources: build
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - node_modules/better-sqlite3
-  - node_modules/bcrypto
-  - resources/**
+#  - '!**/.vscode/*'
+#  - '!src/*'
+#  - '!electron.vite.config.{js,ts,mjs,cjs}'
+#  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+#  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+#  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+buildDependenciesFromSource: true
+extraFiles:
+  - from: 'resources/${os}'
+    to: 'Resources/bin'
+    filter:
+      - '**/*'
+  - from: 'resources/genesis'
+    to: 'Resources/genesis'
+    filter:
+      - '**/*'
+#asarUnpack:
+#  - node_modules/better-sqlite3
+#  - node_modules/bcrypto
+#  - resources/**
+#afterSign: build/notarize.js
 win:
   executableName: waterfall
 nsis:
@@ -23,15 +35,15 @@ nsis:
 mac:
   entitlementsInherit: build/entitlements.mac.plist
 #  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
-#  target:
-#    - dmg
-#    - zip
+  target:
+    - dmg
+    - zip
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
+#  notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
@@ -44,19 +56,10 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-build:
-  buildDependenciesFromSource: true
-  extraFiles:
-    - from: 'resources/${os}'
-      to: 'Resources/bin'
-      filter:
-        - '**/*'
-    - from: 'resources/genesis'
-      to: 'Resources/genesis'
-      filter:
-        - '**/*'
-#publish:
-#  provider: generic
-#  url: https://docs.waterfall.network/files/app
+publish:
+  provider: generic
+  url: https://docs.waterfall.network/files/app/latest
+#  channel: dev
+#  channel: beta
 #  generateUpdateFilesForAllChannels: true
 #  publishAutoUpdates: true
