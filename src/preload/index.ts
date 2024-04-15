@@ -16,6 +16,9 @@ const saveTextFile = (text: string, title?: string, fileName?: string) =>
 const openExternal = (url: string) => ipcRenderer.invoke('os:openExternal', url)
 
 const quit = () => ipcRenderer.invoke('app:quit')
+
+const fetchState = () => ipcRenderer.invoke('app:state')
+
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -25,7 +28,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('node', node)
     contextBridge.exposeInMainWorld('worker', worker)
     contextBridge.exposeInMainWorld('app', {
-      quit
+      quit,
+      fetchState
     })
     contextBridge.exposeInMainWorld('os', {
       platform: getPlatform(),
@@ -55,7 +59,7 @@ if (process.contextIsolated) {
     path
   }
   // @ts-ignore (define in dts)
-  window.app = { quit }
+  window.app = { quit, fetchState }
 }
 
 function getPlatform(): 'linux' | 'mac' | 'win' | null {

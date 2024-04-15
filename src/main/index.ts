@@ -29,7 +29,8 @@ let updateWindow: null | BrowserWindow = null
 const appEnv = new AppEnv({
   isPackaged: app.isPackaged,
   appPath: app.getAppPath(),
-  userData: app.getPath('userData')
+  userData: app.getPath('userData'),
+  version: app.getVersion()
 })
 const node = new Node(ipcMain, appEnv)
 const worker = new Worker(ipcMain, appEnv)
@@ -38,7 +39,8 @@ const statusWorker = createStatusWorker({
   workerData: {
     isPackaged: appEnv.isPackaged,
     appPath: appEnv.appPath,
-    userData: appEnv.userData
+    userData: appEnv.userData,
+    version: appEnv.version
   }
 })
 // Optional, initialize the logger for any renderer process
@@ -225,6 +227,9 @@ app.whenReady().then(async () => {
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall')
   ipcMain.handle('app:quit', async () => await quit())
+  ipcMain.handle('app:state', async () => ({
+    version: appEnv.version
+  }))
 
   // setTimeout(async () => {
   //   console.log('start add')

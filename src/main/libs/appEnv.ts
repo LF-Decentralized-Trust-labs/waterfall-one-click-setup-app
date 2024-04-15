@@ -6,18 +6,21 @@ interface Options {
   isPackaged: boolean
   appPath: string
   userData: string
+  version: string
 }
 
 class AppEnv {
   public isPackaged = false
   public appPath: string = ''
   public userData: string = ''
+  public version: string = ''
   public mainDB: string = ''
 
   constructor(options: Options) {
     this.isPackaged = options.isPackaged
     this.appPath = options.appPath
     this.userData = options.userData
+    this.version = options.version
     this.mainDB = path.join(this.userData, 'wf.db')
   }
 

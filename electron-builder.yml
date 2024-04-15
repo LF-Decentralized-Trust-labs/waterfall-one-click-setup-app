@@ -34,12 +34,12 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-#  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
+  #  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
   target:
-#    - target: default
-#      arch:
-#        - x64
-#        - arm64
+    #    - target: default
+    #      arch:
+    #        - x64
+    #        - arm64
     - dmg
     - zip
   extendInfo:
