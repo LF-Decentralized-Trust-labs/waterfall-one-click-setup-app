@@ -3,6 +3,9 @@ import path from 'node:path'
 import { node } from './node'
 import { worker } from './worker'
 
+type State = {
+  version: string
+}
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -18,6 +21,7 @@ declare global {
     }
     app: {
       quit: () => void
+      fetchState: () => Promise<State>
     }
   }
 }

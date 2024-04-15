@@ -118,12 +118,14 @@ class StatusMonitoring {
 const appEnv = new AppEnv({
   isPackaged: workerData.isPackaged,
   appPath: workerData.appPath,
-  userData: workerData.userData
+  userData: workerData.userData,
+  version: workerData.version
 })
 log.debug({
   isPackaged: workerData.isPackaged,
   appPath: workerData.appPath,
-  userData: workerData.userData
+  userData: workerData.userData,
+  version: workerData.version
 })
 
 const monitoring = new StatusMonitoring(appEnv, 4000)

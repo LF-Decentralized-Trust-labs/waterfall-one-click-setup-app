@@ -10,8 +10,7 @@ import { useNavigation } from '../../hooks/navigation'
 import { routes } from '../../constants/navigation'
 import React from 'react'
 import { styled } from 'styled-components'
-import {APP_TITLE} from '../../constants/env'
-
+import { APP_TITLE } from '../../constants/env'
 
 type RightActionsType = {
   key: string

@@ -9,7 +9,7 @@ import {
   powerSaveBlocker
 } from 'electron'
 import { Event, HandlerDetails } from 'electron'
-// import { autoUpdater } from 'electron-updater'
+import { autoUpdater } from 'electron-updater'
 import { join } from 'path'
 import log from 'electron-log/main'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -22,6 +22,9 @@ import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
 import FsHandle from './libs/FsHandle'
 
+log.transports.file.level = 'debug'
+autoUpdater.logger = log
+
 let tray: null | Tray = null
 let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
@@ -29,7 +32,8 @@ let updateWindow: null | BrowserWindow = null
 const appEnv = new AppEnv({
   isPackaged: app.isPackaged,
   appPath: app.getAppPath(),
-  userData: app.getPath('userData')
+  userData: app.getPath('userData'),
+  version: app.getVersion()
 })
 const node = new Node(ipcMain, appEnv)
 const worker = new Worker(ipcMain, appEnv)
@@ -38,7 +42,8 @@ const statusWorker = createStatusWorker({
   workerData: {
     isPackaged: appEnv.isPackaged,
     appPath: appEnv.appPath,
-    userData: appEnv.userData
+    userData: appEnv.userData,
+    version: appEnv.version
   }
 })
 // Optional, initialize the logger for any renderer process
@@ -206,14 +211,14 @@ app.whenReady().then(async () => {
         console.log('Show')
       }
     },
-    // {
-    //   label: 'Check Updates',
-    //   click: (): void => {
-    //     autoUpdater.channel = 'beta'
-    //     autoUpdater.checkForUpdatesAndNotify()
-    //     console.log('Show')
-    //   }
-    // },
+    {
+      label: 'Check Updates',
+      click: (): void => {
+        // autoUpdater.channel = 'beta'
+        autoUpdater.checkForUpdatesAndNotify()
+        log.debug('check update')
+      }
+    },
     {
       label: 'Quit',
       click: async () => {
@@ -225,6 +230,9 @@ app.whenReady().then(async () => {
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall')
   ipcMain.handle('app:quit', async () => await quit())
+  ipcMain.handle('app:state', async () => ({
+    version: appEnv.version
+  }))
 
   // setTimeout(async () => {
   //   console.log('start add')
