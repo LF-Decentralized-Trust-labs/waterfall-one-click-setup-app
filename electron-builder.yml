@@ -34,7 +34,7 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-  #  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
+  identity: 'Moonion Inc. (5ZSVC9ZU6W)'
   target:
     #    - target: default
     #      arch:
