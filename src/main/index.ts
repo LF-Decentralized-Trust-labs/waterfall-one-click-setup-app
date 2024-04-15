@@ -22,6 +22,9 @@ import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
 import FsHandle from './libs/FsHandle'
 
+log.transports.file.level = 'debug'
+autoUpdater.logger = log
+
 let tray: null | Tray = null
 let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
