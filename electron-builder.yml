@@ -12,7 +12,7 @@ files:
 #  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 buildDependenciesFromSource: true
 extraFiles:
-  - from: 'resources/${os}'
+  - from: 'resources/bin/${os}/${arch}'
     to: 'Resources/bin'
     filter:
       - '**/*'
@@ -36,6 +36,10 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
 #  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
   target:
+#    - target: default
+#      arch:
+#        - x64
+#        - arm64
     - dmg
     - zip
   extendInfo:

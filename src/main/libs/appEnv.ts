@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { Network } from './env'
-import { platform } from 'node:os'
+import { platform, arch } from 'node:os'
 
 interface Options {
   isPackaged: boolean
@@ -38,11 +38,21 @@ class AppEnv {
         return null
     }
   }
+  getArch(): 'x64' | 'arm64' | null {
+    switch (arch()) {
+      case 'arm64':
+        return 'arm64'
+      case 'x64':
+        return 'x64'
+      default:
+        return null
+    }
+  }
 
   getBinariesPath(): string {
     return this.isPackaged
       ? path.join(process.resourcesPath, './bin')
-      : path.join(this.appPath, 'resources', this.getPlatform()!)
+      : path.join(this.appPath, 'resources', 'bin', this.getPlatform()!, this.getArch()!)
   }
 
   getGenesisPath(): string {
