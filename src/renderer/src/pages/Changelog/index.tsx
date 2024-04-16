@@ -13,8 +13,9 @@ const items = [
     children: (
       <>
         <Text size="sm">0.3.2 - 16.04.2024</Text>
-        <p>New: MacOs signing app</p>
+        <p>New: MacOS signing app</p>
         <p>New: Adding a changelog page</p>
+        <p>Improve: reduce app size</p>
         <p>Fix: Adding additional workers</p>
       </>
     )
