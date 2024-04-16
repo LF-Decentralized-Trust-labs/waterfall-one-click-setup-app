@@ -143,7 +143,7 @@ class Worker {
       const key = {
         depositData: await Web3.utils.getDepositData(data.mnemonic, index, data.withdrawalAddress),
         coordinatorKey: await Web3.utils.getKeyStore(data.mnemonic, index, coordinatorPassword),
-        validatorKey: Web3.utils.getValidatorKeys(data.mnemonic, index, validatorPassword),
+        validatorKey: Web3.utils.getValidatorKeys(data.mnemonic, index, ''),
         validatorPassword,
         coordinatorPassword
       }
@@ -163,7 +163,7 @@ class Worker {
     }
     const workers = this.workerModel.insert(newWorkers, nodeModel)
 
-    await node.addWorkers(keys)
+    await node.addWorkers(keys, lastIndex)
 
     return workers
   }

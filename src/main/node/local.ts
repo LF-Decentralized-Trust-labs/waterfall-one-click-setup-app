@@ -599,7 +599,7 @@ class LocalNode extends EventEmitter {
     )
   }
 
-  public async addWorkers(keys: Key[]) {
+  public async addWorkers(keys: Key[], lastIndex: number) {
     if (this.model === null) {
       return false
     }
@@ -616,7 +616,7 @@ class LocalNode extends EventEmitter {
         JSON.stringify(key.coordinatorKey)
       )
     }
-    const importAccounts = await new Promise((resolve) => {
+    const importAccounts: number = await new Promise((resolve) => {
       if (!this.model) {
         return resolve(0)
       }
@@ -646,8 +646,8 @@ class LocalNode extends EventEmitter {
       )
     })
 
-    if (importAccounts !== keys.length) {
-      log.error(`Imported ${importAccounts} accounts but need ${keys.length}`)
+    if (importAccounts - lastIndex + 1 !== keys.length) {
+      log.error(`Imported ${importAccounts} accounts but need ${keys.length} lastIndex: ${lastIndex}`)
       return false
     }
 
