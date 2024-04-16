@@ -3,6 +3,7 @@ const root_routes = {
   workers: 'workers',
   statistics: 'statistics',
   settings: 'settings',
+  changelog: 'changelog',
   notifications: 'notifications'
 }
 
@@ -22,6 +23,7 @@ const sub_routes = {
     view: `/${root_routes.statistics}/view`
   },
   settings: `/settings`,
+  changelog: `/changelog`,
   notifications: `/notifications`
 }
 
