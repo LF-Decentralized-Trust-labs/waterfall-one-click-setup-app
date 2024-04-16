@@ -4,7 +4,8 @@ import {
   ReadOutlined,
   HomeOutlined,
   BellOutlined,
-  PoweroffOutlined
+  PoweroffOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons'
 import { useNavigation } from '../../hooks/navigation'
 import { routes } from '../../constants/navigation'
@@ -21,6 +22,7 @@ const RightActions: RightActionsType[] = [
   { key: 'home', to: 'https://waterfall.network', icon: <HomeOutlined /> },
   { key: 'docs', to: 'https://docs.waterfall.network', icon: <ReadOutlined /> },
   { key: 'settings', to: routes.settings, icon: <SettingOutlined /> },
+  { key: 'changelog', to: routes.changelog, icon: <ClockCircleOutlined /> },
   { key: 'notification', to: routes.notifications, icon: <BellOutlined /> }
 ]
 

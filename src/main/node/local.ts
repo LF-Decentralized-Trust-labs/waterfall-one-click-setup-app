@@ -647,7 +647,9 @@ class LocalNode extends EventEmitter {
     })
 
     if (importAccounts - lastIndex + 1 !== keys.length) {
-      log.error(`Imported ${importAccounts} accounts but need ${keys.length} lastIndex: ${lastIndex}`)
+      log.error(
+        `Imported ${importAccounts} accounts but need ${keys.length} lastIndex: ${lastIndex}`
+      )
       return false
     }
 

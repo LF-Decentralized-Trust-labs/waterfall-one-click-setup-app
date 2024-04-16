@@ -7,6 +7,7 @@ import { WorkersListPage } from '@renderer/pages/WorkersList'
 import { StatisticsPage } from '@renderer/pages/Statistics'
 import { NodeViewPage } from '@renderer/pages/NodeView'
 import { SettingsPage } from '@renderer/pages/Settings'
+import { ChangelogPage } from '@renderer/pages/Changelog'
 import { NotificationsPage } from '@renderer/pages/Notifications'
 import { WorkerViewPage } from '@renderer/pages/WorkerView'
 import { AddWorkerPage } from '@renderer/pages/WorkerAdd'
@@ -93,6 +94,15 @@ export const AppNavigator = () => {
         element={
           <PageRender>
             <SettingsPage />
+          </PageRender>
+        }
+      />
+      <Route
+        key="changelog"
+        path={routes.changelog}
+        element={
+          <PageRender>
+            <ChangelogPage />
           </PageRender>
         }
       />

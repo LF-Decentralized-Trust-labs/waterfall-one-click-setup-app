@@ -11,7 +11,10 @@ import {
 import { styled } from 'styled-components'
 import { FOOTER_HEIGHT } from '@renderer/constants/layout'
 import { useFetchState } from '@renderer/hooks/app'
+import { useNavigation } from '../../hooks/navigation'
+import { routes } from '../../constants/navigation'
 export const Footer = () => {
+  const { goRoute } = useNavigation()
   const { isLoading, data: state, error } = useFetchState()
 
   if (isLoading || error) {
@@ -61,7 +64,13 @@ export const Footer = () => {
             title={'App Notifications'}
             content={'There are no updates here'}
           >
-            <IconButton icon={<BellOutlined />} size="small" shape="default" ghost />
+            <IconButton
+              onClick={() => goRoute(routes.notifications)}
+              icon={<BellOutlined />}
+              size="small"
+              shape="default"
+              ghost
+            />
           </Popover>
         </RightInfo>
       }
