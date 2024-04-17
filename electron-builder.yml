@@ -1,15 +1,18 @@
-appId: com.electron.app
+appId: network.waterfall.app
 productName: Waterfall
 directories:
   output: dist
   buildResources: build
 files:
-#  - '!**/.vscode/*'
-#  - '!src/*'
-#  - '!electron.vite.config.{js,ts,mjs,cjs}'
-#  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-#  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-#  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!**/.vscode/*'
+  - '!.zed/*'
+  - '!src/*'
+  - '!tmp/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!resources/{bin,genesis}/**/*'
 buildDependenciesFromSource: true
 extraFiles:
   - from: 'resources/bin/${os}/${arch}'
@@ -24,7 +27,6 @@ extraFiles:
 #  - node_modules/better-sqlite3
 #  - node_modules/bcrypto
 #  - resources/**
-#afterSign: build/notarize.js
 win:
   executableName: waterfall
 nsis:
@@ -33,23 +35,19 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  identity: 'Moonion Inc. (5ZSVC9ZU6W)'
+  category: public.app-category.utilities
+  identity: 'FUENTE LABS LLC (BR22ZLPXU8)'
   target:
-    #    - target: default
-    #      arch:
-    #        - x64
-    #        - arm64
     - dmg
     - zip
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-#  notarize: false
-dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
+  notarize:
+    teamId: 'BR22ZLPXU8'
 linux:
   target:
     - AppImage
