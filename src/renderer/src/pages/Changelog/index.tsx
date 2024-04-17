@@ -12,10 +12,10 @@ const items = [
   {
     children: (
       <>
-        <Text size="sm">0.3.2 - 16.04.2024</Text>
-        <p>New: MacOS signing app</p>
-        <p>New: Adding a changelog page</p>
-        <p>Improve: reduce app size</p>
+        <Text size="sm">0.3.2 - 17.04.2024</Text>
+        <p>New: #44 MacOS signing app</p>
+        <p>New: #42 Adding a changelog page</p>
+        <p>Improve: #44 reduce app size</p>
         <p>Fix: Adding additional workers</p>
       </>
     )
@@ -24,7 +24,7 @@ const items = [
     children: (
       <>
         <Text size="sm">0.3.1 - 15.04.2024</Text>
-        <p>Improve: Adding an auto update feature</p>
+        <p>Improve: #10 Adding an auto update feature</p>
       </>
     )
   },
@@ -32,8 +32,8 @@ const items = [
     children: (
       <>
         <Text size="sm">0.3.0 - 15.04.2024</Text>
-        <p>New: Adding an auto update feature</p>
-        <p>New: Adding App version to Status Bar</p>
+        <p>New: #10 Adding an auto update feature</p>
+        <p>New: #10 Adding App version to Status Bar</p>
       </>
     )
   },
