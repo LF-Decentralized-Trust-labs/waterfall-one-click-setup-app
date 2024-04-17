@@ -17,6 +17,8 @@ const items = [
         <p>New: #42 Adding a changelog page</p>
         <p>Improve: #44 reduce app size</p>
         <p>Fix: Adding additional workers</p>
+        <p>Update: Validator binary e05e4</p>
+        <p>Update: Coordinator binary ee5d6</p>
       </>
     )
   },
