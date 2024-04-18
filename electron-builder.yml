@@ -29,6 +29,7 @@ extraFiles:
 #  - resources/**
 win:
   executableName: waterfall
+  certificateSubjectName: 'Fuente Labs LLC'
 nsis:
   artifactName: ${name}-setup-${version}-${arch}.${ext}
   shortcutName: ${productName}

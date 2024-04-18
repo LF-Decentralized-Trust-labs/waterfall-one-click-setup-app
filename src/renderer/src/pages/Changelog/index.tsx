@@ -14,6 +14,7 @@ const items = [
       <>
         <Text size="sm">0.3.3 - 18.04.2024</Text>
         <p>New: #49 Update logo and icons</p>
+        <p>New: #13 Windows signing app</p>
       </>
     )
   },
