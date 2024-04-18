@@ -12,6 +12,14 @@ const items = [
   {
     children: (
       <>
+        <Text size="sm">0.3.3 - 18.04.2024</Text>
+        <p>New: #49 Update logo and icons</p>
+      </>
+    )
+  },
+  {
+    children: (
+      <>
         <Text size="sm">0.3.2 - 17.04.2024</Text>
         <p>New: #44 MacOS signing app</p>
         <p>New: #42 Adding a changelog page</p>
