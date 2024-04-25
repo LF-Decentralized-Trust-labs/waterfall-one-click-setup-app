@@ -7,7 +7,11 @@ import {
   checkOrCreateFile,
   checkPort,
   checkSocket,
-  appendToFile
+  appendToFile,
+  deleteFolderRecursive,
+  deleteFile,
+  deleteFilesByCoordinatorPublicKeys,
+  deleteFilesByValidatorPublicKeys
 } from '../libs/fs'
 import AppEnv from '../libs/appEnv'
 import {
@@ -20,16 +24,21 @@ import {
   getValidatorPath,
   getValidatorPasswordPath,
   getCoordinatorWalletPasswordPath,
-  getCoordinatorKeyPath
+  getCoordinatorKeyPath,
+  getValidatorKeystorePath
 } from '../libs/env'
 
-import { Node } from '../models/node'
+import {
+  Node,
+  ValidatorStatus as NodeValidatorStatus,
+  CoordinatorStatus as NodeCoordinatorStatus
+} from '../models/node'
 import { EventEmitter } from 'node:events'
 import { ValidatorStatus, Worker as WorkerModelType, WorkerStatus } from '../models/worker'
 import { isValidatorInfo, isEraInfo } from '../helpers/worker'
 
 import Web3 from 'web3'
-import { Key } from '../worker'
+import { Key, PublicKey } from '../worker'
 import { isSyncInfo } from '../helpers/node'
 
 export { StatusResult }
@@ -38,6 +47,11 @@ export type StatusResults = {
   coordinatorBeacon: StatusResult
   coordinatorValidator: StatusResult
   validator: StatusResult
+}
+
+export type removeWorkersResponse = {
+  id: number | bigint
+  status: boolean
 }
 
 class LocalNode extends EventEmitter {
@@ -409,6 +423,10 @@ class LocalNode extends EventEmitter {
     if (!(await checkOrCreateDir(getValidatorPath(this.model.locationDir)))) {
       return false
     }
+    if (!(await checkOrCreateDir(getValidatorKeystorePath(this.model.locationDir)))) {
+      return false
+    }
+
     if (!(await checkOrCreateDir(getCoordinatorWalletPath(this.model.locationDir)))) {
       return false
     }
@@ -416,7 +434,24 @@ class LocalNode extends EventEmitter {
       return false
     }
 
-    this.model.locationDir
+    const checkPassword = await checkOrCreateFile(
+      getValidatorPasswordPath(this.model.locationDir),
+      ''
+    )
+    if (null === checkPassword) {
+      return false
+    }
+
+    const password = crypto.randomBytes(16).toString('hex')
+
+    const savedPassword = await checkOrCreateFile(
+      getCoordinatorWalletPasswordPath(this.model.locationDir),
+      password
+    )
+    if (!savedPassword) {
+      return false
+    }
+
     return true
   }
 
@@ -442,13 +477,6 @@ class LocalNode extends EventEmitter {
 
   private async _checkValidator(): Promise<boolean> {
     if (this.model === null) {
-      return false
-    }
-    const chekPassword = await checkOrCreateFile(
-      getValidatorPasswordPath(this.model.locationDir),
-      ''
-    )
-    if (null === chekPassword) {
       return false
     }
     // if (!(await checkFile(`${getValidatorPath(this.model.locationDir)}/gwat/nodekey`))) {
@@ -497,15 +525,7 @@ class LocalNode extends EventEmitter {
     if (this.model === null) {
       return false
     }
-    const password = crypto.randomBytes(16).toString('hex')
 
-    const savedPassword = await checkOrCreateFile(
-      getCoordinatorWalletPasswordPath(this.model.locationDir),
-      password
-    )
-    if (!savedPassword) {
-      return false
-    }
     return true
   }
 
@@ -555,6 +575,7 @@ class LocalNode extends EventEmitter {
         // `--networkid=${getChainId(this.model.network)}`,
         '--nat=any',
         '--syncmode=full',
+        '--nat=any',
         `--port=${this.model.validatorP2PPort}`,
         `--ipcpath=${this.appEnv.getValidatorSocket(this.model.id.toString())}`
       ],
@@ -589,35 +610,8 @@ class LocalNode extends EventEmitter {
     return true
   }
 
-  public async getCoordinatorValidatorPassword() {
-    if (this.model === null) {
-      return null
-    }
-    const password = crypto.randomBytes(16).toString('hex')
-    return await checkOrCreateFile(
-      getCoordinatorWalletPasswordPath(this.model.locationDir),
-      password
-    )
-  }
-
-  public async addWorkers(keys: Key[], lastIndex: number) {
-    if (this.model === null) {
-      return false
-    }
-    if (keys.length === 0) {
-      return false
-    }
-    const now = Date.now()
-    for (const key of keys) {
-      await checkOrCreateFile(
-        getCoordinatorKeyPath(
-          this.model.locationDir,
-          `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`
-        ),
-        JSON.stringify(key.coordinatorKey)
-      )
-    }
-    const importAccounts: number = await new Promise((resolve) => {
+  private async _importAccounts(): Promise<number> {
+    return await new Promise((resolve) => {
       if (!this.model) {
         return resolve(0)
       }
@@ -646,13 +640,46 @@ class LocalNode extends EventEmitter {
         }
       )
     })
+  }
 
-    if (importAccounts - lastIndex + 1 !== keys.length) {
-      log.error(
-        `Imported ${importAccounts} accounts but need ${keys.length} lastIndex: ${lastIndex}`
-      )
+  public async getCoordinatorValidatorPassword() {
+    if (this.model === null) {
+      return null
+    }
+    const password = crypto.randomBytes(16).toString('hex')
+    return await checkOrCreateFile(
+      getCoordinatorWalletPasswordPath(this.model.locationDir),
+      password
+    )
+  }
+
+  public async removeData() {
+    if (this.model === null) {
       return false
     }
+    return await deleteFolderRecursive(this.model.locationDir)
+  }
+
+  public async addWorkers(keys: Key[], lastIndex: number) {
+    if (this.model === null) {
+      return false
+    }
+    if (keys.length === 0) {
+      return false
+    }
+    const now = Date.now()
+    for (const key of keys) {
+      await checkOrCreateFile(
+        getCoordinatorKeyPath(
+          this.model.locationDir,
+          `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`
+        ),
+        JSON.stringify(key.coordinatorKey)
+      )
+    }
+    const importAccounts: number = await this._importAccounts()
+
+    log.debug(`Imported ${importAccounts} accounts keys: ${keys.length} lastIndex: ${lastIndex}`)
 
     for (const key of keys) {
       await this.runValidatorCommand(
@@ -677,6 +704,86 @@ class LocalNode extends EventEmitter {
     return true
   }
 
+  public async removeWorkers(keys: PublicKey[], isAll: boolean): Promise<removeWorkersResponse[]> {
+    const results = keys.map((key) => ({ id: key.id, status: false }))
+    if (this.model === null) {
+      log.warn('removeWorkers: model is null')
+      return results
+    }
+    if (
+      this.model.coordinatorStatus !== NodeCoordinatorStatus.stopped ||
+      this.model.validatorStatus !== NodeValidatorStatus.stopped
+    ) {
+      log.warn('removeWorkers: node is running')
+      return results
+    }
+    if (keys.length === 0) {
+      log.warn('removeWorkers: empty keys')
+      return results
+    }
+
+    if (isAll) {
+      log.debug('removeWorkers', 'isAll', isAll)
+      const statusCoordinator = await deleteFolderRecursive(
+        getCoordinatorWalletPath(this.model.locationDir)
+      )
+      log.debug('removeWorkers', 'statusCoordinator', statusCoordinator)
+      if (!statusCoordinator) {
+        return results
+      }
+
+      const importAccounts = await this._importAccounts()
+      log.debug('removeWorkers', '_importAccounts', importAccounts)
+
+      const statusValidator = await deleteFolderRecursive(
+        getValidatorKeystorePath(this.model.locationDir)
+      )
+      log.debug('removeWorkers', 'statusValidator', statusValidator)
+      if (!statusValidator) {
+        return results
+      }
+
+      const statusValidatorPassword = await deleteFile(
+        getValidatorPasswordPath(this.model.locationDir)
+      )
+      log.debug('removeWorkers', 'statusValidatorPassword', statusValidatorPassword)
+      if (!statusValidatorPassword) {
+        return results
+      }
+      await this._checkMain()
+      return results.map((result) => ({ id: result.id, status: true }))
+    }
+
+    const statusesCoordinator = await deleteFilesByCoordinatorPublicKeys(
+      getCoordinatorKeysPath(this.model.locationDir),
+      keys
+    )
+
+    const importAccounts = await this._importAccounts()
+    log.debug('removeWorkers', '_importAccounts', importAccounts)
+
+    log.debug('removeWorkers', 'statusesCoordinator', statusesCoordinator)
+    const deleteValidatorKeys = keys.filter((key) => {
+      const response = statusesCoordinator.find((r) => r.id === key.id)
+      return response?.status === true
+    })
+    log.debug('removeWorkers', 'deleteValidatorKeys', deleteValidatorKeys)
+    const statusesValidator = await deleteFilesByValidatorPublicKeys(
+      getValidatorKeystorePath(this.model.locationDir),
+      deleteValidatorKeys,
+      getValidatorPasswordPath(this.model.locationDir)
+    )
+    log.debug('removeWorkers', 'statusesValidator', statusesValidator)
+    return results.map((result) => {
+      const coordinatorStatus = statusesCoordinator.find((r) => r.id === result.id)
+      const validatorStatus = statusesValidator.find((r) => r.id === result.id)
+
+      return {
+        ...result,
+        status: (coordinatorStatus?.status && validatorStatus?.status) || false
+      }
+    })
+  }
   public async runCoordinatorCommand(command: string) {
     if (!this.model) {
       return {}

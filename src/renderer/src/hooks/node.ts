@@ -4,7 +4,7 @@ import { AddNodeFields, Type, Network, NewNode, Ports } from '@renderer/types/no
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getAll, getById, stop, start, restart, add, checkPorts } from '@renderer/api/node'
+import { getAll, getById, stop, start, restart, add, remove, checkPorts } from '@renderer/api/node'
 import { selectDirectory } from '@renderer/api/os'
 import {
   DEFAULT_WF_PATH,
@@ -188,4 +188,36 @@ export const useControl = (id?: string) => {
   }, [id])
 
   return { onStart, onStop, onRestart, status }
+}
+
+export const useRemove = (id?: string) => {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [status, setStatus] = useState<boolean>(false)
+  const [withData, onChangeWithData] = useState<boolean>(false)
+
+  const removeMutation = useMutation({
+    mutationFn: async ({ ids, withData }: { ids: number[]; withData: boolean }) => {
+      return await remove(ids, withData)
+    }
+  })
+
+  const onRemove = useCallback(
+    async (callback: () => void) => {
+      if (!id) {
+        return
+      }
+      setStatus(true)
+      await removeMutation.mutateAsync({ ids: [parseInt(id)], withData })
+      await queryClient.invalidateQueries({ queryKey: ['node:all'] })
+      await queryClient.invalidateQueries({ queryKey: ['node:one'] })
+      setTimeout(() => {
+        setStatus(false)
+        callback()
+        navigate(routes.nodes.list)
+      }, 1000)
+    },
+    [id, withData]
+  )
+  return { onRemove, status, withData, onChangeWithData }
 }

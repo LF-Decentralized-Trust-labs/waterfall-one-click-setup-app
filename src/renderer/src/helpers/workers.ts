@@ -6,8 +6,9 @@ import {
   ActionTxType,
   ActionTxTypeMap
 } from '@renderer/types/workers'
-import { Node } from '../types/node'
+import { Node, Status as NodeStatus } from '../types/node'
 import { ethers } from 'ethers'
+import { getNodeStatus } from './node'
 export const ImportWorkersStepKeys = {
   node: 'node',
   mnemonic: 'mnemonic',
@@ -160,7 +161,8 @@ export const getActions = (worker?: Worker): ActionTxTypeMap => {
     [ActionTxType.withdraw]: worker
       ? getStatus(worker) !== Status.pending_activation &&
         getStatus(worker) !== Status.pending_initialized
-      : false
+      : false,
+    [ActionTxType.remove]: worker?.node ? getNodeStatus(worker.node) === NodeStatus.stopped : false
   }
 }
 

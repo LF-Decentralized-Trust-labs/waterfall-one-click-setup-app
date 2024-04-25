@@ -1,11 +1,8 @@
 ## Summary
 
-
 ## Env:
 
-
 ## Version:
-
 
 ## Steps to reproduce:
 
@@ -15,15 +12,10 @@
 
 ## Actual result:
 
-
 ## Expected result:
-
 
 ## Relevant logs and/or screenshots
 
-
 ## Possible fixes
-
-
 
 /label ~bug

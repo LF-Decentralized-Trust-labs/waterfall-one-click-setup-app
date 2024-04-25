@@ -50,6 +50,7 @@ export function up(next: () => void): void {
 }
 export function down(next: () => void): void {
   db.exec(`
+    DROP TRIGGER IF EXISTS update_nodes_trigger;
     DROP TABLE nodes;
   `)
   next()
