@@ -32,3 +32,7 @@ export const getActionTx = async (
 ): Promise<ActionTx> => {
   return await window.worker.getActionTx(action, id, amount)
 }
+
+export const remove = async (ids: number[] | bigint[]) => {
+  return await window.worker.remove(ids)
+}

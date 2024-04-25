@@ -4,13 +4,10 @@
 2.
 3.
 
-
 </details>
 
 ## Problem/Opportunity:
 
-
 ## Solutions
-
 
 /label ~feature

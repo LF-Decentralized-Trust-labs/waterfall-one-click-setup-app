@@ -1,4 +1,15 @@
-import { access, mkdir, writeFile, readFile, appendFile, constants } from 'node:fs/promises'
+import {
+  access,
+  mkdir,
+  writeFile,
+  readFile,
+  readdir,
+  appendFile,
+  rm,
+  unlink,
+  constants
+} from 'node:fs/promises'
+import { join } from 'path'
 import * as net from 'node:net'
 import * as os from 'node:os'
 import log from 'electron-log/node'
@@ -106,4 +117,112 @@ export const checkSocket = async (ipcPath: string): Promise<boolean> => {
       resolve(false)
     })
   })
+}
+
+export const deleteFolderRecursive = async (path: string): Promise<boolean> => {
+  try {
+    await rm(path, { recursive: true, force: true })
+    return true
+  } catch (error) {
+    log.error('deleteFolderRecursive', error)
+    return false
+  }
+}
+
+export const deleteFile = async (filePath: string): Promise<boolean> => {
+  try {
+    await unlink(filePath)
+    return true
+  } catch (error) {
+    log.error('deleteFile', error)
+    return false
+  }
+}
+
+interface PublicKey {
+  id: number | bigint
+  coordinatorPublicKey: string
+  validatorAddress: string
+}
+type RemovePublicKeyResponse = {
+  id: number | bigint
+  status: boolean
+}
+
+export const deleteFilesByCoordinatorPublicKeys = async (
+  dirPath: string,
+  publicKeys: PublicKey[]
+): Promise<RemovePublicKeyResponse[]> => {
+  const results: RemovePublicKeyResponse[] = []
+  try {
+    const files = await readdir(dirPath)
+    for (const file of files) {
+      const filePath = join(dirPath, file)
+      try {
+        const fileContent = await readFile(filePath, 'utf-8')
+        const json = JSON.parse(fileContent)
+        const publicKeyObject = publicKeys.find((pk) => pk.coordinatorPublicKey === json.pubkey)
+
+        if (publicKeyObject) {
+          await unlink(filePath)
+          results.push({ id: publicKeyObject.id, status: true })
+        }
+      } catch (error) {
+        log.error('deleteFilesByCoordinatorPublicKeys', `Error processing file ${file}:`, error)
+      }
+    }
+    publicKeys.forEach((pk) => {
+      if (!results.some((r) => r.id === pk.id)) {
+        results.push({ id: pk.id, status: true })
+      }
+    })
+  } catch (error) {
+    log.error('deleteFilesByCoordinatorPublicKeys', 'Error reading directory:', error)
+  }
+  return results
+}
+
+export const deleteFilesByValidatorPublicKeys = async (
+  dirPath: string,
+  publicKeys: PublicKey[],
+  passwordFilePath: string
+): Promise<RemovePublicKeyResponse[]> => {
+  const results: RemovePublicKeyResponse[] = []
+  const filesToDeleteIndexes: number[] = []
+
+  try {
+    const files = await readdir(dirPath)
+    for (const [index, key] of publicKeys.entries()) {
+      const fileToDelete = files.find((file) => file.includes(key.validatorAddress))
+      if (fileToDelete) {
+        try {
+          await unlink(join(dirPath, fileToDelete))
+          results.push({ id: key.id, status: true })
+          filesToDeleteIndexes.push(index)
+        } catch (error) {
+          log.error(
+            'deleteFilesByValidatorPublicKeys',
+            `Error deleting file: ${fileToDelete}`,
+            error
+          )
+          results.push({ id: key.id, status: false })
+        }
+      } else {
+        results.push({ id: key.id, status: true })
+      }
+    }
+
+    if (filesToDeleteIndexes.length > 0) {
+      const passwords = await readFile(passwordFilePath, 'utf-8')
+      const passwordsArray = passwords.split('\n')
+
+      for (const index of filesToDeleteIndexes.sort((a, b) => b - a)) {
+        passwordsArray.splice(index, 1)
+      }
+      await writeFile(passwordFilePath, passwordsArray.join('\n'))
+    }
+  } catch (error) {
+    console.error('deleteFilesByValidatorPublicKeys', 'Error processing:', error)
+  }
+  return results
 }

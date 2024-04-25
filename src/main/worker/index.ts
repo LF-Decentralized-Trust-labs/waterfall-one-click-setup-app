@@ -1,6 +1,7 @@
 import { IpcMain, IpcMainInvokeEvent } from 'electron'
+import log from 'electron-log/node'
 import AppEnv from '../libs/appEnv'
-import NodeModel, { Type as NodeType } from '../models/node'
+import NodeModel, { CoordinatorStatus, Type as NodeType, ValidatorStatus } from '../models/node'
 import WorkerModel, {
   NewWorker as NewWorkerModelType,
   Worker as WorkerModelType
@@ -32,6 +33,12 @@ export interface Key {
   validatorKey: GetValidatorsKeysResponseType
   coordinatorPassword: string
   validatorPassword: string
+}
+
+export interface PublicKey {
+  id: number | bigint
+  coordinatorPublicKey: string
+  validatorAddress: string
 }
 
 export interface addParams {
@@ -70,6 +77,7 @@ class Worker {
   public async initialize(): Promise<boolean> {
     this.ipcMain.handle('worker:genMnemonic', () => this._genMnemonic())
     this.ipcMain.handle('worker:add', (_event: IpcMainInvokeEvent, data) => this._add(data))
+    this.ipcMain.handle('worker:delete', (_event: IpcMainInvokeEvent, ids) => this._delete(ids))
     this.ipcMain.handle('worker:getAll', () => this.workerModel.getAll({ withNode: true }))
     this.ipcMain.handle('worker:getById', (_event: IpcMainInvokeEvent, id) =>
       this.workerModel.getById(id, { withNode: true })
@@ -87,6 +95,7 @@ class Worker {
   public async destroy() {
     this.ipcMain.removeHandler('worker:genMnemonic')
     this.ipcMain.removeHandler('worker:add')
+    this.ipcMain.removeHandler('worker:delete')
     this.ipcMain.removeHandler('worker:getAll')
     this.ipcMain.removeHandler('worker:getById')
     this.ipcMain.removeHandler('worker:getAllByNodeId')
@@ -132,13 +141,12 @@ class Worker {
       return ErrorResults.PASSWORD_NOT_GENERATE
     }
 
-    const lastWorker = this.workerModel.getByNodeIdLast(nodeModel.id)
-
-    let index = lastWorker ? lastWorker.number + 1 : 0
-    const lastIndex = lastWorker ? lastWorker.number + data.amount + 1 : data.amount
+    log.debug('workersCount', nodeModel.workersCount)
+    const firstIndex = nodeModel.workersCount ? nodeModel.workersCount : 0
+    const lastIndex = nodeModel.workersCount ? nodeModel.workersCount + data.amount : data.amount
     const keys: Key[] = []
     const newWorkers: NewWorkerModelType[] = []
-    for (index; index < lastIndex; index++) {
+    for (let index = firstIndex; index < lastIndex; index++) {
       const validatorPassword = crypto.randomBytes(16).toString('hex')
       const key = {
         depositData: await Web3.utils.getDepositData(data.mnemonic, index, data.withdrawalAddress),
@@ -166,6 +174,70 @@ class Worker {
     await node.addWorkers(keys, lastIndex)
 
     return workers
+  }
+  private async _delete(ids: number[] | bigint[]): Promise<boolean[] | ErrorResults> {
+    log.debug('_delete', ids)
+    if (!ids || ids.length == 0) {
+      return ErrorResults.WORKER_NOT_FOUND
+    }
+    const results = ids.map(() => false)
+
+    const nodes = {}
+
+    for (const id of ids) {
+      const worker = this.workerModel.getById(id)
+      if (!worker) {
+        return ErrorResults.WORKER_NOT_FOUND
+      }
+      if (!nodes[worker.nodeId.toString()]) {
+        nodes[worker.nodeId.toString()] = []
+      }
+      nodes[worker.nodeId.toString()].push(worker)
+    }
+
+    for (const nodeId in nodes) {
+      const nodeWorker = nodes[nodeId]
+      const nodeModel = this.nodeModel.getById(parseInt(nodeId))
+      if (
+        !nodeModel ||
+        nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
+        nodeModel.validatorStatus !== ValidatorStatus.stopped
+      ) {
+        continue
+      }
+      const node =
+        nodeModel.type === NodeType.local
+          ? new LocalNode(nodeModel, this.appEnv)
+          : new LocalNode(nodeModel, this.appEnv)
+
+      const countByNode = this.workerModel.getCount({ nodeId: parseInt(nodeId) })
+
+      const keys = nodeWorker.map((worker) => ({
+        id: worker.id,
+        coordinatorPublicKey: worker.coordinatorPublicKey,
+        validatorAddress: worker.validatorAddress
+      }))
+
+      const isAll = countByNode === nodeWorker.length
+      log.debug('countByNode', isAll, countByNode, nodeWorker.length)
+      const statuses = await node.removeWorkers(keys, isAll)
+      log.debug('removeWorkers', statuses)
+      if (isAll) {
+        this.nodeModel.update(nodeModel.id, { memoHash: '', workersCount: 0 })
+      }
+
+      for (const workerStatus of statuses) {
+        if (!workerStatus.status) {
+          continue
+        }
+        const status = this.workerModel.remove(workerStatus.id)
+        if (status) {
+          const index = ids.findIndex((id) => id === workerStatus.id)
+          results[index] = true
+        }
+      }
+    }
+    return results
   }
   private async _getActionTx(
     action: ActionTxType,

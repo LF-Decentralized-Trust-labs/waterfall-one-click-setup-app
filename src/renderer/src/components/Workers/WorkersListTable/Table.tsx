@@ -18,11 +18,13 @@ export const WorkersListTable: React.FC<WorkersListTablePropsT> = ({
   const onActivate = (id?: string) => onAction(ActionTxType.activate, id)
   const onDeactivate = (id?: string) => onAction(ActionTxType.deActivate, id)
   const onWithdraw = (id?: string) => onAction(ActionTxType.withdraw, id)
+  const onRemove = (id?: string) => onAction(ActionTxType.remove, id)
 
   const getColumns = columns({
     activate: onActivate,
     deactivate: onDeactivate,
-    withdraw: onWithdraw
+    withdraw: onWithdraw,
+    remove: onRemove
   })
 
   return (

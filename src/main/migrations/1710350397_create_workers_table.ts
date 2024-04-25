@@ -46,6 +46,8 @@ export function up(next: () => void): void {
 }
 export function down(next: () => void): void {
   db.exec(`
+    DROP TRIGGER IF EXISTS update_workers_trigger;
+    DROP TRIGGER IF EXISTS update_workers_number_trigger;
     DROP TABLE workers;
   `)
   next()

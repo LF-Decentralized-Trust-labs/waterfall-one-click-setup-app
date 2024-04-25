@@ -14,7 +14,8 @@ import {
   getAll,
   getById,
   getAllByNodeId,
-  getActionTx
+  getActionTx,
+  remove
 } from '../api/worker'
 import { saveTextFile } from '../api/os'
 import { Node } from '../types/node'
@@ -208,4 +209,34 @@ export const useActionTx = (action: ActionTxType | null, id?: string, amount?: s
   )
 
   return { isLoading, data, error, onUpdate }
+}
+
+export const useRemove = (id?: string) => {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [status, setStatus] = useState<boolean>(false)
+
+  const removeMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      return await remove(ids)
+    }
+  })
+
+  const onRemove = useCallback(
+    async (callback: () => void) => {
+      if (!id) {
+        return
+      }
+      setStatus(true)
+      await removeMutation.mutateAsync([parseInt(id)])
+      queryClient.invalidateQueries({ queryKey: ['workers:all'] })
+      setTimeout(() => {
+        setStatus(false)
+        callback()
+        navigate(routes.workers.list)
+      }, 1000)
+    },
+    [id]
+  )
+  return { onRemove, status }
 }

@@ -82,6 +82,14 @@ export interface Options {
   withNode?: boolean
 }
 
+export interface WhereOptions {
+  nodeId?: number | bigint
+}
+
+interface CountResult {
+  count: number
+}
+
 class WorkerModel {
   private db: Database | null = null
 
@@ -190,6 +198,31 @@ class WorkerModel {
     }
 
     return workers
+  }
+  getCount(options?: WhereOptions): number | null {
+    if (!this.db) {
+      return null
+    }
+    let query = 'SELECT COUNT(*) AS count FROM workers'
+    const params: (number | bigint | string)[] = []
+    const conditions: string[] = []
+    if (options?.nodeId !== undefined) {
+      conditions.push('nodeId = ?')
+      params.push(options.nodeId)
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ')
+    }
+
+    try {
+      const stmt = this.db.prepare(query)
+      const row = stmt.get(...params) as CountResult
+      return row.count
+    } catch (error) {
+      log.error(error)
+      return null
+    }
   }
 
   remove(id: number | bigint): boolean {

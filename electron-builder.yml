@@ -62,7 +62,7 @@ npmRebuild: false
 publish:
   provider: generic
   url: https://docs.waterfall.network/files/app
-#  channel: dev
+  #  channel: dev
   channel: beta
 #  generateUpdateFilesForAllChannels: true
 #  publishAutoUpdates: true

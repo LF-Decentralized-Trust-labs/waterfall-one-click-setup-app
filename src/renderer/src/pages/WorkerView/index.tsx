@@ -3,7 +3,12 @@ import { PageBody } from '@renderer/components/Page/Body'
 import { PageHeader } from '@renderer/components/Page/Header'
 import { Flex, Layout, Popover } from 'antd'
 import { IconButton } from '@renderer/ui-kit/Button'
-import { CloseOutlined, CaretRightOutlined, WalletOutlined } from '@ant-design/icons'
+import {
+  CloseOutlined,
+  CaretRightOutlined,
+  WalletOutlined,
+  DeleteOutlined
+} from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
 import { Tabs } from '@renderer/ui-kit/Tabs'
 import { Alert } from '@renderer/ui-kit/Alert'
@@ -17,6 +22,8 @@ import { routes } from '@renderer/constants/navigation'
 import { getActions } from '../../helpers/workers'
 import { Worker, ActionTxType } from '../../types/workers'
 import { ActionModal } from '../../containers/Workers/ActionModal'
+import { Status as NodeStatus } from '../../types/node'
+import { getNodeStatus } from '../../helpers/node'
 
 const getTabs = (worker?: Worker) => [
   {
@@ -73,35 +80,55 @@ export const WorkerViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {actions[ActionTxType.activate] && (
-              <Popover content="Activate" placement="bottom">
+              <Popover content="Activate the Worker only if the node runs" placement="bottom">
                 <IconButton
                   icon={<CaretRightOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   onClick={() => onActionModalChange(ActionTxType.activate)}
                 />
               </Popover>
             )}
             {actions[ActionTxType.deActivate] && (
-              <Popover content="Deactivate" placement="bottom">
+              <Popover
+                content="Deactivate the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   icon={<CloseOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   onClick={() => onActionModalChange(ActionTxType.deActivate)}
                 />
               </Popover>
             )}
             {actions[ActionTxType.withdraw] && (
-              <Popover content="Withdraw" placement="bottom">
+              <Popover
+                content="Withdraw the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   icon={<WalletOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   onClick={() => onActionModalChange(ActionTxType.withdraw)}
                 />
               </Popover>
             )}
+
+            <Popover content="Delete the Worker only if the node stops" placement="bottom">
+              <IconButton
+                disabled={!actions[ActionTxType.remove]}
+                icon={<DeleteOutlined />}
+                shape="default"
+                size="middle"
+                danger
+                onClick={() => onActionModalChange(ActionTxType.remove)}
+              />
+            </Popover>
           </Flex>
         }
       />
