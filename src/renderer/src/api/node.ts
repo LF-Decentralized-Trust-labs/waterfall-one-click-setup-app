@@ -37,3 +37,7 @@ export const add = async (newNode: NewNode): Promise<Node> => {
 export const checkPorts = async (ports: number[]): Promise<boolean[]> => {
   return await window.node.checkPorts(ports)
 }
+
+export const remove = async (ids: number[] | bigint[], withData = false) => {
+  return await window.node.remove(ids, withData)
+}

@@ -80,7 +80,10 @@ export const WorkerViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {actions[ActionTxType.activate] && (
-              <Popover content="Activate the Worker only if the node runs" placement="bottom">
+              <Popover
+                content="Activate the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   icon={<CaretRightOutlined />}
                   shape="default"

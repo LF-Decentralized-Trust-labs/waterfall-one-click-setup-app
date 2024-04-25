@@ -9,5 +9,6 @@ export const node = {
   getAll: () => ipcRenderer.invoke('node:getAll'),
   getById: (id: number) => ipcRenderer.invoke('node:getById', id),
   add: (newNode: NewNode) => ipcRenderer.invoke('node:add', newNode),
+  remove: (ids: number[], withData = false) => ipcRenderer.invoke('node:delete', ids, withData),
   checkPorts: (ports: number[]) => ipcRenderer.invoke('node:checkPorts', ports)
 }

@@ -217,7 +217,7 @@ export const useRemove = (id?: string) => {
   const [status, setStatus] = useState<boolean>(false)
 
   const removeMutation = useMutation({
-    mutationFn: async (ids: number[]) => {
+    mutationFn: async ({ ids }: { ids: number[] }) => {
       return await remove(ids)
     }
   })
@@ -228,8 +228,9 @@ export const useRemove = (id?: string) => {
         return
       }
       setStatus(true)
-      await removeMutation.mutateAsync([parseInt(id)])
-      queryClient.invalidateQueries({ queryKey: ['workers:all'] })
+      await removeMutation.mutateAsync({ ids: [parseInt(id)] })
+      await queryClient.invalidateQueries({ queryKey: ['workers:all'] })
+      await queryClient.invalidateQueries({ queryKey: ['worker:one'] })
       setTimeout(() => {
         setStatus(false)
         callback()

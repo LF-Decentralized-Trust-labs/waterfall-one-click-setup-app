@@ -11,6 +11,7 @@ import NodeModel, {
   ValidatorStatus,
   CoordinatorValidatorStatus
 } from '../models/node'
+import WorkerModel from '../models/worker'
 import { checkPort } from '../libs/fs'
 
 enum ErrorResults {
@@ -22,6 +23,7 @@ class Node {
   private ipcMain: IpcMain
   private appEnv: AppEnv
   private nodeModel: NodeModel
+  private workerModel: WorkerModel
 
   private nodes: {
     [key: string]: LocalNode
@@ -32,7 +34,7 @@ class Node {
     this.appEnv = appEnv
     this.nodes = {}
     this.nodeModel = new NodeModel(getMain(this.appEnv.mainDB))
-    console.log(`Node constructor`)
+    this.workerModel = new WorkerModel(getMain(this.appEnv.mainDB))
   }
 
   public async initialize(): Promise<boolean> {
@@ -45,6 +47,9 @@ class Node {
     )
     this.ipcMain.handle('node:add', (_event: IpcMainInvokeEvent, options: NewNode) =>
       this._add(options)
+    )
+    this.ipcMain.handle('node:delete', (_event: IpcMainInvokeEvent, ids, withData) =>
+      this._delete(ids, withData)
     )
     this.ipcMain.handle('node:checkPorts', (_event: IpcMainInvokeEvent, ports) =>
       this._checkPorts(ports)
@@ -69,6 +74,7 @@ class Node {
     this.ipcMain.removeHandler('node:getAll')
     this.ipcMain.removeHandler('node:getById')
     this.ipcMain.removeHandler('node:add')
+    this.ipcMain.removeHandler('node:delete')
     this.ipcMain.removeHandler('node:checkPorts')
 
     for (const id of Object.keys(this.nodes)) {
@@ -155,6 +161,54 @@ class Node {
     }
     return false
   }
+
+  private async _delete(
+    ids: number[] | bigint[],
+    withData = false
+  ): Promise<boolean[] | ErrorResults> {
+    log.debug('_delete', ids, withData)
+    if (!ids || ids.length == 0) {
+      return ErrorResults.NODE_NOT_FOUND
+    }
+
+    const results = ids.map(() => false)
+
+    for (const id of ids) {
+      const nodeModel = this.nodeModel.getById(id)
+      if (!nodeModel) {
+        continue
+      }
+      if (
+        nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
+        nodeModel.validatorStatus !== ValidatorStatus.stopped ||
+        nodeModel.coordinatorValidatorStatus !== CoordinatorValidatorStatus.stopped
+      ) {
+        continue
+      }
+      const countWorkers = this.workerModel.getCount({ nodeId: id })
+      if (countWorkers && countWorkers > 0) {
+        continue
+      }
+
+      const node =
+        nodeModel.type === NodeType.local
+          ? new LocalNode(nodeModel, this.appEnv)
+          : new LocalNode(nodeModel, this.appEnv)
+
+      if (withData) {
+        if (!(await node.removeData())) {
+          continue
+        }
+      }
+
+      const status = this.nodeModel.remove(id)
+      const index = ids.findIndex((id) => id === nodeModel.id)
+      results[index] = status
+    }
+
+    return results
+  }
+
   private async _checkPorts(ports: number[]) {
     return await Promise.all(ports.map((port) => checkPort(port)))
   }

@@ -26,6 +26,9 @@ const getTitle = (type, id) => {
 
   return `Withdraw Worker #${id}`
 }
+
+const okButtonProps = {}
+const okRemoveButtonProps = { danger: true }
 export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) => {
   const [amount, setAmount] = useState('0')
 
@@ -55,8 +58,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
 
   let handleOk = handleClose
   if (type === ActionTxType.remove) {
-    handleOk = () => {
-      onRemove(handleClose)
+    handleOk = async () => {
+      await onRemove(handleClose)
     }
   }
 
@@ -65,6 +68,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
       title={getTitle(type, id)}
       open={!!type}
       confirmLoading={removeStatus}
+      okButtonProps={type === ActionTxType.remove ? okRemoveButtonProps : okButtonProps}
+      okText={type === ActionTxType.remove ? 'Delete' : 'OK'}
       onOk={handleOk}
       onCancel={handleClose}
       width={800}

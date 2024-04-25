@@ -653,6 +653,13 @@ class LocalNode extends EventEmitter {
     )
   }
 
+  public async removeData() {
+    if (this.model === null) {
+      return false
+    }
+    return await deleteFolderRecursive(this.model.locationDir)
+  }
+
   public async addWorkers(keys: Key[], lastIndex: number) {
     if (this.model === null) {
       return false

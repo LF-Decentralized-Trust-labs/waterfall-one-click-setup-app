@@ -93,7 +93,10 @@ export const columns = ({
         <Flex gap={30} align="center">
           <Flex gap={6}>
             {actions[ActionTxType.activate] && (
-              <Popover content="Activate" placement="bottom">
+              <Popover
+                content="Activate the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   icon={<CaretRightOutlined />}
@@ -104,7 +107,10 @@ export const columns = ({
               </Popover>
             )}
             {actions[ActionTxType.deActivate] && (
-              <Popover content="Deactivate" placement="bottom">
+              <Popover
+                content="Deactivate the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   icon={<CloseOutlined />}
@@ -115,7 +121,10 @@ export const columns = ({
               </Popover>
             )}
             {actions[ActionTxType.withdraw] && (
-              <Popover content="Withdraw" placement="bottom">
+              <Popover
+                content="Withdraw the Worker only if the node runs and syncs"
+                placement="bottom"
+              >
                 <IconButton
                   disabled={worker?.node && getNodeStatus(worker?.node) !== NodeStatus.running}
                   icon={<WalletOutlined />}
