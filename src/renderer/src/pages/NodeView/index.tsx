@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react'
 import { PageBody } from '@renderer/components/Page/Body'
 import { PageHeader } from '@renderer/components/Page/Header'
-import { Flex, Layout } from 'antd'
+import { Flex, Layout, Popover } from 'antd'
 import { IconButton } from '@renderer/ui-kit/Button'
-import { PauseOutlined, CaretRightOutlined, ReloadOutlined } from '@ant-design/icons'
+import {
+  PauseOutlined,
+  CaretRightOutlined,
+  ReloadOutlined,
+  DeleteOutlined
+} from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
 import { Tabs } from '@renderer/ui-kit/Tabs'
 import { Alert } from '@renderer/ui-kit/Alert'
@@ -17,6 +22,7 @@ import { Node, Status } from '@renderer/types/node'
 import { getNodeStatus } from '@renderer/helpers/node'
 import { getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
+import { RemoveModal } from '../../containers/Node/RemoveModal'
 
 const getTabs = (node?: Node) => [
   {
@@ -53,6 +59,7 @@ const getTabs = (node?: Node) => [
 
 export const NodeViewPage = () => {
   const nodeId = useParams()?.id
+  const [removeId, setRemoveId] = useState<string | undefined>(undefined)
   const { isLoading, data: node, error } = useGetById(nodeId, { refetchInterval: 1000 })
   const { onStop, onRestart, onStart, status } = useControl(nodeId)
 
@@ -77,37 +84,53 @@ export const NodeViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {node && getNodeStatus(node) !== Status.stopped && (
-              <IconButton
-                icon={<PauseOutlined />}
-                shape="default"
-                size="middle"
-                onClick={onStop}
-                loading={status ? status === 'stop' : false}
-              />
+              <Popover content="Stop" placement="bottom">
+                <IconButton
+                  icon={<PauseOutlined />}
+                  shape="default"
+                  size="middle"
+                  onClick={onStop}
+                  loading={status ? status === 'stop' : false}
+                />
+              </Popover>
             )}
             {node && getNodeStatus(node) === Status.stopped && (
+              <Popover content="Run" placement="bottom">
+                <IconButton
+                  icon={<CaretRightOutlined />}
+                  shape="default"
+                  size="middle"
+                  onClick={onStart}
+                  loading={status ? status === 'start' : false}
+                />
+              </Popover>
+            )}
+            <Popover content="Restart" placement="bottom">
               <IconButton
-                icon={<CaretRightOutlined />}
+                icon={<ReloadOutlined />}
                 shape="default"
                 size="middle"
-                onClick={onStart}
-                loading={status ? status === 'start' : false}
+                onClick={onRestart}
+                loading={status ? status === 'restart' : false}
               />
-            )}
-
-            <IconButton
-              icon={<ReloadOutlined />}
-              shape="default"
-              size="middle"
-              onClick={onRestart}
-              loading={status ? status === 'restart' : false}
-            />
+            </Popover>
+            <Popover content="Delete the Node only if the node stops" placement="bottom">
+              <IconButton
+                disabled={node && getNodeStatus(node) !== Status.stopped}
+                icon={<DeleteOutlined />}
+                shape="default"
+                size="middle"
+                danger
+                onClick={() => setRemoveId(nodeId)}
+              />
+            </Popover>
           </Flex>
         }
       />
       <PageBody isLoading={isLoading}>
         {error && <Alert message={error.message} type="error" />}
         <Tabs items={tabs} onChange={onTabChange} activeKey={activeKey} />
+        <RemoveModal id={removeId} onClose={() => setRemoveId(undefined)} />
       </PageBody>
     </Layout>
   )

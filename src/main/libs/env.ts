@@ -52,6 +52,10 @@ export const getCoordinatorWalletPasswordPath = (dataPath: string): string =>
 
 export const getValidatorPath = (dataPath: string): string =>
   path.resolve(path.join(dataPath, 'gwat'))
+
+export const getValidatorKeystorePath = (dataPath: string): string =>
+  path.resolve(path.join(getValidatorPath(dataPath), 'keystore'))
+
 export const getValidatorPasswordPath = (dataPath: string): string =>
   path.resolve(path.join(getValidatorPath(dataPath), 'password.txt'))
 export const getLogPath = (dataPath: string): string => path.resolve(path.join(dataPath, 'logs'))

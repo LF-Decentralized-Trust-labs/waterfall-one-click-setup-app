@@ -12,6 +12,18 @@ const items = [
   {
     children: (
       <>
+        <Text size="sm">0.3.1 beta - 25.04.2024</Text>
+        <p>New: #17 Remove workers and nodes</p>
+        <p>Fix: Adding workers</p>
+        <p>
+          Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
+        </p>
+      </>
+    )
+  },
+  {
+    children: (
+      <>
         <Text size="sm">0.3.0 beta - 22.04.2024</Text>
         <p>New: #13 Windows signing app</p>
         <p>New: #44 MacOS signing app</p>

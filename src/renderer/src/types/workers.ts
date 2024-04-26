@@ -184,7 +184,8 @@ export interface ActionTx {
 export enum ActionTxType {
   activate = 'activate',
   deActivate = 'deActivate',
-  withdraw = 'withdraw'
+  withdraw = 'withdraw',
+  remove = 'remove'
 }
 
 export type ActionTxTypeMap = {
