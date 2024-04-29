@@ -114,9 +114,16 @@ export const NodeViewPage = () => {
                 loading={status ? status === 'restart' : false}
               />
             </Popover>
-            <Popover content="Delete the Node only if the node stops" placement="bottom">
+            <Popover
+              content={
+                node && node.workersCount > 0
+                  ? 'To remove a node, delete all workers first'
+                  : 'Delete the Node only if the node stops'
+              }
+              placement="bottom"
+            >
               <IconButton
-                disabled={node && getNodeStatus(node) !== Status.stopped}
+                disabled={node && (getNodeStatus(node) !== Status.stopped || node.workersCount > 0)}
                 icon={<DeleteOutlined />}
                 shape="default"
                 size="middle"
