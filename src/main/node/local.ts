@@ -40,6 +40,7 @@ import { isValidatorInfo, isEraInfo } from '../helpers/worker'
 import Web3 from 'web3'
 import { Key, PublicKey } from '../worker'
 import { isSyncInfo } from '../helpers/node'
+import { getCurrentDateUTC } from '../helpers/common'
 
 export { StatusResult }
 
@@ -667,29 +668,29 @@ class LocalNode extends EventEmitter {
     if (keys.length === 0) {
       return false
     }
-    const now = Date.now()
     for (const key of keys) {
       await checkOrCreateFile(
         getCoordinatorKeyPath(
           this.model.locationDir,
-          `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${now}.json`
+          `keystore-${key.coordinatorKey.path.replaceAll('/', '_')}-${Date.now()}.json`
         ),
         JSON.stringify(key.coordinatorKey)
       )
-    }
-    const importAccounts: number = await this._importAccounts()
-
-    log.debug(`Imported ${importAccounts} accounts keys: ${keys.length} lastIndex: ${lastIndex}`)
-
-    for (const key of keys) {
-      await this.runValidatorCommand(
-        `personal.importRawKey('${key.validatorKey.privateKey.replace('0x', '')}','${key.validatorPassword}')`
+      await checkOrCreateFile(
+        getValidatorKeystorePath(
+          this.model.locationDir,
+          `UTC--${getCurrentDateUTC()}--${key.validatorKey.address}`
+        ),
+        JSON.stringify(key.validatorKey)
       )
       await appendToFile(
         getValidatorPasswordPath(this.model.locationDir),
         `${key.validatorPassword}\n`
       )
     }
+    const importAccounts: number = await this._importAccounts()
+
+    log.debug(`Imported ${importAccounts} accounts keys: ${keys.length} lastIndex: ${lastIndex}`)
 
     if (!this.coordinatorValidator) {
       this._setCoordinatorValidator()
