@@ -9,9 +9,9 @@ import WorkerModel, {
 import { getMain } from '../libs/db'
 import Web3 from 'web3'
 import {
-  GetValidatorsKeysResponseType,
   GetDepositDataResponse,
-  GetKeyStoreResponseType
+  GetCoordinatorKeyStoreResponseType,
+  GetValidatorKeyStoreResponseType
 } from 'web3/utils'
 import LocalNode from '../node/local'
 import crypto from 'crypto'
@@ -29,8 +29,8 @@ enum ErrorResults {
 
 export interface Key {
   depositData: GetDepositDataResponse
-  coordinatorKey: GetKeyStoreResponseType
-  validatorKey: GetValidatorsKeysResponseType
+  coordinatorKey: GetCoordinatorKeyStoreResponseType
+  validatorKey: GetValidatorKeyStoreResponseType
   coordinatorPassword: string
   validatorPassword: string
 }
@@ -150,8 +150,16 @@ class Worker {
       const validatorPassword = crypto.randomBytes(16).toString('hex')
       const key = {
         depositData: await Web3.utils.getDepositData(data.mnemonic, index, data.withdrawalAddress),
-        coordinatorKey: await Web3.utils.getKeyStore(data.mnemonic, index, coordinatorPassword),
-        validatorKey: Web3.utils.getValidatorKeys(data.mnemonic, index, ''),
+        coordinatorKey: await Web3.utils.getCoordinatorKeyStore(
+          data.mnemonic,
+          index,
+          coordinatorPassword
+        ),
+        validatorKey: await Web3.utils.getValidatorKeyStore(
+          data.mnemonic,
+          index,
+          validatorPassword
+        ),
         validatorPassword,
         coordinatorPassword
       }

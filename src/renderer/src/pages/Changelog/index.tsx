@@ -17,6 +17,7 @@ const items = [
         <p>New: #17 Remove workers and nodes</p>
         <p>New: #17 Remove workers and nodes: To remove a node, delete all workers</p>
         <p>Fix: Adding workers</p>
+        <p>Fix: #61 Adding workers when node is stopped</p>
         <p>
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
         </p>
