@@ -16,17 +16,25 @@ export const AddWorkerPage = () => {
   const navigate = useNavigate()
   const fromNode = searchParams.get(SearchKeys.node)
   const fromStep = searchParams.get(SearchKeys.step)
+  const fromMode = searchParams.get(SearchKeys.mode)
 
-  const { data: nodes } = useGetAll()
+  const mode = fromMode === 'import' ? 'import' : 'add'
+  const { data } = useGetAll()
+  const nodes = mode === 'import' ? data?.filter((node) => node.workersCount === 0) : data
   const { data: node } = useGetById(fromNode || undefined)
 
   useEffect(() => {
-    if (fromStep === null && nodes && nodes.length > 0) {
-      navigate(addParams(routes.workers.add, { [SearchKeys.node]: nodes[0].id.toString() }))
+    if (fromNode === null && fromStep === null && nodes && nodes.length > 0) {
+      navigate(
+        addParams(routes.workers.add, {
+          [SearchKeys.node]: nodes[0].id.toString(),
+          [SearchKeys.mode]: mode
+        })
+      )
     }
-  }, [fromStep, nodes])
+  }, [fromStep, nodes, fromNode, mode])
 
-  const { steps, stepsWithKeys } = getAddWorkerSteps(node)
+  const { steps, stepsWithKeys } = getAddWorkerSteps(node, mode)
   const [step, setStep] = useState<number>(Number(fromStep) || 0)
   const onStepsChange = (value: number) => setStep(value)
   const goNext = () => setStep((prev) => (prev + 1 < steps.length ? prev + 1 : prev))
@@ -35,7 +43,7 @@ export const AddWorkerPage = () => {
   return (
     <Layout>
       <PageHeader
-        title="Add Worker"
+        title={mode === 'add' ? 'Add Worker' : 'Import Worker'}
         actions={
           <Flex align="center" gap={4}>
             {step > 0 && <ArrowedButton direction="back" onClick={goPrev} />}
@@ -45,6 +53,7 @@ export const AddWorkerPage = () => {
       />
       <PageBody>
         <AddWorker
+          mode={mode}
           step={step}
           steps={steps}
           stepsWithKeys={stepsWithKeys}

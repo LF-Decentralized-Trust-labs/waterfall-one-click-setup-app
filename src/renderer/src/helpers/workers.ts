@@ -58,16 +58,16 @@ export const AddWorkerStepKeys = {
   saveMnemonic: 'saveMnemonic',
   verifyMnemonic: 'verifyMnemonic',
   getMnemonic: 'getMnemonic',
+  importMnemonic: 'importMnemonic',
   workersAmount: 'workersAmount',
   withdrawalAddress: 'withdrawalAddress',
   preview: 'preview'
 }
 
-export const getAddWorkerSteps = (node?: Node) => {
+export const getAddWorkerSteps = (node?: Node, mode: 'add' | 'import' = 'add') => {
   let stepsWithKeys = [{ title: 'Select a Node', key: AddWorkerStepKeys.node }]
-
   if (node) {
-    if (node.workersCount === 0) {
+    if (node.workersCount === 0 && mode === 'add') {
       stepsWithKeys = [
         ...stepsWithKeys,
         ...[
@@ -78,6 +78,16 @@ export const getAddWorkerSteps = (node?: Node) => {
           {
             title: 'Verify a mnemonic phrase',
             key: AddWorkerStepKeys.verifyMnemonic
+          }
+        ]
+      ]
+    } else if (node.workersCount === 0 && mode === 'import') {
+      stepsWithKeys = [
+        ...stepsWithKeys,
+        ...[
+          {
+            title: 'Provide a mnemonic phrase',
+            key: AddWorkerStepKeys.importMnemonic
           }
         ]
       ]
