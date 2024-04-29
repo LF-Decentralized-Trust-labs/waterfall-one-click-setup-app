@@ -15,6 +15,7 @@ const items = [
         <Text size="sm">0.3.1 beta - 29.04.2024</Text>
         <p>New: #12 Import workers</p>
         <p>New: #17 Remove workers and nodes</p>
+        <p>New: #17 Remove workers and nodes: To remove a node, delete all workers</p>
         <p>Fix: Adding workers</p>
         <p>
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
