@@ -15,6 +15,7 @@ import { Node } from '@renderer/types/node'
 import { verifyMnemonic } from '../../helpers/workers'
 
 type AddWorkerPropsT = {
+  mode: 'add' | 'import'
   steps: Partial<StepProps>[]
   stepsWithKeys: Partial<StepProps & { key: string }>[]
   step: number
@@ -27,6 +28,7 @@ type AddWorkerPropsT = {
 }
 
 export const AddWorker: React.FC<AddWorkerPropsT> = ({
+  mode,
   steps,
   stepsWithKeys,
   step,
@@ -37,7 +39,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   node
 }) => {
   const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } =
-    useAddWorker(node)
+    useAddWorker(node, mode)
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
@@ -71,6 +73,15 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         goNext={goNextStep}
         goPrev={goPrevStep}
         memoHash={node?.memoHash}
+        isValidationMemoHash={true}
+        value={values[AddWorkerFields.mnemonicVerify]}
+        onChange={handleChange(AddWorkerFields.mnemonicVerify)}
+      />
+    ),
+    [AddWorkerStepKeys.importMnemonic]: (
+      <GetMnemonicPhrase
+        goNext={goNextStep}
+        goPrev={goPrevStep}
         value={values[AddWorkerFields.mnemonicVerify]}
         onChange={handleChange(AddWorkerFields.mnemonicVerify)}
       />
@@ -95,6 +106,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
       <Preview
         values={values}
         node={node}
+        mode={mode}
         goNext={onAdd}
         goPrev={goPrevStep}
         isLoading={isLoading}
@@ -201,14 +213,17 @@ const VerifyMnemonicPhrase: React.FC<
 const GetMnemonicPhrase: React.FC<
   BasePropsT & {
     memoHash?: string
+    isValidationMemoHash?: boolean
     value: Record<number, string>
     onChange: (value: Record<number, string>) => void
   }
-> = ({ goNext, goPrev, memoHash, value, onChange }) => {
+> = ({ goNext, goPrev, memoHash, isValidationMemoHash = false, value, onChange }) => {
   let isValid = Object.values(value).filter((el) => el).length === 24
-  isValid = isValid && !!memoHash
-  if (isValid && memoHash) {
-    isValid = verifyMnemonic(Object.values(value).join(' '), memoHash)
+  if (isValidationMemoHash) {
+    isValid = isValid && !!memoHash
+    if (isValid && memoHash) {
+      isValid = verifyMnemonic(Object.values(value).join(' '), memoHash)
+    }
   }
 
   return (
@@ -260,13 +275,9 @@ const WithdrawalAddress: React.FC<
   )
 }
 
-const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node }> = ({
-  goNext,
-  goPrev,
-  values,
-  node,
-  isLoading
-}) => {
+const Preview: React.FC<
+  BasePropsT & { values: AddWorkerFormValuesT; node?: Node; mode: 'add' | 'import' }
+> = ({ goNext, goPrev, values, node, mode, isLoading }) => {
   let canGoNext =
     !!node &&
     !!values[AddWorkerFields.mnemonicVerify] &&
@@ -279,7 +290,7 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
         Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
         node.memoHash
       )
-    } else {
+    } else if (mode === 'add') {
       canGoNext =
         values[AddWorkerFields.mnemonic].join('') ===
         Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
@@ -291,7 +302,7 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={canGoNext}
-      nextText="Add"
+      nextText={mode === 'import' ? 'Import' : 'Add'}
       isLoading={isLoading}
     >
       <AddWorkerPreview data={values} node={node} />

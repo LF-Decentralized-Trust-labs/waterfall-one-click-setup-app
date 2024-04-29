@@ -32,7 +32,7 @@ const addInitialValues = {
   [AddWorkerFields.withdrawalAddress]: ''
 }
 
-export const useAddWorker = (node?: Node) => {
+export const useAddWorker = (node?: Node, mode: 'add' | 'import' = 'add') => {
   const [isLoading, setLoading] = useState(false)
   const navigate = useNavigate()
   const [values, setValues] = useState<AddWorkerFormValuesT>({
@@ -55,7 +55,7 @@ export const useAddWorker = (node?: Node) => {
       mnemonicVerify[20] = ''
       setValues((prev) => ({ ...prev, mnemonic, mnemonicVerify }))
     }
-    if (node && node.workersCount === 0) {
+    if (node && node.workersCount === 0 && mode !== 'import') {
       _genMnemonic()
     } else {
       setValues((prev) => ({
@@ -79,21 +79,19 @@ export const useAddWorker = (node?: Node) => {
       return
     }
     setLoading(true)
+    console.log('addWorkers', {
+      nodeId: node.id,
+      mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
+      amount: values[AddWorkerFields.amount],
+      withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
+    })
     const workers = await addWorkers({
       nodeId: node.id,
       mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
       amount: values[AddWorkerFields.amount],
       withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
     })
-    console.log(
-      {
-        nodeId: node.id,
-        mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
-        amount: values[AddWorkerFields.amount],
-        withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
-      },
-      workers
-    )
+    console.log('addWorkers', workers)
     setLoading(false)
     if (workers?.length > 0) {
       return navigate(routes.workers.list)
