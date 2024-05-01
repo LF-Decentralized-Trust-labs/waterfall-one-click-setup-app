@@ -49,8 +49,8 @@ class Child extends EventEmitter {
 
     this.child = spawn(this.binPath, this.args)
 
-    this.child.stdout.pipe(logStream, { end: false })
-    this.child.stderr.pipe(logStream, { end: false })
+    this.child.stdout.pipe(logStream)
+    this.child.stderr.pipe(logStream)
 
     this.child.on('spawn', () => {
       this.emit('start', this.child ? this.child.pid : null)
