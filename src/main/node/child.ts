@@ -55,8 +55,10 @@ class Child extends EventEmitter {
     this.child.on('spawn', () => {
       this.emit('start', this.child ? this.child.pid : null)
     })
-    this.child.on('close', (code: number) => {
-      logStream.write(`Exit wit code ${code}\n`)
+    this.child.on('end', () => {
+      logStream.end(() => {})
+    })
+    this.child.on('close', () => {
       this.child = null
       this.emit('stop')
     })
