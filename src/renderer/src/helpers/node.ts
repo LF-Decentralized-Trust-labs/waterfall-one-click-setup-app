@@ -9,7 +9,7 @@ import {
 export const getNodeStatus = (node: Node) => {
   if (node.downloadStatus !== DownloadStatus.finish) {
     return node.downloadStatus === DownloadStatus.downloading
-      ? `${node.downloadStatus} ${Math.round((node.downloadBytes / node.downloadSize) * 100)}%`
+      ? `${node.downloadStatus} ${Math.floor((node.downloadBytes / node.downloadSize) * 100)}%`
       : node.downloadStatus
   } else if (
     node.coordinatorStatus === CoordinatorStatus.stopped &&

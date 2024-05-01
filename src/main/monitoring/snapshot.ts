@@ -99,8 +99,18 @@ class SnapshotMonitoring {
             delete this.nodes[nodeModel.id.toString()]
             port!.postMessage({ type: 'finish', id: nodeModel.id })
           })
+          let percent = 0
           this.nodes[nodeModel.id.toString()].on('progressDownload', (bytes) => {
-            log.debug('progressDownload', nodeModel.id, bytes)
+            const newPercent = Math.floor((bytes / nodeModel.downloadSize) * 100)
+            if (percent !== newPercent) {
+              percent = newPercent
+              log.debug(
+                'progressDownload',
+                nodeModel.id,
+                percent,
+                `${bytes}/${nodeModel.downloadSize}`
+              )
+            }
             this.nodeModel.update(nodeModel.id, {
               downloadBytes: bytes
             })
