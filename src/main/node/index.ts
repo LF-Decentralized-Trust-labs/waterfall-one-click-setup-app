@@ -9,7 +9,8 @@ import NodeModel, {
   Type as NodeType,
   CoordinatorStatus,
   ValidatorStatus,
-  CoordinatorValidatorStatus
+  CoordinatorValidatorStatus,
+  DownloadStatus
 } from '../models/node'
 import WorkerModel from '../models/worker'
 import { checkPort } from '../libs/fs'
@@ -38,7 +39,7 @@ class Node {
   }
 
   public async initialize(): Promise<boolean> {
-    this.ipcMain.handle('node:start', (_event: IpcMainInvokeEvent, id) => this._start(id))
+    this.ipcMain.handle('node:start', (_event: IpcMainInvokeEvent, id) => this.start(id))
     this.ipcMain.handle('node:stop', (_event: IpcMainInvokeEvent, id) => this._stop(id))
     this.ipcMain.handle('node:restart', (_event: IpcMainInvokeEvent, id) => this._restart(id))
     this.ipcMain.handle('node:getAll', () => this.nodeModel.getAll())
@@ -82,19 +83,36 @@ class Node {
     }
   }
 
-  private async _start(id: number): Promise<StatusResults | ErrorResults> {
-    console.log('_start', id, this.nodes)
-    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+  public async start(id: number): Promise<StatusResults | ErrorResults> {
+    if (!this.nodes[id.toString()]) {
+      const nodeModel = this.nodeModel.getById(id)
+      if (!nodeModel || nodeModel.downloadStatus !== DownloadStatus.finish) {
+        return ErrorResults.NODE_NOT_FOUND
+      }
+      await this._addNode(nodeModel)
+    }
     return this.nodes[id.toString()].start()
   }
 
   private async _stop(id: number): Promise<StatusResults | ErrorResults> {
-    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+    if (!this.nodes[id.toString()]) {
+      const nodeModel = this.nodeModel.getById(id)
+      if (!nodeModel || nodeModel.downloadStatus !== DownloadStatus.finish) {
+        return ErrorResults.NODE_NOT_FOUND
+      }
+      await this._addNode(nodeModel)
+    }
     return this.nodes[id.toString()].stop()
   }
 
   private async _restart(id: number): Promise<StatusResults | ErrorResults> {
-    if (!this.nodes[id.toString()]) return ErrorResults.NODE_NOT_FOUND
+    if (!this.nodes[id.toString()]) {
+      const nodeModel = this.nodeModel.getById(id)
+      if (!nodeModel || nodeModel.downloadStatus !== DownloadStatus.finish) {
+        return ErrorResults.NODE_NOT_FOUND
+      }
+      await this._addNode(nodeModel)
+    }
     return this.nodes[id.toString()].restart()
   }
 
@@ -112,6 +130,7 @@ class Node {
 
   private async _addNode(nodeModel: NodeModelType) {
     if (nodeModel === null) return false
+    if (nodeModel.downloadStatus !== DownloadStatus.finish) return true
     if (!this.nodes[nodeModel.id.toString()]) {
       this.nodes[nodeModel.id.toString()] =
         nodeModel.type === NodeType.local

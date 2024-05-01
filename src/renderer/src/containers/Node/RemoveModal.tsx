@@ -40,7 +40,7 @@ export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose }) => {
       width={800}
     >
       <div>
-        <Alert message="Are you sure you want to remove this worker?" type="error" />
+        <Alert message="Are you sure you want to remove this Node?" type="error" />
 
         <Title>
           <Checkbox onChange={onChange} checked={withData}>

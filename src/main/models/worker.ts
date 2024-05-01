@@ -116,8 +116,7 @@ class WorkerModel {
 
         updateNode.run({ id: node.id, memoHash: node.memoHash })
       })
-      const res = query(workers)
-      console.log(res)
+      query(workers)
       const allWorkers = this.getByNodeId(node.id)
       return allWorkers.map((worker) => ({
         ...worker,

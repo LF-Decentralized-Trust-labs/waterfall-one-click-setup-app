@@ -20,6 +20,7 @@ import Worker from './worker'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
+import createSnapshotWorker from './monitoring/snapshot?nodeWorker'
 import FsHandle from './libs/FsHandle'
 
 log.transports.file.level = 'debug'
@@ -39,6 +40,14 @@ const node = new Node(ipcMain, appEnv)
 const worker = new Worker(ipcMain, appEnv)
 const fsHandle = new FsHandle(ipcMain)
 const statusWorker = createStatusWorker({
+  workerData: {
+    isPackaged: appEnv.isPackaged,
+    appPath: appEnv.appPath,
+    userData: appEnv.userData,
+    version: appEnv.version
+  }
+})
+const snapshotWorker = createSnapshotWorker({
   workerData: {
     isPackaged: appEnv.isPackaged,
     appPath: appEnv.appPath,
@@ -70,7 +79,7 @@ function createUpdateWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    console.log('ELECTRON_RENDERER_URL', process.env['ELECTRON_RENDERER_URL'])
+    log.debug('ELECTRON_RENDERER_URL', process.env['ELECTRON_RENDERER_URL'])
     updateWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/update.html`).then(() => {})
   } else {
     updateWindow.loadFile(join(__dirname, '../renderer/update.html')).then(() => {})
@@ -160,7 +169,7 @@ app.whenReady().then(async () => {
     await runMigrations()
     log.debug('runMigrations Done')
   } catch (e) {
-    console.log('runMigrations', e)
+    log.error('runMigrations', e)
     return await quit()
   }
 
@@ -168,7 +177,7 @@ app.whenReady().then(async () => {
     await node.initialize()
     log.debug('node.initialize Done')
   } catch (e) {
-    console.log('node.initialize', e)
+    log.error('node.initialize', e)
     return await quit()
   }
 
@@ -176,7 +185,7 @@ app.whenReady().then(async () => {
     await worker.initialize()
     log.debug('worker.initialize Done')
   } catch (e) {
-    console.log('worker.initialize', e)
+    log.error('worker.initialize', e)
     return await quit()
   }
 
@@ -184,7 +193,7 @@ app.whenReady().then(async () => {
     fsHandle.initialize()
     log.debug('sHandle.initialize Done')
   } catch (e) {
-    console.log('fsHandle.initialize', e)
+    log.error('fsHandle.initialize', e)
     return await quit()
   }
 
@@ -192,6 +201,16 @@ app.whenReady().then(async () => {
     type: 'start'
   })
   log.debug('statusWorker.postMessage start')
+
+  snapshotWorker.postMessage({
+    type: 'start'
+  })
+  snapshotWorker.on('message', (message) => {
+    if (message.type === 'finish') {
+      node.start(message.id)
+    }
+  })
+  log.debug('snapshotWorker.postMessage start')
 
   preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
 
@@ -208,7 +227,7 @@ app.whenReady().then(async () => {
           return
         }
         mainWindow.show()
-        console.log('Show')
+        log.debug('Show')
       }
     },
     {
@@ -234,14 +253,6 @@ app.whenReady().then(async () => {
     version: appEnv.version
   }))
 
-  // setTimeout(async () => {
-  //   console.log('start add')
-  //   if (!node) {
-  //     return
-  //   }
-  //   const res = await node.tmp()
-  //   console.log('end add', res)
-  // }, 5000)
   createWindow()
 
   app.on('activate', function () {
@@ -278,6 +289,11 @@ const quit = async () => {
   })
   await statusWorker.terminate()
 
+  snapshotWorker.postMessage({
+    type: 'stop'
+  })
+  await snapshotWorker.terminate()
+
   await worker.destroy()
 
   await node.destroy()
@@ -293,5 +309,5 @@ const quit = async () => {
   }
   globalShortcut.unregisterAll()
   app.quit()
-  console.log('Quit')
+  log.debug('Quit')
 }

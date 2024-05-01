@@ -79,19 +79,12 @@ export const useAddWorker = (node?: Node, mode: 'add' | 'import' = 'add') => {
       return
     }
     setLoading(true)
-    console.log('addWorkers', {
-      nodeId: node.id,
-      mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
-      amount: values[AddWorkerFields.amount],
-      withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
-    })
     const workers = await addWorkers({
       nodeId: node.id,
       mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
       amount: values[AddWorkerFields.amount],
       withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
     })
-    console.log('addWorkers', workers)
     setLoading(false)
     if (workers?.length > 0) {
       return navigate(routes.workers.list)

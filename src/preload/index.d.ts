@@ -18,6 +18,7 @@ declare global {
       saveTextFile: (text: string, title?: string, fileName?: string) => Promise<boolean>
       openExternal: (url: string) => void
       path: path
+      fetchJSON: (url: string) => Promise<object>
     }
     app: {
       quit: () => void

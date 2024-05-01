@@ -37,6 +37,7 @@ export const getChainId = (network: Network): string =>
 export const getValidatorAddress = (network: Network): string =>
   ENV[`VITE_VALIDATOR_ADDRESS_${network.toUpperCase()}`]
 
+export const getLocationPath = (dataPath: string): string => path.resolve(dataPath)
 export const getCoordinatorPath = (dataPath: string): string =>
   path.resolve(path.join(dataPath, 'coordinator'))
 export const getCoordinatorWalletPath = (dataPath: string): string =>
@@ -59,6 +60,9 @@ export const getValidatorKeystorePath = (dataPath: string, name?: string): strin
 export const getValidatorPasswordPath = (dataPath: string): string =>
   path.resolve(path.join(getValidatorPath(dataPath), 'password.txt'))
 export const getLogPath = (dataPath: string): string => path.resolve(path.join(dataPath, 'logs'))
+
+export const getSnapshotPath = (dataPath: string): string =>
+  path.resolve(path.join(dataPath, 'snapshot.tar'))
 
 export const COORDINATOR_HTTP_API_PORT = ENV.VITE_COORDINATOR_HTTP_API_PORT
 export const COORDINATOR_HTTP_VALIDATOR_API_PORT = ENV.VITE_COORDINATOR_HTTP_VALIDATOR_API_PORT

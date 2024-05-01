@@ -1,5 +1,8 @@
 import { Node, NewNode } from '@renderer/types/node'
 
+import { LAST_SNAPSHOT_URL } from '@renderer/constants/env'
+import { Snapshot } from '../types/node'
+
 export enum StatusResult {
   success = 'success',
   fail = 'fail'
@@ -40,4 +43,21 @@ export const checkPorts = async (ports: number[]): Promise<boolean[]> => {
 
 export const remove = async (ids: number[] | bigint[], withData = false) => {
   return await window.node.remove(ids, withData)
+}
+
+export const getLastSnapshot = async (): Promise<Snapshot | null> => {
+  const data = await window.os.fetchJSON(LAST_SNAPSHOT_URL)
+  if (
+    data &&
+    typeof data === 'object' &&
+    'url' in data &&
+    data.url &&
+    'hash' in data &&
+    data.hash &&
+    'size' in data &&
+    data.size
+  ) {
+    return data as Snapshot
+  }
+  return null
 }

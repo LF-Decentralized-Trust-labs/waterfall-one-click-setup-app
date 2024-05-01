@@ -101,7 +101,6 @@ class StatusMonitoring {
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {
-              console.log('err')
               log.error(error)
             }
           }

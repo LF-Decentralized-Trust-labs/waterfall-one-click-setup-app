@@ -12,10 +12,13 @@ const items = [
   {
     children: (
       <>
-        <Text size="sm">0.3.1 beta - 29.04.2024</Text>
+        <Text size="sm">0.3.1 beta - 01.05.2024</Text>
+        <p>New: #11 Download last snapshot</p>
         <p>New: #12 Import workers</p>
         <p>New: #17 Remove workers and nodes</p>
         <p>New: #17 Remove workers and nodes: To remove a node, delete all workers</p>
+        <p>New: #17 Remove workers and nodes: Remove after checkbox confirmation does not work</p>
+        <p>New: #17 Remove workers and nodes: Change text. Incorrect text when removing a node</p>
         <p>Fix: Adding workers</p>
         <p>Fix: #61 Adding workers when node is stopped</p>
         <p>

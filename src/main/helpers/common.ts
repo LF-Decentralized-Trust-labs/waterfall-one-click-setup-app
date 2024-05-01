@@ -20,3 +20,5 @@ export function getCurrentDateUTC() {
   const nanosecondsZeros = '000000'
   return `${year}-${month}-${day}T${hours}-${minutes}-${seconds}.${milliseconds}${nanosecondsZeros}Z`
 }
+
+export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

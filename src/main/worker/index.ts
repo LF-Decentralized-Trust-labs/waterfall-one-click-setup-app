@@ -71,7 +71,6 @@ class Worker {
     this.appEnv = appEnv
     this.nodeModel = new NodeModel(getMain(this.appEnv.mainDB))
     this.workerModel = new WorkerModel(getMain(this.appEnv.mainDB))
-    console.log(`Worker constructor`)
   }
 
   public async initialize(): Promise<boolean> {
