@@ -15,6 +15,7 @@ import {
 } from '../libs/fs'
 import AppEnv from '../libs/appEnv'
 import {
+  getLocationPath,
   getCoordinatorNetwork,
   getCoordinatorPath,
   getCoordinatorWalletPath,
@@ -25,13 +26,15 @@ import {
   getValidatorPasswordPath,
   getCoordinatorWalletPasswordPath,
   getCoordinatorKeyPath,
-  getValidatorKeystorePath
+  getValidatorKeystorePath,
+  getSnapshotPath
 } from '../libs/env'
 
 import {
   Node,
   ValidatorStatus as NodeValidatorStatus,
-  CoordinatorStatus as NodeCoordinatorStatus
+  CoordinatorStatus as NodeCoordinatorStatus,
+  DownloadStatus
 } from '../models/node'
 import { EventEmitter } from 'node:events'
 import { ValidatorStatus, Worker as WorkerModelType, WorkerStatus } from '../models/worker'
@@ -41,6 +44,8 @@ import Web3 from 'web3'
 import { Key, PublicKey } from '../worker'
 import { isSyncInfo } from '../helpers/node'
 import { getCurrentDateUTC } from '../helpers/common'
+
+import DownloadFile from '../libs/downloadFile'
 
 export { StatusResult }
 
@@ -61,6 +66,7 @@ class LocalNode extends EventEmitter {
   private coordinatorBeacon: Child | null
   private coordinatorValidator: Child | null
   private validator: Child | null
+  private download: DownloadFile | null = null
 
   constructor(model: Node | undefined, appEnv: AppEnv) {
     super()
@@ -104,12 +110,10 @@ class LocalNode extends EventEmitter {
     this._setValidator()
     this._setCoordinatorValidator()
 
-    console.log(`Node load`)
     return results
   }
 
   public async start(): Promise<StatusResults> {
-    console.log('start')
     const results: StatusResults = {
       coordinatorBeacon: StatusResult.success,
       validator: StatusResult.success,
@@ -118,24 +122,23 @@ class LocalNode extends EventEmitter {
 
     if (this.validator && !this.validator.isRunning()) {
       results.validator = await this.validator.start()
-      console.log(`start gwat: ${results.validator}`)
+      log.debug(`start gwat: ${results.validator}`)
     }
 
     if (this.coordinatorBeacon && !this.coordinatorBeacon.isRunning()) {
       results.coordinatorBeacon = await this.coordinatorBeacon.start()
-      console.log(`start coord: ${results.coordinatorBeacon}`)
+      log.debug(`start coord: ${results.coordinatorBeacon}`)
     }
 
     if (this.coordinatorValidator && !this.coordinatorValidator.isRunning()) {
       results.coordinatorValidator = await this.coordinatorValidator.start()
-      console.log(`start valid: ${results.coordinatorValidator}`)
+      log.debug(`start valid: ${results.coordinatorValidator}`)
     }
 
     return results
   }
 
   public async stop(): Promise<StatusResults> {
-    console.log('stop')
     const results: StatusResults = {
       coordinatorBeacon: StatusResult.success,
       validator: StatusResult.success,
@@ -144,25 +147,23 @@ class LocalNode extends EventEmitter {
 
     if (this.coordinatorBeacon && this.coordinatorBeacon.isRunning()) {
       results.coordinatorBeacon = await this.coordinatorBeacon.stop()
-      console.log(`stop coord: ${results.coordinatorBeacon}`)
+      log.debug(`stop coord: ${results.coordinatorBeacon}`)
     }
 
     if (this.coordinatorValidator && this.coordinatorValidator.isRunning()) {
       results.coordinatorValidator = await this.coordinatorValidator.stop()
-      console.log(`stop valid: ${results.coordinatorValidator}`)
+      log.debug(`stop valid: ${results.coordinatorValidator}`)
     }
 
     if (this.validator && this.validator.isRunning()) {
       results.validator = await this.validator.stop()
-      console.log(`stop gwat: ${results.validator}`)
+      log.debug(`stop gwat: ${results.validator}`)
     }
 
     return results
   }
 
   public async restart(): Promise<StatusResults> {
-    console.log('restart')
-
     const results: StatusResults = {
       coordinatorBeacon: StatusResult.success,
       validator: StatusResult.success,
@@ -171,29 +172,29 @@ class LocalNode extends EventEmitter {
 
     if (this.coordinatorBeacon && this.coordinatorBeacon.isRunning()) {
       await this.coordinatorBeacon.stop()
-      console.log(`stop coord`)
+      log.debug(`stop coord`)
     }
 
     if (this.coordinatorValidator && this.coordinatorValidator.isRunning()) {
       await this.coordinatorValidator.stop()
-      console.log(`stop valid`)
+      log.debug(`stop valid`)
     }
 
     if (this.validator && this.validator.isRunning()) {
       await this.validator.stop()
-      console.log(`stop gwat`)
+      log.debug(`stop gwat`)
     }
     if (this.validator) {
       results.validator = await this.validator.start()
-      console.log(`start gwat: ${results.validator}`)
+      log.debug(`start gwat: ${results.validator}`)
     }
     if (this.coordinatorBeacon) {
       results.coordinatorBeacon = await this.coordinatorBeacon.start()
-      console.log(`start coord: ${results.coordinatorBeacon}`)
+      log.debug(`start coord: ${results.coordinatorBeacon}`)
     }
     if (this.coordinatorValidator) {
       results.coordinatorValidator = await this.coordinatorValidator.start()
-      console.log(`start valid: ${results.coordinatorValidator}`)
+      log.debug(`start valid: ${results.coordinatorValidator}`)
     }
     return results
   }
@@ -855,6 +856,64 @@ class LocalNode extends EventEmitter {
         }
       )
     })
+  }
+  public async downloadSnapshot() {
+    if (!this.model) {
+      return
+    }
+    if (!this.model.downloadUrl || !this.model.downloadHash) {
+      return
+    }
+
+    await checkOrCreateDir(this.model.locationDir)
+
+    if (!this.download) {
+      this.download = new DownloadFile(
+        this.model.downloadUrl,
+        getSnapshotPath(this.model.locationDir),
+        getLocationPath(this.model.locationDir),
+        this.model.downloadHash
+      )
+      this.download.on('finishDownload', () => {
+        this.emit('finishDownload')
+      })
+      this.download.on('progressDownload', (bytes: number) => {
+        this.emit('progressDownload', bytes)
+      })
+      this.download.on('error', (error: Error) => {
+        this.emit('error', error)
+        // if (this.download) {
+        //   this.download.removeAllListeners()
+        //   this.download = null
+        // }
+      })
+      this.download.on('finishVerified', (result: boolean) => {
+        this.emit('finishVerified', result)
+      })
+      this.download.on('finishExtracted', () => {
+        this.emit('finishExtracted')
+      })
+
+      this.download.on('stopped', (error: Error) => {
+        this.emit('stopped', error)
+        // if (this.download) {
+        //   this.download.removeAllListeners()
+        //   this.download = null
+        // }
+      })
+    }
+    if (DownloadStatus.downloading === this.model.downloadStatus) {
+      await this.download.download()
+    } else if (DownloadStatus.verifying === this.model.downloadStatus) {
+      this.download.verifyFileIntegrity()
+    } else if (DownloadStatus.extracting === this.model.downloadStatus) {
+      await this.download.extractAndDeleteTar()
+    }
+  }
+  public stopDownload() {
+    if (this.download) {
+      this.download.stop()
+    }
   }
 }
 

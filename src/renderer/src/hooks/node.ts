@@ -1,10 +1,20 @@
 import { getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
 import { AddNodeFields, Type, Network, NewNode, Ports } from '@renderer/types/node'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getAll, getById, stop, start, restart, add, remove, checkPorts } from '@renderer/api/node'
+import {
+  getAll,
+  getById,
+  stop,
+  start,
+  restart,
+  add,
+  remove,
+  checkPorts,
+  getLastSnapshot
+} from '@renderer/api/node'
 import { selectDirectory } from '@renderer/api/os'
 import {
   DEFAULT_WF_PATH,
@@ -16,6 +26,7 @@ import {
   VALIDATOR_P2P_PORT,
   VALIDATOR_WS_API_PORT
 } from '@renderer/constants/env'
+import { DownloadStatus } from '../types/node'
 
 const initialPorts = {
   [AddNodeFields.coordinatorHttpApiPort]: Number(COORDINATOR_HTTP_API_PORT),
@@ -31,6 +42,10 @@ const initialValues = {
   [AddNodeFields.network]: Network.testnet8,
   [AddNodeFields.locationDir]: DEFAULT_WF_PATH,
   [AddNodeFields.name]: '',
+  [AddNodeFields.downloadStatus]: DownloadStatus.downloading,
+  [AddNodeFields.downloadUrl]: null,
+  [AddNodeFields.downloadHash]: null,
+  [AddNodeFields.downloadSize]: 0,
   ...initialPorts
 }
 
@@ -58,6 +73,13 @@ export const useAddNode = () => {
   const navigate = useNavigate()
   const [values, setValues] = useState<NewNode>(initialValues)
 
+  const { data: snapshot } = useQuery({
+    queryKey: ['node:snapshot'],
+    queryFn: async () => {
+      return await getLastSnapshot()
+    }
+  })
+
   const { data: checkPorts } = useQuery({
     queryKey: ['node:checkPorts'],
     queryFn: async () => {
@@ -81,7 +103,6 @@ export const useAddNode = () => {
     const node = await add(values)
     setTimeout(() => {
       setLoading(false)
-      console.log(node)
       if (node?.id) {
         return navigate(getViewLink(routes.nodes.view, { id: node.id.toString() }))
       }
@@ -107,7 +128,50 @@ export const useAddNode = () => {
     }
   }, [values])
 
-  return { values, handleChange, onAdd, onSelectDirectory, onCheckPorts, checkPorts, isLoading }
+  const onSelectSnapshot = useCallback(() => {
+    if (!snapshot) return
+    setValues((prev) => ({
+      ...prev,
+      [AddNodeFields.downloadStatus]:
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading
+          ? DownloadStatus.finish
+          : DownloadStatus.downloading,
+      [AddNodeFields.downloadUrl]:
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? null : snapshot.url,
+      [AddNodeFields.downloadHash]:
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? null : snapshot.hash,
+      [AddNodeFields.downloadSize]:
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? 0 : snapshot.size
+    }))
+  }, [snapshot])
+
+  useEffect(() => {
+    if (
+      !snapshot ||
+      values[AddNodeFields.downloadStatus] !== DownloadStatus.downloading ||
+      (values[AddNodeFields.downloadUrl] && values[AddNodeFields.downloadHash])
+    ) {
+      return
+    }
+    setValues((prev) => ({
+      ...prev,
+      [AddNodeFields.downloadUrl]: snapshot.url,
+      [AddNodeFields.downloadHash]: snapshot.hash,
+      [AddNodeFields.downloadSize]: snapshot.size
+    }))
+  }, [snapshot, values])
+
+  return {
+    values,
+    handleChange,
+    onAdd,
+    onSelectDirectory,
+    onCheckPorts,
+    checkPorts,
+    isLoading,
+    snapshot,
+    onSelectSnapshot
+  }
 }
 
 export const useGetAll = (options?: { refetchInterval?: number }) => {

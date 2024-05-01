@@ -1,7 +1,17 @@
-import { Node, CoordinatorStatus, ValidatorStatus, Status } from '@renderer/types/node'
+import {
+  Node,
+  CoordinatorStatus,
+  ValidatorStatus,
+  Status,
+  DownloadStatus
+} from '@renderer/types/node'
 
 export const getNodeStatus = (node: Node) => {
-  if (
+  if (node.downloadStatus !== DownloadStatus.finish) {
+    return node.downloadStatus === DownloadStatus.downloading
+      ? `${node.downloadStatus} ${Math.round((node.downloadBytes / node.downloadSize) * 100)}%`
+      : node.downloadStatus
+  } else if (
     node.coordinatorStatus === CoordinatorStatus.stopped &&
     node.validatorStatus === ValidatorStatus.stopped
   ) {

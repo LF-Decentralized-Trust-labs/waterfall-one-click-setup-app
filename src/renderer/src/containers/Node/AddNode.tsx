@@ -1,16 +1,18 @@
 import React from 'react'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
-import { AddNodeFields, NewNode, CheckPorts } from '@renderer/types/node'
+import { AddNodeFields, NewNode, CheckPorts, DownloadStatus } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
+  NodeSnapshotInput,
   NodeNameInput,
   NodeTypeInput,
   NodePortInput,
   NodePreview
 } from '@renderer/components/Node/AddNode/Inputs'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
+import { Snapshot } from '../../types/node'
 
 type AddNodePropsT = {
   step: number
@@ -46,8 +48,17 @@ export const AddNode: React.FC<AddNodePropsT> = ({
   goNextStep,
   goPrevStep
 }) => {
-  const { handleChange, values, onAdd, onSelectDirectory, checkPorts, onCheckPorts, isLoading } =
-    useAddNode()
+  const {
+    handleChange,
+    values,
+    onAdd,
+    onSelectDirectory,
+    checkPorts,
+    onCheckPorts,
+    isLoading,
+    snapshot,
+    onSelectSnapshot
+  } = useAddNode()
   const stepsComponents = {
     0: (
       <NodeTypeSelection
@@ -76,6 +87,9 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         handleChange={handleChange(AddNodeFields.locationDir)}
         field={AddNodeFields.locationDir}
         onSelectDirectory={onSelectDirectory}
+        isSnapshot={values[AddNodeFields.downloadStatus] === DownloadStatus.downloading}
+        snapshot={snapshot}
+        onSelectSnapshot={onSelectSnapshot}
         goNextStep={goNextStep}
         goPrevStep={goPrevStep}
       />
@@ -142,12 +156,22 @@ const NetworkSelection: React.FC<SelectionBasePropsT> = ({
   )
 }
 
-const FolderSelection: React.FC<SelectionBasePropsT & { onSelectDirectory: () => void }> = ({
+const FolderSelection: React.FC<
+  SelectionBasePropsT & {
+    onSelectDirectory: () => void
+    snapshot?: Snapshot | null
+    isSnapshot: boolean
+    onSelectSnapshot: () => void
+  }
+> = ({
   value,
   handleChange,
   onSelectDirectory,
   goNextStep,
-  goPrevStep
+  goPrevStep,
+  snapshot,
+  isSnapshot,
+  onSelectSnapshot
 }) => {
   return (
     <NodeAddForm
@@ -162,6 +186,16 @@ const FolderSelection: React.FC<SelectionBasePropsT & { onSelectDirectory: () =>
         onSelectDirectory={onSelectDirectory}
         // error={'The directory and network does not match'}
       />
+      {snapshot && (
+        <>
+          <br />
+          <NodeSnapshotInput
+            value={isSnapshot}
+            handleChange={onSelectSnapshot}
+            snapshot={snapshot}
+          />
+        </>
+      )}
     </NodeAddForm>
   )
 }
@@ -250,7 +284,7 @@ const Preview: React.FC<PreviewPropsT> = ({ values, goNextStep, goPrevStep, isLo
     !!values[AddNodeFields.name]
   return (
     <NodeAddForm
-      title="Name your node"
+      title="Preview"
       goNext={goNextStep}
       goNextTitle="Add"
       goPrev={goPrevStep}

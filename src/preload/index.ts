@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
 import path from 'node:path'
+import https from 'node:https'
 
 import { node } from './node'
 import { worker } from './worker'
@@ -37,7 +38,8 @@ if (process.contextIsolated) {
       selectDirectory: selectDirectory,
       saveTextFile: saveTextFile,
       openExternal: openExternal,
-      path
+      path,
+      fetchJSON
     })
   } catch (error) {
     console.error(error)
@@ -56,7 +58,8 @@ if (process.contextIsolated) {
     selectDirectory: selectDirectory,
     saveTextFile: saveTextFile,
     openExternal: openExternal,
-    path
+    path,
+    fetchJSON
   }
   // @ts-ignore (define in dts)
   window.app = { quit, fetchState }
@@ -82,4 +85,26 @@ function getPlatform(): 'linux' | 'mac' | 'win' | null {
 
 function getHomeDir() {
   return homedir()
+}
+
+function fetchJSON(url: string): Promise<object> {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        let data = ''
+        res.on('data', (chunk) => {
+          data += chunk
+        })
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data))
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+      .on('error', (e) => {
+        reject(e)
+      })
+  })
 }
