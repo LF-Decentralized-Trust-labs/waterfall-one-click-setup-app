@@ -15,17 +15,19 @@ import log from 'electron-log/main'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/app/iconTemplate.png?asset'
 import trayIcon from '../../resources/tray/iconTemplate.png?asset'
+import EventBus from './libs/EventBus'
 import Node from './node'
 import Worker from './worker'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
 import createStatusWorker from './monitoring/status?nodeWorker'
-import createSnapshotWorker from './monitoring/snapshot?nodeWorker'
+import SnapshotWorker from './monitoring/snapshot'
 import FsHandle from './libs/FsHandle'
 
 log.transports.file.level = 'debug'
 autoUpdater.logger = log
 
+const eventBus = new EventBus()
 let tray: null | Tray = null
 let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
@@ -36,7 +38,7 @@ const appEnv = new AppEnv({
   userData: app.getPath('userData'),
   version: app.getVersion()
 })
-const node = new Node(ipcMain, appEnv)
+const node = new Node(ipcMain, appEnv, eventBus)
 const worker = new Worker(ipcMain, appEnv)
 const fsHandle = new FsHandle(ipcMain)
 const statusWorker = createStatusWorker({
@@ -47,14 +49,7 @@ const statusWorker = createStatusWorker({
     version: appEnv.version
   }
 })
-const snapshotWorker = createSnapshotWorker({
-  workerData: {
-    isPackaged: appEnv.isPackaged,
-    appPath: appEnv.appPath,
-    userData: appEnv.userData,
-    version: appEnv.version
-  }
-})
+const snapshotWorker = new SnapshotWorker(appEnv, eventBus)
 // Optional, initialize the logger for any renderer process
 log.initialize({ spyRendererConsole: true })
 
@@ -202,14 +197,9 @@ app.whenReady().then(async () => {
   })
   log.debug('statusWorker.postMessage start')
 
-  snapshotWorker.postMessage({
-    type: 'start'
-  })
-  snapshotWorker.on('message', (message) => {
-    if (message.type === 'finish') {
-      node.start(message.id)
-    }
-  })
+  snapshotWorker.start()
+  // eventBus.emitEvent(EventBusEventName.StartDownloadSnapshot, null)
+
   log.debug('snapshotWorker.postMessage start')
 
   preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
@@ -289,10 +279,7 @@ const quit = async () => {
   })
   await statusWorker.terminate()
 
-  snapshotWorker.postMessage({
-    type: 'stop'
-  })
-  await snapshotWorker.terminate()
+  await snapshotWorker.destroy()
 
   await worker.destroy()
 

@@ -38,8 +38,11 @@ export enum ValidatorStatus {
 
 export enum DownloadStatus {
   downloading = 'downloading',
+  downloadingPause = 'downloadingPause',
   verifying = 'verifying',
+  verifyingPause = 'verifyingPause',
   extracting = 'extracting',
+  extractingPause = 'extractingPause',
   finish = 'finish'
 }
 

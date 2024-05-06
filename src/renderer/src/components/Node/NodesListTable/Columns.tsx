@@ -1,7 +1,7 @@
 import { TableColumnsType } from 'antd'
 import { NodesListDataTypes, NodesListDataFields, Node } from '@renderer/types/node'
 import { getDateTime } from '@renderer/helpers/date'
-import { getNodeStatus } from '@renderer/helpers/node'
+import { getNodeStatusLabel } from '@renderer/helpers/node'
 
 export type DataType = Node &
   NodesListDataTypes & {
@@ -26,7 +26,7 @@ export const columns: TableColumnsType<DataType> = [
     title: 'Status',
     dataIndex: NodesListDataFields.status,
     key: NodesListDataFields.status,
-    render: (_, node) => getNodeStatus(node)
+    render: (_, node) => getNodeStatusLabel(node)
   },
   {
     title: 'Workers',

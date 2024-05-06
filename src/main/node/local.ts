@@ -579,7 +579,8 @@ class LocalNode extends EventEmitter {
         '--syncmode=full',
         '--nat=any',
         `--port=${this.model.validatorP2PPort}`,
-        `--ipcpath=${this.appEnv.getValidatorSocket(this.model.id.toString())}`
+        `--ipcpath=${this.appEnv.getValidatorSocket(this.model.id.toString())}`,
+        `--password==${getValidatorPasswordPath(this.model.locationDir)}`
       ],
       logPath: getLogPath(this.model.locationDir),
       logName: 'validator.log'
@@ -866,7 +867,6 @@ class LocalNode extends EventEmitter {
     }
 
     await checkOrCreateDir(this.model.locationDir)
-
     if (!this.download) {
       this.download = new DownloadFile(
         this.model.downloadUrl,

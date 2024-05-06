@@ -1,25 +1,27 @@
 import { parentPort, workerData } from 'worker_threads'
 import log from 'electron-log/node'
-import { getMain } from '../libs/db'
-import AppEnv from '../libs/appEnv'
-import NodeModel, { DownloadStatus } from '../models/node'
-import LocalNode from '../node/local'
-import { delay } from '../helpers/common'
+import { getMain } from '../../libs/db'
+import AppEnv from '../../libs/appEnv'
+import { EventName, Event } from '../../libs/EventBus'
+import NodeModel, { DownloadStatus } from '../../models/node'
+import LocalNode from '../../node/local'
+import { delay } from '../../helpers/common'
 
 const port = parentPort
 if (!port) throw new Error('IllegalState')
 
-interface ParentMessage {
-  type: 'start' | 'stop'
+interface WorkerMessage<T extends EventName, P> {
+  type: T
+  payload: P
 }
 
 class SnapshotMonitoring {
-  private timeout: number = 4000
-  private appEnv: AppEnv
+  private readonly timeout: number = 4000
+  private readonly appEnv: AppEnv
   private nodeModel: NodeModel
   private interval: NodeJS.Timeout | null = null
   private isStart = false
-  private nodes: {
+  private readonly nodes: {
     [key: string]: LocalNode
   }
 
@@ -31,6 +33,8 @@ class SnapshotMonitoring {
     if (timeout) {
       this.timeout = timeout
     }
+    this.onMessage = this.onMessage.bind(this)
+    this.onListeners()
   }
 
   public start() {
@@ -53,9 +57,84 @@ class SnapshotMonitoring {
     for (const node of Object.values(this.nodes)) {
       node.stopDownload()
     }
+    this.offListeners()
     log.debug('SnapshotMonitoring stop')
   }
+  private sendWorkerMessage<T extends EventName>(message: WorkerMessage<T, any>) {
+    if (port) {
+      port.postMessage(message)
+    }
+  }
+  private onListeners() {
+    port?.on('message', this.onMessage)
+  }
+  private offListeners() {
+    port?.off('message', this.onMessage)
+  }
+  private async onMessage(event: Event<EventName, any>) {
+    switch (event.type) {
+      case EventName.StartDownloadSnapshot: {
+        monitoring.start()
+        break
+      }
+      case EventName.StopDownloadSnapshot: {
+        await monitoring.stop()
+        break
+      }
+      case EventName.PauseDownloadSnapshot: {
+        this._pauseDownload(event?.payload?.nodeId)
+        break
+      }
+      case EventName.ResumeDownloadSnapshot: {
+        await this._resumeDownload(event?.payload?.nodeId)
+        break
+      }
+    }
+  }
+  private _pauseDownload(nodeId: number) {
+    const nodeModel = this.nodeModel.getById(nodeId)
+    if (!nodeModel || nodeModel.downloadStatus === DownloadStatus.finish) {
+      return
+    }
+    const node = this.nodes[nodeId.toString()]
+    if (node) {
+      node.stopDownload()
+    }
+    let status: null | DownloadStatus = null
+    if (nodeModel.downloadStatus === DownloadStatus.downloading) {
+      status = DownloadStatus.downloadingPause
+    } else if (nodeModel.downloadStatus === DownloadStatus.verifying) {
+      status = DownloadStatus.verifyingPause
+    } else if (nodeModel.downloadStatus === DownloadStatus.extracting) {
+      status = DownloadStatus.extractingPause
+    }
 
+    if (status) {
+      this.nodeModel.update(nodeModel.id, {
+        downloadStatus: status
+      })
+    }
+  }
+  private async _resumeDownload(nodeId: number) {
+    const nodeModel = this.nodeModel.getById(nodeId)
+    if (!nodeModel || nodeModel.downloadStatus === DownloadStatus.finish) {
+      return
+    }
+    let status: null | DownloadStatus = null
+    if (nodeModel.downloadStatus === DownloadStatus.downloadingPause) {
+      status = DownloadStatus.downloading
+    } else if (nodeModel.downloadStatus === DownloadStatus.verifyingPause) {
+      status = DownloadStatus.verifying
+    } else if (nodeModel.downloadStatus === DownloadStatus.extractingPause) {
+      status = DownloadStatus.extracting
+    }
+
+    if (status) {
+      this.nodeModel.update(nodeModel.id, {
+        downloadStatus: status
+      })
+    }
+  }
   private async _start() {
     if (this.isStart) {
       return
@@ -70,6 +149,13 @@ class SnapshotMonitoring {
         ) {
           this.nodes[nodeModel.id.toString()].removeAllListeners()
           delete this.nodes[nodeModel.id.toString()]
+          continue
+        }
+        if (
+          nodeModel.downloadStatus === DownloadStatus.downloadingPause ||
+          nodeModel.downloadStatus === DownloadStatus.verifyingPause ||
+          nodeModel.downloadStatus === DownloadStatus.extractingPause
+        ) {
           continue
         }
         if (!this.nodes[nodeModel.id.toString()]) {
@@ -97,7 +183,10 @@ class SnapshotMonitoring {
             })
             this.nodes[nodeModel.id.toString()].removeAllListeners()
             delete this.nodes[nodeModel.id.toString()]
-            port!.postMessage({ type: 'finish', id: nodeModel.id })
+            this.sendWorkerMessage<EventName.FinishDownloadSnapshot>({
+              type: EventName.FinishDownloadSnapshot,
+              payload: { nodeId: nodeModel.id }
+            })
           })
           let percent = 0
           this.nodes[nodeModel.id.toString()].on('progressDownload', (bytes) => {
@@ -110,10 +199,10 @@ class SnapshotMonitoring {
                 percent,
                 `${bytes}/${nodeModel.downloadSize}`
               )
+              this.nodeModel.update(nodeModel.id, {
+                downloadBytes: bytes
+              })
             }
-            this.nodeModel.update(nodeModel.id, {
-              downloadBytes: bytes
-            })
           })
           this.nodes[nodeModel.id.toString()].on('error', (error) => {
             log.error('error', nodeModel.id, error)
@@ -144,11 +233,3 @@ const appEnv = new AppEnv({
 })
 
 const monitoring = new SnapshotMonitoring(appEnv, 10000)
-
-port?.on('message', async (message: ParentMessage) => {
-  if (message.type === 'start') {
-    monitoring.start()
-  } else if (message.type === 'stop') {
-    await monitoring.stop()
-  }
-})

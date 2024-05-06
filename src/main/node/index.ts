@@ -2,15 +2,21 @@ import { IpcMain, IpcMainInvokeEvent } from 'electron'
 import log from 'electron-log/node'
 import { getMain } from '../libs/db'
 import AppEnv from '../libs/appEnv'
+import EventBus, {
+  EventName,
+  EventName as EventBusEventName,
+  Event as EventBusEvent,
+  FinishDownloadSnapshotPayload
+} from '../libs/EventBus'
 import LocalNode, { StatusResult, StatusResults } from './local'
 import NodeModel, {
-  Node as NodeModelType,
-  NewNode,
-  Type as NodeType,
   CoordinatorStatus,
-  ValidatorStatus,
   CoordinatorValidatorStatus,
-  DownloadStatus
+  DownloadStatus,
+  NewNode,
+  Node as NodeModelType,
+  Type as NodeType,
+  ValidatorStatus
 } from '../models/node'
 import WorkerModel from '../models/worker'
 import { checkPort } from '../libs/fs'
@@ -23,6 +29,7 @@ enum ErrorResults {
 class Node {
   private ipcMain: IpcMain
   private appEnv: AppEnv
+  private eventBus: EventBus
   private nodeModel: NodeModel
   private workerModel: WorkerModel
 
@@ -30,16 +37,18 @@ class Node {
     [key: string]: LocalNode
   }
 
-  constructor(ipcMain: IpcMain, appEnv: AppEnv) {
+  constructor(ipcMain: IpcMain, appEnv: AppEnv, eventBus: EventBus) {
     this.ipcMain = ipcMain
     this.appEnv = appEnv
+    this.eventBus = eventBus
     this.nodes = {}
     this.nodeModel = new NodeModel(getMain(this.appEnv.mainDB))
     this.workerModel = new WorkerModel(getMain(this.appEnv.mainDB))
+    this._finishDownloadSnapshot = this._finishDownloadSnapshot.bind(this)
   }
 
   public async initialize(): Promise<boolean> {
-    this.ipcMain.handle('node:start', (_event: IpcMainInvokeEvent, id) => this.start(id))
+    this.ipcMain.handle('node:start', (_event: IpcMainInvokeEvent, id) => this._start(id))
     this.ipcMain.handle('node:stop', (_event: IpcMainInvokeEvent, id) => this._stop(id))
     this.ipcMain.handle('node:restart', (_event: IpcMainInvokeEvent, id) => this._restart(id))
     this.ipcMain.handle('node:getAll', () => this.nodeModel.getAll())
@@ -54,6 +63,10 @@ class Node {
     )
     this.ipcMain.handle('node:checkPorts', (_event: IpcMainInvokeEvent, ports) =>
       this._checkPorts(ports)
+    )
+    this.eventBus.onEvent<EventBusEventName.FinishDownloadSnapshot, FinishDownloadSnapshotPayload>(
+      EventName.FinishDownloadSnapshot,
+      this._finishDownloadSnapshot
     )
 
     const nodeModels = this.nodeModel.getAll()
@@ -78,27 +91,40 @@ class Node {
     this.ipcMain.removeHandler('node:delete')
     this.ipcMain.removeHandler('node:checkPorts')
 
+    this.eventBus.offEvent<EventBusEventName.FinishDownloadSnapshot, FinishDownloadSnapshotPayload>(
+      EventName.FinishDownloadSnapshot,
+      this._finishDownloadSnapshot
+    )
+
     for (const id of Object.keys(this.nodes)) {
       await this.nodes[id].stop()
     }
   }
 
-  public async start(id: number): Promise<StatusResults | ErrorResults> {
+  private async _start(id: number): Promise<StatusResults | ErrorResults | boolean> {
     if (!this.nodes[id.toString()]) {
       const nodeModel = this.nodeModel.getById(id)
-      if (!nodeModel || nodeModel.downloadStatus !== DownloadStatus.finish) {
+      if (!nodeModel) {
         return ErrorResults.NODE_NOT_FOUND
+      }
+      if (nodeModel.downloadStatus !== DownloadStatus.finish) {
+        this.eventBus.emit(EventName.ResumeDownloadSnapshot, { nodeId: id })
+        return true
       }
       await this._addNode(nodeModel)
     }
     return this.nodes[id.toString()].start()
   }
 
-  private async _stop(id: number): Promise<StatusResults | ErrorResults> {
+  private async _stop(id: number): Promise<StatusResults | ErrorResults | boolean> {
     if (!this.nodes[id.toString()]) {
       const nodeModel = this.nodeModel.getById(id)
-      if (!nodeModel || nodeModel.downloadStatus !== DownloadStatus.finish) {
+      if (!nodeModel) {
         return ErrorResults.NODE_NOT_FOUND
+      }
+      if (nodeModel.downloadStatus !== DownloadStatus.finish) {
+        this.eventBus.emit(EventName.PauseDownloadSnapshot, { nodeId: id })
+        return true
       }
       await this._addNode(nodeModel)
     }
@@ -230,6 +256,11 @@ class Node {
 
   private async _checkPorts(ports: number[]) {
     return await Promise.all(ports.map((port) => checkPort(port)))
+  }
+  private async _finishDownloadSnapshot(
+    event: EventBusEvent<EventName.FinishDownloadSnapshot, FinishDownloadSnapshotPayload>
+  ) {
+    await this._start(event.payload.nodeId)
   }
 }
 

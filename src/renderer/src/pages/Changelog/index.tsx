@@ -12,8 +12,9 @@ const items = [
   {
     children: (
       <>
-        <Text size="sm">0.3.1 beta - 01.05.2024</Text>
+        <Text size="sm">0.3.1 beta - 06.05.2024</Text>
         <p>New: #11 Download last snapshot</p>
+        <p>Improve: #11 Download last snapshot: pause/resume/remove</p>
         <p>New: #12 Import workers</p>
         <p>New: #17 Remove workers and nodes</p>
         <p>New: #17 Remove workers and nodes: To remove a node, delete all workers</p>

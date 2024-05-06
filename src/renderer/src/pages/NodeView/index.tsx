@@ -18,8 +18,8 @@ import { NodeViewValidator } from '@renderer/containers/Node/NodeViewValidator'
 import { NodeViewWorkers } from '@renderer/containers/Node/NodeViewWorkers'
 import { NodeViewStatistics } from '@renderer/containers/Node/NodeViewStatistics'
 import { useGetById, useControl } from '@renderer/hooks/node'
-import { Node, Status } from '@renderer/types/node'
-import { getNodeStatus } from '@renderer/helpers/node'
+import { Node, DownloadStatus, Action } from '@renderer/types/node'
+import { getActions } from '@renderer/helpers/node'
 import { getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
 import { RemoveModal } from '../../containers/Node/RemoveModal'
@@ -67,6 +67,7 @@ export const NodeViewPage = () => {
   const [activeKey, setActiveKey] = useState(tabs[0].key)
   const onTabChange = (newActiveKey: string) => setActiveKey(newActiveKey)
 
+  const actions = getActions(node)
   const breadcrumb = [
     {
       title: 'Nodes',
@@ -83,7 +84,7 @@ export const NodeViewPage = () => {
         breadcrumb={breadcrumb}
         actions={
           <Flex dir="row" gap={6}>
-            {node && getNodeStatus(node) !== Status.stopped && (
+            {actions[Action.stop] && (
               <Popover content="Stop" placement="bottom">
                 <IconButton
                   icon={<PauseOutlined />}
@@ -94,7 +95,7 @@ export const NodeViewPage = () => {
                 />
               </Popover>
             )}
-            {node && getNodeStatus(node) === Status.stopped && (
+            {actions[Action.start] && (
               <Popover content="Run" placement="bottom">
                 <IconButton
                   icon={<CaretRightOutlined />}
@@ -105,25 +106,29 @@ export const NodeViewPage = () => {
                 />
               </Popover>
             )}
-            <Popover content="Restart" placement="bottom">
-              <IconButton
-                icon={<ReloadOutlined />}
-                shape="default"
-                size="middle"
-                onClick={onRestart}
-                loading={status ? status === 'restart' : false}
-              />
-            </Popover>
+            {actions[Action.restart] && (
+              <Popover content="Restart" placement="bottom">
+                <IconButton
+                  icon={<ReloadOutlined />}
+                  shape="default"
+                  size="middle"
+                  onClick={onRestart}
+                  loading={status ? status === 'restart' : false}
+                />
+              </Popover>
+            )}
             <Popover
               content={
-                node && node.workersCount > 0
-                  ? 'To remove a node, delete all workers first'
-                  : 'Delete the Node only if the node stops'
+                node && node.downloadStatus === DownloadStatus.finish
+                  ? node.workersCount > 0
+                    ? 'To remove a node, delete all workers first'
+                    : 'Delete the Node only if the node stops'
+                  : 'Delete the Node only if the download stops'
               }
               placement="bottom"
             >
               <IconButton
-                disabled={node && (getNodeStatus(node) !== Status.stopped || node.workersCount > 0)}
+                disabled={!actions[Action.remove]}
                 icon={<DeleteOutlined />}
                 shape="default"
                 size="middle"

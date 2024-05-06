@@ -32,8 +32,11 @@ export enum ValidatorStatus {
 
 export enum DownloadStatus {
   downloading = 'downloading',
+  downloadingPause = 'downloadingPause',
   verifying = 'verifying',
+  verifyingPause = 'verifyingPause',
   extracting = 'extracting',
+  extractingPause = 'extractingPause',
   finish = 'finish'
 }
 
@@ -192,4 +195,15 @@ export type Snapshot = {
   url: string
   hash: string
   size: number
+}
+
+export enum Action {
+  stop = 'stop',
+  start = 'start',
+  restart = 'restart',
+  remove = 'remove'
+}
+
+export type ActionMap = {
+  [key in Action]: boolean
 }
