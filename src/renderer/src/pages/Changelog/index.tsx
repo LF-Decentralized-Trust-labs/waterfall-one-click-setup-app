@@ -22,6 +22,7 @@ const items = [
         <p>New: #17 Remove workers and nodes: Change text. Incorrect text when removing a node</p>
         <p>Fix: Adding workers</p>
         <p>Fix: #61 Adding workers when node is stopped</p>
+        <p>Fix: #36 Withdraw worker. when switching to another window, the fields are cleared</p>
         <p>
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
         </p>
