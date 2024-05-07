@@ -38,7 +38,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
   nodes,
   node
 }) => {
-  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } =
+  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading, error } =
     useAddWorker(node, mode)
 
   const StepComponent = {
@@ -110,6 +110,7 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         goNext={onAdd}
         goPrev={goPrevStep}
         isLoading={isLoading}
+        error={error}
       />
     )
   }
@@ -138,6 +139,7 @@ type BasePropsT = {
   goNext: () => void
   goPrev: () => void
   isLoading?: boolean
+  error?: string
 }
 
 const NodeSelect: React.FC<
@@ -277,7 +279,7 @@ const WithdrawalAddress: React.FC<
 
 const Preview: React.FC<
   BasePropsT & { values: AddWorkerFormValuesT; node?: Node; mode: 'add' | 'import' }
-> = ({ goNext, goPrev, values, node, mode, isLoading }) => {
+> = ({ goNext, goPrev, values, node, mode, isLoading, error }) => {
   let canGoNext =
     !!node &&
     !!values[AddWorkerFields.mnemonicVerify] &&
@@ -304,6 +306,7 @@ const Preview: React.FC<
       canGoNext={canGoNext}
       nextText={mode === 'import' ? 'Import' : 'Add'}
       isLoading={isLoading}
+      error={error}
     >
       <AddWorkerPreview data={values} node={node} />
     </AddWorkerForm>

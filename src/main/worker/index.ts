@@ -20,13 +20,20 @@ enum ErrorResults {
   NODE_NOT_FOUND = 'Node is Not Found',
   MNEMONIC_NOT_PROVIDED = 'Mnemonic is not provided',
   MNEMONIC_NOT_MATCHED = 'Mnemonic is not matched',
+  MNEMONIC_INVALID = 'Invalid mnemonic',
   AMOUNT_NOT_PROVIDED = 'Amount is not provided',
   WITHDRAWAL_NOT_PROVIDED = 'Withdrawal Address is not provided',
   WORKER_NOT_FOUND = 'Worker Is Not Found',
   ACTION_NOT_FOUND = 'Action is not provided',
-  PASSWORD_NOT_GENERATE = 'Password was not generated'
+  PASSWORD_NOT_GENERATE = 'Password was not generated',
+  ADD_WORKER_FAILED = 'Add Worker Failed'
 }
 
+export interface Response<T> {
+  status: 'error' | 'success'
+  message?: ErrorResults
+  data?: T
+}
 export interface Key {
   depositData: GetDepositDataResponse
   coordinatorKey: GetCoordinatorKeyStoreResponseType
@@ -105,29 +112,35 @@ class Worker {
     return Web3.utils.genMnemonic()
   }
 
-  private async _add(data: addParams): Promise<WorkerModelType[] | ErrorResults> {
+  private async _add(data: addParams): Promise<Response<WorkerModelType[]>> {
     if (!data.nodeId) {
-      return ErrorResults.NODE_NOT_FOUND
+      return {
+        status: 'error',
+        message: ErrorResults.NODE_NOT_FOUND
+      }
     }
     if (!data.mnemonic) {
-      return ErrorResults.MNEMONIC_NOT_PROVIDED
+      return {
+        status: 'error',
+        message: ErrorResults.MNEMONIC_NOT_PROVIDED
+      }
     }
     const memoHash = Web3.utils.sha3(data.mnemonic)
     if (!memoHash) {
-      return ErrorResults.MNEMONIC_NOT_PROVIDED
+      return { status: 'error', message: ErrorResults.MNEMONIC_NOT_PROVIDED }
     }
     if (!data.amount) {
-      return ErrorResults.AMOUNT_NOT_PROVIDED
+      return { status: 'error', message: ErrorResults.AMOUNT_NOT_PROVIDED }
     }
     if (!data.withdrawalAddress) {
-      return ErrorResults.WITHDRAWAL_NOT_PROVIDED
+      return { status: 'error', message: ErrorResults.WITHDRAWAL_NOT_PROVIDED }
     }
     const nodeModel = this.nodeModel.getById(data.nodeId)
     if (!nodeModel) {
-      return ErrorResults.NODE_NOT_FOUND
+      return { status: 'error', message: ErrorResults.NODE_NOT_FOUND }
     }
     if (nodeModel.memoHash && nodeModel.memoHash !== memoHash) {
-      return ErrorResults.MNEMONIC_NOT_MATCHED
+      return { status: 'error', message: ErrorResults.MNEMONIC_NOT_MATCHED }
     }
 
     const node =
@@ -137,7 +150,7 @@ class Worker {
 
     const coordinatorPassword = await node.getCoordinatorValidatorPassword()
     if (!coordinatorPassword) {
-      return ErrorResults.PASSWORD_NOT_GENERATE
+      return { status: 'error', message: ErrorResults.PASSWORD_NOT_GENERATE }
     }
 
     log.debug('workersCount', nodeModel.workersCount)
@@ -146,31 +159,43 @@ class Worker {
     const keys: Key[] = []
     const newWorkers: NewWorkerModelType[] = []
     for (let index = firstIndex; index < lastIndex; index++) {
-      const validatorPassword = crypto.randomBytes(16).toString('hex')
-      const key = {
-        depositData: await Web3.utils.getDepositData(data.mnemonic, index, data.withdrawalAddress),
-        coordinatorKey: await Web3.utils.getCoordinatorKeyStore(
-          data.mnemonic,
-          index,
+      try {
+        const validatorPassword = crypto.randomBytes(16).toString('hex')
+        const key = {
+          depositData: await Web3.utils.getDepositData(
+            data.mnemonic,
+            index,
+            data.withdrawalAddress
+          ),
+          coordinatorKey: await Web3.utils.getCoordinatorKeyStore(
+            data.mnemonic,
+            index,
+            coordinatorPassword
+          ),
+          validatorKey: await Web3.utils.getValidatorKeyStore(
+            data.mnemonic,
+            index,
+            validatorPassword
+          ),
+          validatorPassword,
           coordinatorPassword
-        ),
-        validatorKey: await Web3.utils.getValidatorKeyStore(
-          data.mnemonic,
-          index,
-          validatorPassword
-        ),
-        validatorPassword,
-        coordinatorPassword
+        }
+        const worker: NewWorkerModelType = {
+          nodeId: data.nodeId,
+          coordinatorPublicKey: key.depositData.pubkey,
+          validatorAddress: key.depositData.creator_address,
+          withdrawalAddress: key.depositData.withdrawal_address,
+          signature: key.depositData.signature
+        }
+        keys.push(key)
+        newWorkers.push(worker)
+      } catch (error) {
+        log.error(error)
+        if (error instanceof Error && error.message.includes('invalid mnemonic')) {
+          return { status: 'error', message: ErrorResults.MNEMONIC_INVALID }
+        }
+        return { status: 'error', message: ErrorResults.ADD_WORKER_FAILED }
       }
-      const worker: NewWorkerModelType = {
-        nodeId: data.nodeId,
-        coordinatorPublicKey: key.depositData.pubkey,
-        validatorAddress: key.depositData.creator_address,
-        withdrawalAddress: key.depositData.withdrawal_address,
-        signature: key.depositData.signature
-      }
-      keys.push(key)
-      newWorkers.push(worker)
     }
 
     if (memoHash && !nodeModel.memoHash) {
@@ -180,7 +205,7 @@ class Worker {
 
     await node.addWorkers(keys, lastIndex)
 
-    return workers
+    return { status: 'success', data: workers }
   }
   private async _delete(ids: number[] | bigint[]): Promise<boolean[] | ErrorResults> {
     log.debug('_delete', ids)

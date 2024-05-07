@@ -21,7 +21,7 @@ export const add = async (data: {
   mnemonic: string
   amount: number
   withdrawalAddress: string
-}) => {
+}): Promise<{ status: 'success' | 'error'; message?: string; data?: Worker[] }> => {
   return await window.worker.add(data)
 }
 

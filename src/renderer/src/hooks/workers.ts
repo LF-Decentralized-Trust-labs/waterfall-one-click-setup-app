@@ -34,13 +34,14 @@ const addInitialValues = {
 
 export const useAddWorker = (node?: Node, mode: 'add' | 'import' = 'add') => {
   const [isLoading, setLoading] = useState(false)
+  const [error, setError] = useState<string | undefined>(undefined)
   const navigate = useNavigate()
   const [values, setValues] = useState<AddWorkerFormValuesT>({
     ...addInitialValues
   })
 
   const handleChangeNode = (value?: string) => {
-    if (value) navigate(addParams(routes.workers.add, { node: value }))
+    if (value) navigate(addParams(routes.workers.add, { node: value, mode }))
   }
 
   useEffect(() => {
@@ -79,19 +80,24 @@ export const useAddWorker = (node?: Node, mode: 'add' | 'import' = 'add') => {
       return
     }
     setLoading(true)
-    const workers = await addWorkers({
+    const result = await addWorkers({
       nodeId: node.id,
       mnemonic: Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
       amount: values[AddWorkerFields.amount],
       withdrawalAddress: values[AddWorkerFields.withdrawalAddress]
     })
     setLoading(false)
-    if (workers?.length > 0) {
+    if (result.status === 'error') {
+      setError(result.message || 'An error occurred')
+      return
+    }
+    if (result.status === 'success') {
+      setError(undefined)
       return navigate(routes.workers.list)
     }
   }, [node?.id, values])
 
-  return { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading }
+  return { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading, error }
 }
 
 const importInitialValues = {

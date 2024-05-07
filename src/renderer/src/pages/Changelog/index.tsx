@@ -13,6 +13,7 @@ const items = [
     children: (
       <>
         <Text size="sm">0.3.1 beta - 06.05.2024</Text>
+        <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
         <p>New: #11 Download last snapshot</p>
         <p>Improve: #11 Download last snapshot: pause/resume/remove</p>
         <p>New: #12 Import workers</p>
