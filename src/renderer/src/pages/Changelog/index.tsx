@@ -12,7 +12,7 @@ const items = [
   {
     children: (
       <>
-        <Text size="sm">0.3.1 beta - 06.05.2024</Text>
+        <Text size="sm">0.3.1 beta - 08.05.2024</Text>
         <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
         <p>New: #11 Download last snapshot</p>
         <p>Improve: #11 Download last snapshot: pause/resume/remove</p>
@@ -27,6 +27,8 @@ const items = [
         <p>
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
         </p>
+        <p>Update: Validator binary bfb7bc</p>
+        <p>Update: Coordinator binary ff16d61</p>
       </>
     )
   },
