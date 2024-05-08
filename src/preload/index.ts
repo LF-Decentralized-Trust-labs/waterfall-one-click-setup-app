@@ -89,22 +89,31 @@ function getHomeDir() {
 
 function fetchJSON(url: string): Promise<object> {
   return new Promise((resolve, reject) => {
-    https
-      .get(url, (res) => {
-        let data = ''
-        res.on('data', (chunk) => {
-          data += chunk
-        })
-        res.on('end', () => {
-          try {
-            resolve(JSON.parse(data))
-          } catch (e) {
-            reject(e)
-          }
-        })
+    const urlObj = new URL(url)
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      family: 4
+    }
+    const req = https.get(options, (res) => {
+      let data = ''
+      res.on('data', (chunk) => {
+        data += chunk
       })
-      .on('error', (e) => {
-        reject(e)
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data))
+        } catch (e) {
+          reject(e)
+        }
       })
+    })
+    req.setTimeout(10000, () => {
+      req.destroy()
+      reject(new Error('Request timeout'))
+    })
+    req.on('error', (e) => {
+      reject(e)
+    })
   })
 }

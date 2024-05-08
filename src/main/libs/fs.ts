@@ -13,6 +13,7 @@ import { join } from 'path'
 import * as net from 'node:net'
 import * as os from 'node:os'
 import log from 'electron-log/node'
+import * as https from 'node:https'
 
 export const checkOrCreateDir = async (dirPath: string): Promise<boolean> => {
   try {
@@ -74,7 +75,7 @@ export const appendToFile = async (filePath: string, data: string): Promise<bool
   }
 }
 
-const _checkPortHost = async (port: number, address): Promise<boolean> => {
+const _checkPortHost = async (port: number, address: string): Promise<boolean> => {
   return new Promise((resolve) => {
     const server = net.createServer()
     server
@@ -225,4 +226,24 @@ export const deleteFilesByValidatorPublicKeys = async (
     console.error('deleteFilesByValidatorPublicKeys', 'Error processing:', error)
   }
   return results
+}
+
+export const getPublicIP = async (): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    https
+      .get('https://api.ipify.org', (resp) => {
+        let data = ''
+
+        resp.on('data', (chunk) => {
+          data += chunk
+        })
+
+        resp.on('end', () => {
+          resolve(data)
+        })
+      })
+      .on('error', (err) => {
+        reject('Error: ' + err.message)
+      })
+  })
 }

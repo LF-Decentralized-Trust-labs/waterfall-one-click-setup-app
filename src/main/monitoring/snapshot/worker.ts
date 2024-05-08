@@ -74,11 +74,11 @@ class SnapshotMonitoring {
   private async onMessage(event: Event<EventName, any>) {
     switch (event.type) {
       case EventName.StartDownloadSnapshot: {
-        monitoring.start()
+        this.start()
         break
       }
       case EventName.StopDownloadSnapshot: {
-        await monitoring.stop()
+        await this.stop()
         break
       }
       case EventName.PauseDownloadSnapshot: {
@@ -232,4 +232,4 @@ const appEnv = new AppEnv({
   version: workerData.version
 })
 
-const monitoring = new SnapshotMonitoring(appEnv, 10000)
+new SnapshotMonitoring(appEnv, 10000)
