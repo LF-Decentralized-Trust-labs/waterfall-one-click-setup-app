@@ -5,7 +5,9 @@ export enum EventName {
   FinishDownloadSnapshot = 'FinishDownloadSnapshot',
   PauseDownloadSnapshot = 'PauseDownloadSnapshot',
   ResumeDownloadSnapshot = 'ResumeDownloadSnapshot',
-  StopDownloadSnapshot = 'StopDownloadSnapshot'
+  StopDownloadSnapshot = 'StopDownloadSnapshot',
+  StartStatusMonitoring = 'StartStatusMonitoring',
+  StopStatusMonitoring = 'StopStatusMonitoring'
 }
 
 export interface Event<T extends EventName, P> {

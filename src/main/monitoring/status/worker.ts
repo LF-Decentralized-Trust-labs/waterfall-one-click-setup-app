@@ -1,18 +1,17 @@
 import { parentPort, workerData } from 'worker_threads'
 import log from 'electron-log/node'
-import { getMain } from '../libs/db'
-import AppEnv from '../libs/appEnv'
-import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../models/node'
-import WorkerModel from '../models/worker'
-import LocalNode from '../node/local'
-import { areObjectsEqual } from '../helpers/common'
+import { getMain } from '../../libs/db'
+import AppEnv from '../../libs/appEnv'
+import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../../models/node'
+import WorkerModel from '../../models/worker'
+import LocalNode from '../../node/local'
+import { areObjectsEqual, getCurrentDateUTC } from '../../helpers/common'
+import { Event, EventName } from '../../libs/EventBus'
+import * as rfs from 'rotating-file-stream'
+import { getPublicIP } from '../../libs/fs'
 
 const port = parentPort
 if (!port) throw new Error('IllegalState')
-
-interface ParentMessage {
-  type: 'start' | 'stop'
-}
 
 class StatusMonitoring {
   private timeout: number = 4000
@@ -21,6 +20,7 @@ class StatusMonitoring {
   private workerModel: WorkerModel
   private interval: NodeJS.Timeout | null = null
   private isStart = false
+  private logStream: rfs.RotatingFileStream | null = null
 
   constructor(appEnv: AppEnv, timeout: number | undefined) {
     this.appEnv = appEnv
@@ -30,6 +30,16 @@ class StatusMonitoring {
     if (timeout) {
       this.timeout = timeout
     }
+    this.onMessage = this.onMessage.bind(this)
+    this.onListeners()
+
+    this.logStream = rfs.createStream('status.log', {
+      size: '50M',
+      interval: '1d',
+      compress: 'gzip',
+      maxFiles: 10,
+      path: this.appEnv.userData
+    })
   }
 
   public start() {
@@ -46,15 +56,36 @@ class StatusMonitoring {
     }
     clearInterval(this.interval)
     this.interval = null
+    this.offListeners()
     log.debug('StatusMonitoring stop')
   }
 
+  private onListeners() {
+    port?.on('message', this.onMessage)
+  }
+  private offListeners() {
+    port?.off('message', this.onMessage)
+  }
+  private async onMessage(event: Event<EventName, any>) {
+    switch (event.type) {
+      case EventName.StartStatusMonitoring: {
+        this.start()
+        break
+      }
+      case EventName.StopStatusMonitoring: {
+        this.stop()
+        break
+      }
+    }
+  }
   private async _start() {
     if (this.isStart) {
       return
     }
     this.isStart = true
     const nodes = this.nodeModel.getAll()
+    const time = getCurrentDateUTC()
+    const ip = await getPublicIP()
     for (const nodeModel of nodes) {
       try {
         let data = {}
@@ -105,6 +136,10 @@ class StatusMonitoring {
             }
           }
         }
+
+        this.logStream?.write(
+          `${time} ver=${this.appEnv.version} node_id=${nodeModel.id.toString()} c_peers=${peers?.coordinatorPeersCount} v_peers=${peers?.validatorPeersCount} c_distance=${sync?.coordinatorSyncDistance} c_head=${sync?.coordinatorHeadSlot} c_previous_justified=${sync?.coordinatorPreviousJustifiedEpoch} c_current_justified=${sync?.coordinatorCurrentJustifiedEpoch} c_finalized=${sync?.coordinatorFinalizedEpoch}  v_distance=${sync?.validatorSyncDistance} v_head=${sync?.validatorHeadSlot}  v_finalized=${sync?.validatorFinalizedSlot} ip=${ip} \n`
+        )
       } catch (error) {
         log.error(error)
       }
@@ -120,19 +155,4 @@ const appEnv = new AppEnv({
   userData: workerData.userData,
   version: workerData.version
 })
-log.debug({
-  isPackaged: workerData.isPackaged,
-  appPath: workerData.appPath,
-  userData: workerData.userData,
-  version: workerData.version
-})
-
-const monitoring = new StatusMonitoring(appEnv, 4000)
-
-parentPort?.on('message', (message: ParentMessage) => {
-  if (message.type === 'start') {
-    monitoring.start()
-  } else if (message.type === 'stop') {
-    monitoring.stop()
-  }
-})
+new StatusMonitoring(appEnv, 4000)

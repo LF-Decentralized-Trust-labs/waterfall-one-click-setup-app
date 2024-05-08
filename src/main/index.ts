@@ -20,7 +20,7 @@ import Node from './node'
 import Worker from './worker'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
-import createStatusWorker from './monitoring/status?nodeWorker'
+import StatusWorker from './monitoring/status'
 import SnapshotWorker from './monitoring/snapshot'
 import FsHandle from './libs/FsHandle'
 
@@ -41,14 +41,7 @@ const appEnv = new AppEnv({
 const node = new Node(ipcMain, appEnv, eventBus)
 const worker = new Worker(ipcMain, appEnv)
 const fsHandle = new FsHandle(ipcMain)
-const statusWorker = createStatusWorker({
-  workerData: {
-    isPackaged: appEnv.isPackaged,
-    appPath: appEnv.appPath,
-    userData: appEnv.userData,
-    version: appEnv.version
-  }
-})
+const statusWorker = new StatusWorker(appEnv, eventBus)
 const snapshotWorker = new SnapshotWorker(appEnv, eventBus)
 // Optional, initialize the logger for any renderer process
 log.initialize({ spyRendererConsole: true })
@@ -192,13 +185,10 @@ app.whenReady().then(async () => {
     return await quit()
   }
 
-  statusWorker.postMessage({
-    type: 'start'
-  })
+  statusWorker.start()
   log.debug('statusWorker.postMessage start')
 
   snapshotWorker.start()
-  // eventBus.emitEvent(EventBusEventName.StartDownloadSnapshot, null)
 
   log.debug('snapshotWorker.postMessage start')
 
@@ -274,10 +264,7 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 const quit = async () => {
-  statusWorker.postMessage({
-    type: 'stop'
-  })
-  await statusWorker.terminate()
+  await statusWorker.destroy()
 
   await snapshotWorker.destroy()
 
