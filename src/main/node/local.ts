@@ -11,7 +11,8 @@ import {
   deleteFolderRecursive,
   deleteFile,
   deleteFilesByCoordinatorPublicKeys,
-  deleteFilesByValidatorPublicKeys
+  deleteFilesByValidatorPublicKeys,
+  getPublicIP
 } from '../libs/fs'
 import AppEnv from '../libs/appEnv'
 import {
@@ -67,6 +68,7 @@ class LocalNode extends EventEmitter {
   private coordinatorValidator: Child | null
   private validator: Child | null
   private download: DownloadFile | null = null
+  private ip: string | null = null
 
   constructor(model: Node | undefined, appEnv: AppEnv) {
     super()
@@ -78,6 +80,7 @@ class LocalNode extends EventEmitter {
   }
 
   public async initialize(): Promise<StatusResults> {
+    this.ip = await getPublicIP()
     const results: StatusResults = {
       coordinatorBeacon: StatusResult.fail,
       validator: StatusResult.fail,
@@ -548,6 +551,7 @@ class LocalNode extends EventEmitter {
         // `--network-id=${getChainId(this.model.network)}`,
         // '--contract-deployment-block=0',
         // `--deposit-contract=${getValidatorAddress(this.model.network)}`,
+        `--p2p-host-ip=${this.ip}`,
         `--p2p-tcp-port=${this.model.coordinatorP2PTcpPort}`,
         `--p2p-udp-port=${this.model.coordinatorP2PUdpPort}`,
         `--grpc-gateway-port=${this.model.coordinatorHttpApiPort}`,
