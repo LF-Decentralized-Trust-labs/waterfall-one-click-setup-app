@@ -5,7 +5,7 @@ import { theme } from '../theme'
 const { Title, Text: AntdText } = Typography
 
 type TextPropsT = PropsWithChildren & {
-  color?: 'black' | 'white'
+  color?: 'black' | 'white' | 'red'
   size?: 'xsm' | 'sm' | 'md' | 'lg'
 }
 
@@ -19,7 +19,8 @@ const Text: React.FC<TextPropsT> = ({ color = 'black', size = 'md', children, ..
 
 const colors = {
   black: theme.palette.text.black,
-  white: theme.palette.text.white
+  white: theme.palette.text.white,
+  red: theme.palette.text.red
 }
 const sizes = {
   xsm: '10px',
