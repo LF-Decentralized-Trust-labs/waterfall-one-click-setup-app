@@ -13,6 +13,7 @@ const items = [
     children: (
       <>
         <Text size="sm">0.3.1 beta - 08.05.2024</Text>
+        <p>Improve: add path when remove node</p>
         <p>Fix: Coordinator peers</p>
         <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
         <p>New: #11 Download last snapshot</p>

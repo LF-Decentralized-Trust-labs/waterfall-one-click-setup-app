@@ -260,6 +260,20 @@ export const useRemove = (id?: string) => {
   const [status, setStatus] = useState<boolean>(false)
   const [withData, onChangeWithData] = useState<boolean>(false)
 
+  const {
+    isLoading: isLoadingNode,
+    data: node,
+    error: errorNode
+  } = useQuery({
+    queryKey: ['node:one', id],
+    queryFn: async () => {
+      if (id) {
+        return await getById(parseInt(id))
+      }
+      return undefined
+    }
+  })
+
   const removeMutation = useMutation({
     mutationFn: async ({ ids, withData }: { ids: number[]; withData: boolean }) => {
       return await remove(ids, withData)
@@ -283,5 +297,5 @@ export const useRemove = (id?: string) => {
     },
     [id, withData]
   )
-  return { onRemove, status, withData, onChangeWithData }
+  return { onRemove, status, withData, onChangeWithData, isLoadingNode, node, errorNode }
 }

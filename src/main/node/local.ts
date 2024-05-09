@@ -28,7 +28,8 @@ import {
   getCoordinatorWalletPasswordPath,
   getCoordinatorKeyPath,
   getValidatorKeystorePath,
-  getSnapshotPath
+  getSnapshotPath,
+  getValidatorNodeKeyPath
 } from '../libs/env'
 
 import {
@@ -47,6 +48,8 @@ import { isSyncInfo } from '../helpers/node'
 import { getCurrentDateUTC } from '../helpers/common'
 
 import DownloadFile from '../libs/downloadFile'
+import { clearInterval } from 'node:timers'
+import * as rfs from 'rotating-file-stream'
 
 export { StatusResult }
 
@@ -69,6 +72,9 @@ class LocalNode extends EventEmitter {
   private validator: Child | null
   private download: DownloadFile | null = null
   private ip: string | null = null
+  private startTime: Date | null = null
+  private monitoringInterval: NodeJS.Timeout | null = null
+  private monitoringLogStream: rfs.RotatingFileStream | null = null
 
   constructor(model: Node | undefined, appEnv: AppEnv) {
     super()
@@ -113,6 +119,13 @@ class LocalNode extends EventEmitter {
     this._setValidator()
     this._setCoordinatorValidator()
 
+    this.monitoringLogStream = rfs.createStream('monitoring.log', {
+      size: '50M',
+      interval: '1d',
+      compress: 'gzip',
+      maxFiles: 10,
+      path: getLogPath(this.model.locationDir)
+    })
     return results
   }
 
@@ -138,6 +151,8 @@ class LocalNode extends EventEmitter {
       log.debug(`start valid: ${results.coordinatorValidator}`)
     }
 
+    this.startTime = new Date()
+    this._startMonitoring()
     return results
   }
 
@@ -162,7 +177,8 @@ class LocalNode extends EventEmitter {
       results.validator = await this.validator.stop()
       log.debug(`stop gwat: ${results.validator}`)
     }
-
+    this.startTime = null
+    this._stopMonitoring()
     return results
   }
 
@@ -684,7 +700,7 @@ class LocalNode extends EventEmitter {
       await checkOrCreateFile(
         getValidatorKeystorePath(
           this.model.locationDir,
-          `UTC--${getCurrentDateUTC()}--${key.validatorKey.address}`
+          `UTC--${getCurrentDateUTC(true)}--${key.validatorKey.address}`
         ),
         JSON.stringify(key.validatorKey)
       )
@@ -917,6 +933,61 @@ class LocalNode extends EventEmitter {
     if (this.download) {
       this.download.stop()
     }
+  }
+
+  private _startMonitoring() {
+    if (this.monitoringInterval) {
+      return
+    }
+    this.monitoringInterval = setInterval(this._monitoring.bind(this), 4000)
+  }
+  private _stopMonitoring() {
+    if (!this.monitoringInterval) {
+      return
+    }
+    clearInterval(this.monitoringInterval)
+    this.monitoringInterval = null
+  }
+  private async _monitoring() {
+    if (this.model === null) {
+      return
+    }
+    let ip = ''
+    try {
+      ip = await getPublicIP()
+    } catch (e) {
+      log.debug('_monitoring', e)
+    }
+
+    const now = new Date()
+    const time = getCurrentDateUTC()
+
+    const [peers, sync] = await Promise.all([this.getPeers(), this.getSync()])
+
+    this.monitoringLogStream?.write(
+      `${time} ver=${this.appEnv.version} node_id=${this.model.id.toString()} c_peers=${peers?.coordinatorPeersCount} v_peers=${peers?.validatorPeersCount} c_distance=${sync?.coordinatorSyncDistance} c_head=${sync?.coordinatorHeadSlot} c_previous_justified=${sync?.coordinatorPreviousJustifiedEpoch} c_current_justified=${sync?.coordinatorCurrentJustifiedEpoch} c_finalized=${sync?.coordinatorFinalizedEpoch} v_distance=${sync?.validatorSyncDistance} v_head=${sync?.validatorHeadSlot} v_finalized=${sync?.validatorFinalizedSlot} ip=${ip} \n`
+    )
+    if (ip !== this.ip) {
+      this.monitoringLogStream?.write(
+        `${time} ver=${this.appEnv.version} node_id=${this.model.id.toString()} new=${ip} old=${this.ip} restart change ip\n`
+      )
+      await this.restart()
+    }
+    const fiveMinutesAgo = new Date(now.getTime() - 300000)
+    if (
+      this.startTime &&
+      this.startTime < fiveMinutesAgo &&
+      peers &&
+      (peers.coordinatorPeersCount === 0 || peers.validatorPeersCount === 0)
+    ) {
+      this.monitoringLogStream?.write(
+        `${time} ver=${this.appEnv.version} node_id=${this.model.id.toString()} c_peers=${peers?.coordinatorPeersCount} v_peers=${peers?.validatorPeersCount} restart none peers\n`
+      )
+      await this.stop()
+      await deleteFile(getValidatorNodeKeyPath(this.model.locationDir))
+      await this.start()
+    }
+    this.ip = ip
   }
 }
 

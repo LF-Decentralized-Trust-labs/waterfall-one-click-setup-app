@@ -2,7 +2,7 @@ import React from 'react'
 import { Checkbox } from 'antd'
 import { Modal } from '../../ui-kit/Modal'
 import { Alert } from '../../ui-kit/Alert'
-import { Title } from '../../ui-kit/Typography'
+import { Title, Text } from '../../ui-kit/Typography'
 import { useRemove } from '../../hooks/node'
 import { CheckboxChangeEvent } from 'antd/es/checkbox'
 
@@ -12,7 +12,7 @@ type RemoveModalProps = {
 }
 const okButtonProps = { danger: true }
 export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose }) => {
-  const { status: status, withData, onChangeWithData, onRemove } = useRemove(id)
+  const { status: status, withData, onChangeWithData, onRemove, node } = useRemove(id)
 
   if (!id) {
     return null
@@ -44,7 +44,11 @@ export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose }) => {
 
         <Title>
           <Checkbox onChange={onChange} checked={withData}>
-            Delete data folder too
+            Delete data folder `
+            <Text color="red" size="sm">
+              {node?.locationDir}
+            </Text>
+            ` too
           </Checkbox>
         </Title>
       </div>

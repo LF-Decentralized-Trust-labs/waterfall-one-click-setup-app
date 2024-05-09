@@ -59,6 +59,9 @@ export const getValidatorKeystorePath = (dataPath: string, name?: string): strin
 
 export const getValidatorPasswordPath = (dataPath: string): string =>
   path.resolve(path.join(getValidatorPath(dataPath), 'password.txt'))
+
+export const getValidatorNodeKeyPath = (dataPath: string): string =>
+  path.resolve(path.join(getValidatorPath(dataPath), 'gwat', 'nodekey'))
 export const getLogPath = (dataPath: string): string => path.resolve(path.join(dataPath, 'logs'))
 
 export const getSnapshotPath = (dataPath: string): string =>
