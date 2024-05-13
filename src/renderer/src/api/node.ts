@@ -46,7 +46,7 @@ export const remove = async (ids: number[] | bigint[], withData = false) => {
 }
 
 export const getLastSnapshot = async (): Promise<Snapshot | null> => {
-  const data = await window.os.fetchJSON(LAST_SNAPSHOT_URL)
+  const data = await window.os.fetchJSON(`${LAST_SNAPSHOT_URL}?date=${new Date().getTime()}`)
   if (
     data &&
     typeof data === 'object' &&
