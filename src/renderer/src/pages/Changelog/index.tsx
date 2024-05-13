@@ -12,25 +12,18 @@ const items = [
   {
     children: (
       <>
-        <Text size="sm">0.3.1 beta - 08.05.2024</Text>
-        <p>Improve: add path when remove node</p>
-        <p>Fix: Coordinator peers</p>
-        <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
-        <p>New: #11 Download last snapshot</p>
-        <p>Improve: #11 Download last snapshot: pause/resume/remove</p>
+        <Text size="sm">0.3.1 beta - 13.05.2024</Text>
+        <p>New: #11 Download the last snapshot when adding a new Node</p>
         <p>New: #12 Import workers</p>
         <p>New: #17 Remove workers and nodes</p>
-        <p>New: #17 Remove workers and nodes: To remove a node, delete all workers</p>
-        <p>New: #17 Remove workers and nodes: Remove after checkbox confirmation does not work</p>
-        <p>New: #17 Remove workers and nodes: Change text. Incorrect text when removing a node</p>
-        <p>Fix: Adding workers</p>
-        <p>Fix: #61 Adding workers when node is stopped</p>
-        <p>Fix: #36 Withdraw worker. when switching to another window, the fields are cleared</p>
+        <p>Improve: Add path when removing a node</p>
         <p>
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
         </p>
-        <p>Update: Validator binary bfb7bc</p>
-        <p>Update: Coordinator binary ff16d61</p>
+        <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
+        <p>Fix: #36 Withdraw worker. When switching to another window, the fields are cleared</p>
+        <p>Fix: Coordinator/Validators peers</p>
+        <p>Fix: Adding workers</p>
       </>
     )
   },
