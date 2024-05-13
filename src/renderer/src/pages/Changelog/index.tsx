@@ -21,7 +21,9 @@ const items = [
           Improve: Disable activation/deactivation/withdraw workers buttons if the node is stopped
         </p>
         <p>Fix: #63 Add a check if a user tries to import a worker with an invalid mnemonic</p>
-        <p>Fix: #36 Withdrawal procedure. When switching to another window, the fields are cleared</p>
+        <p>
+          Fix: #36 Withdrawal procedure. When switching to another window, the fields are cleared
+        </p>
         <p>Fix: Coordinator/Validators peers</p>
         <p>Fix: Adding workers</p>
       </>
