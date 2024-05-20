@@ -161,6 +161,9 @@ app.whenReady().then(async () => {
     return await quit()
   }
 
+  autoUpdater.checkForUpdatesAndNotify()
+  log.debug('check update')
+
   try {
     await node.initialize()
     log.debug('node.initialize Done')
