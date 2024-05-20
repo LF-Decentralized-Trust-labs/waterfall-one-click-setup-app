@@ -12,6 +12,14 @@ const items = [
   {
     children: (
       <>
+        <Text size="sm">0.3.2 beta - 20.05.2024</Text>
+        <p>Improve: Optimistic consensus</p>
+      </>
+    )
+  },
+  {
+    children: (
+      <>
         <Text size="sm">0.3.1 beta - 13.05.2024</Text>
         <p>New: #11 Download the last snapshot when adding a new Node</p>
         <p>New: #12 Import workers</p>
