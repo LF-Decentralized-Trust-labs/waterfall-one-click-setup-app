@@ -11,13 +11,32 @@
 ### Nodes:
 
 - [ ] Node Add
-- [ ] ...
+- [ ] Node synchronisation
+- [ ] Delete Node 
+- [ ] Stopped/Start Node
+- [ ] List Node 
+
+
 
 ### Workers
 
 - [ ] Worker Add
 - [ ] Worker Import
-- [ ] ...
+- [ ] Worker Delete
+- [ ] Worker Activate
+- [ ] Worker Deactivate
+- [ ] Worker Reward
+- [ ] Worker Penalty
+- [ ] Worker Withdrawal
+
+
+### Other
+
+- [ ] Autoupdate
+- [ ] Installing
+- [ ] Tray Menu
+- [ ] Menu
+- [ ] Exit from app
 
 <details><summary>Steps to reproduce</summary>
 
