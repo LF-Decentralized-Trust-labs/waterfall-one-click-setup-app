@@ -245,7 +245,7 @@ const WorkersAmount: React.FC<
 > = ({ goNext, goPrev, value, onChange }) => {
   return (
     <AddWorkerForm
-      title="Select the number of Workers that you want to add"
+      title="Select the number of Validators that you want to add"
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={!!value}

@@ -137,14 +137,14 @@ const DisplayFoundedWorkers: React.FC<
 
   return (
     <AddWorkerForm
-      title="Display # Workers and confirm import"
+      title="Display # Validators and confirm import"
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={isValid}
     >
       <Flex>
         <Text>
-          {foundedCount ? `${foundedCount} Workers were found.` : 'Workers were not found.'}
+          {foundedCount ? `${foundedCount} Validators were found.` : 'Validators were not found.'}
         </Text>
       </Flex>
     </AddWorkerForm>

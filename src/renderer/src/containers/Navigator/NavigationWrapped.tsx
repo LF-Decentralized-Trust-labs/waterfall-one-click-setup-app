@@ -13,7 +13,7 @@ const menuItems: MenuItemT[] = [
     link: routes.workers.list,
     key: root_routes.workers,
     icon: <RobotOutlined />,
-    title: 'Workers'
+    title: 'Validators'
   },
   {
     link: routes.statistics.view,

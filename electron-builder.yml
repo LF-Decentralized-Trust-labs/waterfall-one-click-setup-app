@@ -61,7 +61,8 @@ appImage:
 npmRebuild: false
 publish:
   provider: generic
-  url: https://docs.waterfall.network/files/app
+  #  url: https://docs.waterfall.network/files/app
+  url: https://storage.waterfall.network/app
   #  channel: dev
   channel: beta
 #  generateUpdateFilesForAllChannels: true

@@ -11,5 +11,10 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     'react/prop-types': 'off',
     '@typescript-eslint/no-explicit-any': ['off']
+  },
+  settings: {
+    react: {
+      version: 'detect' // Automatically detect the react version
+    }
   }
 }

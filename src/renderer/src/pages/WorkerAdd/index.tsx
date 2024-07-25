@@ -43,7 +43,7 @@ export const AddWorkerPage = () => {
   return (
     <Layout>
       <PageHeader
-        title={mode === 'add' ? 'Add Worker' : 'Import Worker'}
+        title={mode === 'add' ? 'Add Validator' : 'Import Validator'}
         actions={
           <Flex align="center" gap={4}>
             {step > 0 && <ArrowedButton direction="back" onClick={goPrev} />}

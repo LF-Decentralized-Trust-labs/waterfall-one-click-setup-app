@@ -21,7 +21,7 @@ export const ImportWorkerPage = () => {
   return (
     <Layout>
       <PageHeader
-        title="Import Worker"
+        title="Import Validator"
         actions={
           <Flex align="center" gap={4}>
             {step > 0 && <ArrowedButton direction="back" onClick={goPrev} />}

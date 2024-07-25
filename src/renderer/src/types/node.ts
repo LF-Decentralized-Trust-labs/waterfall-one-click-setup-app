@@ -1,6 +1,7 @@
 // NODE LIST TABLE
 export enum Network {
   testnet8 = 'testnet8',
+  testnet9 = 'testnet9',
   mainnet = 'mainnet'
 }
 export enum Type {
@@ -195,6 +196,10 @@ export type Snapshot = {
   url: string
   hash: string
   size: number
+}
+
+export type Snapshots = {
+  [K in Network]: Snapshot
 }
 
 export enum Action {

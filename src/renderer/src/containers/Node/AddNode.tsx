@@ -239,21 +239,21 @@ const PortsSelection: React.FC<PortsSelectionT> = ({
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator P2P"
+        label="Verifier P2P"
         handleChange={handleChange(AddNodeFields.validatorP2PPort)}
         value={Number(values[AddNodeFields.validatorP2PPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorP2PPort] : true}
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator HTTP api"
+        label="Verifier HTTP api"
         handleChange={handleChange(AddNodeFields.validatorHttpApiPort)}
         value={Number(values[AddNodeFields.validatorHttpApiPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorHttpApiPort] : true}
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator WS api"
+        label="Verifier WS api"
         handleChange={handleChange(AddNodeFields.validatorWsApiPort)}
         value={Number(values[AddNodeFields.validatorWsApiPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorWsApiPort] : true}

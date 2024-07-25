@@ -13,7 +13,7 @@ import {
   add,
   remove,
   checkPorts,
-  getLastSnapshot
+  getLastSnapshots
 } from '@renderer/api/node'
 import { selectDirectory } from '@renderer/api/os'
 import {
@@ -39,7 +39,7 @@ const initialPorts = {
 }
 const initialValues = {
   [AddNodeFields.type]: Type.local,
-  [AddNodeFields.network]: Network.testnet8,
+  [AddNodeFields.network]: Network.mainnet,
   [AddNodeFields.locationDir]: DEFAULT_WF_PATH,
   [AddNodeFields.name]: '',
   [AddNodeFields.downloadStatus]: DownloadStatus.downloading,
@@ -73,10 +73,10 @@ export const useAddNode = () => {
   const navigate = useNavigate()
   const [values, setValues] = useState<NewNode>(initialValues)
 
-  const { data: snapshot } = useQuery({
+  const { data: snapshots } = useQuery({
     queryKey: ['node:snapshot'],
     queryFn: async () => {
-      return await getLastSnapshot()
+      return await getLastSnapshots()
     }
   })
 
@@ -129,7 +129,7 @@ export const useAddNode = () => {
   }, [values])
 
   const onSelectSnapshot = useCallback(() => {
-    if (!snapshot) return
+    if (!snapshots) return
     setValues((prev) => ({
       ...prev,
       [AddNodeFields.downloadStatus]:
@@ -137,17 +137,23 @@ export const useAddNode = () => {
           ? DownloadStatus.finish
           : DownloadStatus.downloading,
       [AddNodeFields.downloadUrl]:
-        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? null : snapshot.url,
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading
+          ? null
+          : snapshots[values[AddNodeFields.network]].url,
       [AddNodeFields.downloadHash]:
-        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? null : snapshot.hash,
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading
+          ? null
+          : snapshots[values[AddNodeFields.network]].hash,
       [AddNodeFields.downloadSize]:
-        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? 0 : snapshot.size
+        prev[AddNodeFields.downloadStatus] === DownloadStatus.downloading
+          ? 0
+          : snapshots[values[AddNodeFields.network]].size
     }))
-  }, [snapshot])
+  }, [snapshots, values])
 
   useEffect(() => {
     if (
-      !snapshot ||
+      !snapshots ||
       values[AddNodeFields.downloadStatus] !== DownloadStatus.downloading ||
       (values[AddNodeFields.downloadUrl] && values[AddNodeFields.downloadHash])
     ) {
@@ -155,11 +161,11 @@ export const useAddNode = () => {
     }
     setValues((prev) => ({
       ...prev,
-      [AddNodeFields.downloadUrl]: snapshot.url,
-      [AddNodeFields.downloadHash]: snapshot.hash,
-      [AddNodeFields.downloadSize]: snapshot.size
+      [AddNodeFields.downloadUrl]: snapshots[values[AddNodeFields.network]].url,
+      [AddNodeFields.downloadHash]: snapshots[values[AddNodeFields.network]].hash,
+      [AddNodeFields.downloadSize]: snapshots[values[AddNodeFields.network]].size
     }))
-  }, [snapshot, values])
+  }, [snapshots, values])
 
   return {
     values,
@@ -169,7 +175,7 @@ export const useAddNode = () => {
     onCheckPorts,
     checkPorts,
     isLoading,
-    snapshot,
+    snapshot: (snapshots && snapshots[values[AddNodeFields.network]]) || null,
     onSelectSnapshot
   }
 }

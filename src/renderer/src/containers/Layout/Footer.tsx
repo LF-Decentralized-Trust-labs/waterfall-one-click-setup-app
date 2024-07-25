@@ -57,7 +57,6 @@ export const Footer = () => {
       // }
       rightSide={
         <RightInfo gap={20} align="center">
-          <Text size="sm">Testnet 8</Text>
           <Text size="sm">{state?.version}</Text>
           <Popover
             placement="topRight"

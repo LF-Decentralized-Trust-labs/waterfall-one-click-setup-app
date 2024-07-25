@@ -5,7 +5,9 @@ import {
   Status,
   DownloadStatus,
   ActionMap,
-  Action
+  Action,
+  Snapshot,
+  Snapshots
 } from '@renderer/types/node'
 
 export const getNodeStatus = (node: Node) => {
@@ -69,4 +71,16 @@ export const getActions = (node?: Node): ActionMap => {
         getNodeStatus(node) === DownloadStatus.verifyingPause
       : false
   }
+}
+
+export function isNetworkInfo(obj: any): obj is Snapshot {
+  return (
+    typeof obj === 'object' &&
+    typeof obj.url === 'string' &&
+    typeof obj.hash === 'string' &&
+    typeof obj.size === 'number'
+  )
+}
+export function isSnapshots(obj: any): obj is Snapshots {
+  return typeof obj === 'object' && isNetworkInfo(obj.testnet8) && isNetworkInfo(obj.mainnet)
 }

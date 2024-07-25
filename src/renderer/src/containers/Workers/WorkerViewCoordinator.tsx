@@ -40,16 +40,16 @@ export const WorkerViewCoordinator: React.FC<WorkerViewTabProps> = ({ item }) =>
         label="Deactivation Epoch"
         value={item?.coordinatorDeActivationEpoch ? item.coordinatorDeActivationEpoch : '-'}
       />
-      <TabTextRow
-        label="Blocks created"
-        value={item?.coordinatorBlockCreationCount ? item.coordinatorBlockCreationCount : '-'}
-      />
-      <TabTextRow
-        label="Attestations created"
-        value={
-          item?.coordinatorAttestationCreationCount ? item.coordinatorAttestationCreationCount : '-'
-        }
-      />
+      {/*<TabTextRow*/}
+      {/*  label="Blocks created"*/}
+      {/*  value={item?.coordinatorBlockCreationCount ? item.coordinatorBlockCreationCount : '-'}*/}
+      {/*/>*/}
+      {/*<TabTextRow*/}
+      {/*  label="Attestations created"*/}
+      {/*  value={*/}
+      {/*    item?.coordinatorAttestationCreationCount ? item.coordinatorAttestationCreationCount : '-'*/}
+      {/*  }*/}
+      {/*/>*/}
     </TabContent>
   )
 }

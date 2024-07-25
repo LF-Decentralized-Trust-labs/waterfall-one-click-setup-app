@@ -17,14 +17,14 @@ type ActionModalProps = {
 
 const getTitle = (type, id) => {
   if (type === ActionTxType.activate) {
-    return `Activate Worker #${id}`
+    return `Activate Validator #${id}`
   } else if (type === ActionTxType.deActivate) {
-    return `Deactivate Worker #${id}`
+    return `Deactivate Validator #${id}`
   } else if (type === ActionTxType.remove) {
-    return `Remove Worker #${id}`
+    return `Remove Validator #${id}`
   }
 
-  return `Withdraw Worker #${id}`
+  return `Withdraw Validator #${id}`
 }
 
 const okButtonProps = {}
@@ -83,7 +83,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
       ) : (
         <div>
           {type === ActionTxType.remove && (
-            <Alert message="Are you sure you want to remove this worker?" type="error" />
+            <Alert message="Are you sure you want to remove this Validator?" type="error" />
           )}
 
           {type === ActionTxType.withdraw && (

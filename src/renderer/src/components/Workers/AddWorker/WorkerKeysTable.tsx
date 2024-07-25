@@ -9,14 +9,14 @@ type DataType = DisplayKeysDataType & {
 }
 
 const columns = (): TableColumnsType<DataType> => [
-  { title: 'Worker #', dataIndex: DisplayKeysFields.id, key: DisplayKeysFields.id },
+  { title: 'Validator #', dataIndex: DisplayKeysFields.id, key: DisplayKeysFields.id },
   {
     title: 'Coordinator public Key',
     dataIndex: DisplayKeysFields.coordinatorKey,
     key: DisplayKeysFields.coordinatorKey
   },
   {
-    title: 'Validator public Key',
+    title: 'Verifier public Key',
     dataIndex: DisplayKeysFields.validatorKey,
     key: DisplayKeysFields.validatorKey
   },

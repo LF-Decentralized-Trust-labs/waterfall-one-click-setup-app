@@ -39,7 +39,7 @@ const getTabs = (worker?: Worker) => [
     closable: false
   },
   {
-    label: 'Validator',
+    label: 'Verifier',
     children: <WorkerViewValidator item={worker} />,
     key: '3',
     closable: false
@@ -64,7 +64,7 @@ export const WorkerViewPage = () => {
 
   const breadcrumb = [
     {
-      title: 'Workers',
+      title: 'Validators',
       link: getViewLink(routes.nodes.list)
     },
     {
@@ -81,7 +81,7 @@ export const WorkerViewPage = () => {
           <Flex dir="row" gap={6}>
             {actions[ActionTxType.activate] && (
               <Popover
-                content="Activate the Worker only if the node runs and syncs"
+                content="Activate the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -95,7 +95,7 @@ export const WorkerViewPage = () => {
             )}
             {actions[ActionTxType.deActivate] && (
               <Popover
-                content="Deactivate the Worker only if the node runs and syncs"
+                content="Deactivate the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -109,7 +109,7 @@ export const WorkerViewPage = () => {
             )}
             {actions[ActionTxType.withdraw] && (
               <Popover
-                content="Withdraw the Worker only if the node runs and syncs"
+                content="Withdraw the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -122,7 +122,7 @@ export const WorkerViewPage = () => {
               </Popover>
             )}
 
-            <Popover content="Delete the Worker only if the node stops" placement="bottom">
+            <Popover content="Delete the Validator only if the node stops" placement="bottom">
               <IconButton
                 disabled={!actions[ActionTxType.remove]}
                 icon={<DeleteOutlined />}

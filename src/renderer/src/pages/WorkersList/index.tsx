@@ -17,7 +17,7 @@ export const WorkersListPage = () => {
 
   const breadcrumb = [
     {
-      title: 'Workers'
+      title: 'Validators'
     }
   ]
 

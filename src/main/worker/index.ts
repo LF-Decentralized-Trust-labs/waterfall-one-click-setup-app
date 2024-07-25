@@ -15,6 +15,7 @@ import {
 } from 'web3/utils'
 import LocalNode from '../node/local'
 import crypto from 'crypto'
+import { getStakeAmount } from '../libs/env'
 
 enum ErrorResults {
   NODE_NOT_FOUND = 'Node is Not Found',
@@ -300,7 +301,7 @@ class Worker {
       hexData = await node.runValidatorCommand(
         `wat.validator.depositData({pubkey:'0x${worker.coordinatorPublicKey}', creator_address:'0x${worker.validatorAddress}', withdrawal_address:'0x${worker.withdrawalAddress}', signature:'0x${worker.signature}'})`
       )
-      value = 3200
+      value = getStakeAmount(worker.node.network)
     } else if (action === ActionTxType.deActivate) {
       hexData = await node.runValidatorCommand(
         `wat.validator.exitData({pubkey:'0x${worker.coordinatorPublicKey}' , creator_address:'0x${worker.validatorAddress}'})`

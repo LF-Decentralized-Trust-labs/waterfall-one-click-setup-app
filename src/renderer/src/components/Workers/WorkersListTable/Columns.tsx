@@ -94,7 +94,7 @@ export const columns = ({
           <Flex gap={6}>
             {actions[ActionTxType.activate] && (
               <Popover
-                content="Activate the Worker only if the node runs and syncs"
+                content="Activate the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -108,7 +108,7 @@ export const columns = ({
             )}
             {actions[ActionTxType.deActivate] && (
               <Popover
-                content="Deactivate the Worker only if the node runs and syncs"
+                content="Deactivate the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -122,7 +122,7 @@ export const columns = ({
             )}
             {actions[ActionTxType.withdraw] && (
               <Popover
-                content="Withdraw the Worker only if the node runs and syncs"
+                content="Withdraw the Validator only if the node runs and syncs"
                 placement="bottom"
               >
                 <IconButton
@@ -134,7 +134,7 @@ export const columns = ({
                 />
               </Popover>
             )}
-            <Popover content="Delete the Worker only if the node stops" placement="bottom">
+            <Popover content="Delete the Validator only if the node stops" placement="bottom">
               <IconButton
                 disabled={!actions[ActionTxType.remove]}
                 icon={<DeleteOutlined />}

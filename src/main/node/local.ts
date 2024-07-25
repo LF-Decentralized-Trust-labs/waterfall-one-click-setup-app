@@ -307,7 +307,8 @@ class LocalNode extends EventEmitter {
 
         if (isSyncInfo(response)) {
           results.validatorHeadSlot = BigInt(response.currSlot)
-          results.validatorSyncDistance = BigInt(response.currSlot) - BigInt(response.maxDagSlot)
+          // results.validatorSyncDistance = BigInt(response.currSlot) - BigInt(response.maxDagSlot)
+          results.validatorSyncDistance = BigInt(0)
           results.validatorFinalizedSlot = BigInt(response.cpSlot)
         }
       }
@@ -567,6 +568,7 @@ class LocalNode extends EventEmitter {
         // `--network-id=${getChainId(this.model.network)}`,
         // '--contract-deployment-block=0',
         // `--deposit-contract=${getValidatorAddress(this.model.network)}`,
+        `--enable-upnp`,
         `--p2p-host-ip=${this.ip}`,
         `--p2p-tcp-port=${this.model.coordinatorP2PTcpPort}`,
         `--p2p-udp-port=${this.model.coordinatorP2PUdpPort}`,

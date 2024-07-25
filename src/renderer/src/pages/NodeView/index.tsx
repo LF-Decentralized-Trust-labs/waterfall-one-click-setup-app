@@ -32,19 +32,19 @@ const getTabs = (node?: Node) => [
     closable: false
   },
   {
-    label: 'Coordinator',
+    label: 'Coordinator Layer',
     children: <NodeViewCoordinator item={node} />,
     key: '2',
     closable: false
   },
   {
-    label: 'Validator',
+    label: 'Verifier Layer',
     children: <NodeViewValidator item={node} />,
     key: '3',
     closable: false
   },
   {
-    label: 'Workers',
+    label: 'Validators',
     children: <NodeViewWorkers item={node} />,
     key: '4',
     closable: false
@@ -121,7 +121,7 @@ export const NodeViewPage = () => {
               content={
                 node && node.downloadStatus === DownloadStatus.finish
                   ? node.workersCount > 0
-                    ? 'To remove a node, delete all workers first'
+                    ? 'To remove a node, delete all validators first'
                     : 'Delete the Node only if the node stops'
                   : 'Delete the Node only if the download stops'
               }

@@ -32,7 +32,7 @@ export const WorkersList: React.FC<WorkersListPropsT> = ({ shouldAddNode, data }
     )
   if (!data?.length)
     return (
-      <Empty description={<span>Nothing to display here. Please add your workers</span>}></Empty>
+      <Empty description={<span>Nothing to display here. Please add your Validators</span>}></Empty>
     )
 
   return (

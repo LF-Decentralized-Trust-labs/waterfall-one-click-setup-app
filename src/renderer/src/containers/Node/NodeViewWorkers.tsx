@@ -37,7 +37,7 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
                 [SearchKeys.step]: '1'
               })}
             >
-              Import Worker
+              Import Validator
             </ButtonPrimary>
           )}
           <ButtonPrimary
@@ -46,7 +46,7 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
               [SearchKeys.step]: '1'
             })}
           >
-            Add Worker
+            Add Validator
           </ButtonPrimary>
         </Actions>
       )}

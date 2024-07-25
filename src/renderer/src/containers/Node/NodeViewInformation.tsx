@@ -13,7 +13,7 @@ export const NodeViewInformation: React.FC<NodeViewTabProps> = ({ item }) => {
       <TabTextRow label="Type" value={item?.type} />
       <TabTextRow label="Network" value={item?.network} />
       <TabTextRow label="Location" value={item?.locationDir} />
-      <TabTextRow label="Last Worker Index" value={item?.workersCount} />
+      <TabTextRow label="Last Validator Index" value={item?.workersCount} />
       <TabTextRow label="Added" value={item?.createdAt ? getDateTime(item.createdAt) : '-'} />
     </TabContent>
   )

@@ -4,6 +4,7 @@ const ENV = import.meta.env
 
 export enum Network {
   testnet8 = 'testnet8',
+  testnet9 = 'testnet9',
   mainnet = 'mainnet'
 }
 
@@ -14,6 +15,8 @@ export const getCoordinatorBootnode = (network: Network): string =>
 export const getCoordinatorNetwork = (network: Network): string => {
   if (network === Network.testnet8) {
     return '--testnet8'
+  } else if (network === Network.testnet9) {
+    return '--testnet9'
   } else if (network === Network.mainnet) {
     return '--mainnet'
   }
@@ -23,6 +26,8 @@ export const getCoordinatorNetwork = (network: Network): string => {
 export const getValidatorNetwork = (network: Network): string => {
   if (network === Network.testnet8) {
     return '--testnet8'
+  } else if (network === Network.testnet9) {
+    return '--testnet9'
   } else if (network === Network.mainnet) {
     return '--mainnet'
   }
@@ -74,3 +79,14 @@ export const COORDINATOR_P2P_UDP_PORT = ENV.VITE_COORDINATOR_P2P_UDP_PORT
 export const VALIDATOR_P2P_PORT = ENV.VITE_VALIDATOR_P2P_PORT
 export const VALIDATOR_HTTP_API_PORT = ENV.VITE_VALIDATOR_HTTP_API_PORT
 export const VALIDATOR_WS_API_PORT = ENV.VITE_VALIDATOR_WS_API_PORT
+
+export const getStakeAmount = (network: Network): number => {
+  if (network === Network.testnet8) {
+    return 3200
+  } else if (network === Network.testnet9) {
+    return 32000
+  } else if (network === Network.mainnet) {
+    return 32000
+  }
+  return 32000
+}

@@ -97,7 +97,7 @@ export const StatisticsPage2 = () => {
       <PageBody>
         <StatisticsCards cards={RewardCards} />
         <Divider />
-        <Card title={'Total Workers'} type="inner">
+        <Card title={'Total Validators'} type="inner">
           <Flex justify="center">
             <Text size="lg">300 000</Text>
           </Flex>

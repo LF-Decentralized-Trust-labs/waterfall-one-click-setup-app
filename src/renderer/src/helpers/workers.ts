@@ -25,7 +25,7 @@ export const getImportWorkersSteps = (node?: string | null) => {
       key: ImportWorkersStepKeys.mnemonic
     },
     {
-      title: 'Display #Workers and confirm import',
+      title: 'Display #Validators and confirm import',
       key: ImportWorkersStepKeys.displayWorkers
     },
     {
@@ -33,7 +33,7 @@ export const getImportWorkersSteps = (node?: string | null) => {
       key: ImportWorkersStepKeys.withdrawalAddress
     },
     {
-      title: 'Display Workers keys',
+      title: 'Display Validators keys',
       key: ImportWorkersStepKeys.displayKeys
     },
     {
@@ -106,11 +106,11 @@ export const getAddWorkerSteps = (node?: Node, mode: 'add' | 'import' = 'add') =
       ...stepsWithKeys,
       ...[
         {
-          title: 'Select an amount of new Workers',
+          title: 'Select an amount of new Validators',
           key: AddWorkerStepKeys.workersAmount
         },
         {
-          title: 'Select withdrawal address for Worker',
+          title: 'Select withdrawal address for Validator',
           key: AddWorkerStepKeys.withdrawalAddress
         },
         {

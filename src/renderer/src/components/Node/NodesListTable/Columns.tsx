@@ -29,7 +29,7 @@ export const columns: TableColumnsType<DataType> = [
     render: (_, node) => getNodeStatusLabel(node)
   },
   {
-    title: 'Workers',
+    title: 'Validators',
     dataIndex: NodesListDataFields.workersCount,
     key: NodesListDataFields.workersCount
   },

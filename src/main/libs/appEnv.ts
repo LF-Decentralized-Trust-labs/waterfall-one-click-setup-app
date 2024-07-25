@@ -65,7 +65,7 @@ class AppEnv {
   }
 
   getValidatorBinPath = (network: Network) =>
-    path.resolve(path.join(this.getBinariesPath(), `./validator-${network}`))
+    path.resolve(path.join(this.getBinariesPath(), `./verifier-${network}`))
   getCoordinatorBeaconBinPath = (network: Network) =>
     path.resolve(path.join(this.getBinariesPath(), `./coordinator-beacon-${network}`))
   getCoordinatorValidatorBinPath = (network: Network) =>
