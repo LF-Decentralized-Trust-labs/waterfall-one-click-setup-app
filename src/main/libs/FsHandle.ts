@@ -12,6 +12,9 @@ class FsHandle {
     this.ipcMain.handle('os:selectDirectory', (_event: IpcMainInvokeEvent, defaultPath) =>
       this._selectDirectory(defaultPath)
     )
+    this.ipcMain.handle('os:selectFile', (_event: IpcMainInvokeEvent, defaultPath, filters) =>
+      this._selectFile(defaultPath, filters)
+    )
     this.ipcMain.handle('os:saveTextFile', (_event: IpcMainInvokeEvent, text, title, fileName) =>
       this._saveTextFile(text, title, fileName)
     )
@@ -22,6 +25,7 @@ class FsHandle {
 
   public async destroy() {
     this.ipcMain.removeHandler('os:selectDirectory')
+    this.ipcMain.removeHandler('os:selectFile')
     this.ipcMain.removeHandler('os:saveTextFile')
     this.ipcMain.removeHandler('os:openUrl')
   }
@@ -34,6 +38,21 @@ class FsHandle {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       defaultPath,
       properties: ['openDirectory', 'createDirectory', 'promptToCreate']
+    })
+    if (canceled) {
+      return null
+    } else {
+      return filePaths[0]
+    }
+  }
+  private async _selectFile(
+    defaultPath?: string,
+    filters?: { name: string; extensions: string[] }[]
+  ): Promise<string | null> {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      defaultPath,
+      filters,
+      properties: ['openFile']
     })
     if (canceled) {
       return null

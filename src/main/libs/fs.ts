@@ -247,3 +247,11 @@ export const getPublicIP = async (): Promise<string> => {
       })
   })
 }
+
+export const readJSON = async (filePath: string): Promise<string> => {
+  try {
+    return await readFile(filePath, { encoding: 'utf-8' })
+  } catch (error) {
+    return ''
+  }
+}

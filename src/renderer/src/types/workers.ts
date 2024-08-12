@@ -47,6 +47,7 @@ export interface Worker {
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
+  delegate: DelegateRulesT
   stakeAmount: string
   createdAt: string
   updatedAt: string
@@ -83,7 +84,7 @@ export enum WorkersListDataFields {
   nodeId = 'nodeId',
   node = 'node',
   status = 'status',
-  workedHours = 'workedHours',
+  coordinatorBalanceAmount = 'coordinatorBalanceAmount',
   actions = 'actions'
 }
 
@@ -92,7 +93,7 @@ export type WorkersListDataTypes = {
   [WorkersListDataFields.nodeId]: string
   [WorkersListDataFields.node]: Node
   [WorkersListDataFields.status]?: string
-  [WorkersListDataFields.workedHours]?: number
+  [WorkersListDataFields.coordinatorBalanceAmount]?: string
   [WorkersListDataFields.actions]?: {
     data?: any
     id: string
@@ -117,7 +118,9 @@ export enum AddWorkerFields {
   mnemonic = 'mnemonic',
   mnemonicVerify = 'mnemonicVerify',
   amount = 'amount',
-  withdrawalAddress = 'withdrawalAddress'
+  withdrawalAddress = 'withdrawalAddress',
+  depositData = 'depositData',
+  delegateRules = 'delegateRules'
 }
 
 export type AddWorkerFormValuesT = {
@@ -125,6 +128,8 @@ export type AddWorkerFormValuesT = {
   [AddWorkerFields.mnemonicVerify]: Record<number, string>
   [AddWorkerFields.amount]: number
   [AddWorkerFields.withdrawalAddress]: string
+  [AddWorkerFields.depositData]: string
+  [AddWorkerFields.delegateRules]: string
 }
 
 //IMPORT WORKER
@@ -190,4 +195,20 @@ export enum ActionTxType {
 
 export type ActionTxTypeMap = {
   [key in ActionTxType]: boolean
+}
+
+interface Rules {
+  profit_share: {
+    [key: string]: number
+  }
+  stake_share: {
+    [key: string]: number
+  }
+  exit: string[]
+  withdrawal: string[]
+}
+export interface DelegateRulesT {
+  trial_period?: number
+  trial_rules?: Rules
+  rules?: Rules
 }

@@ -9,6 +9,7 @@ import EventBus, {
   FinishDownloadSnapshotPayload
 } from '../libs/EventBus'
 import LocalNode, { StatusResult, StatusResults } from './local'
+import ProviderNode from './provider'
 import NodeModel, {
   CoordinatorStatus,
   CoordinatorValidatorStatus,
@@ -34,7 +35,7 @@ class Node {
   private workerModel: WorkerModel
 
   private nodes: {
-    [key: string]: LocalNode
+    [key: string]: LocalNode | ProviderNode
   }
 
   constructor(ipcMain: IpcMain, appEnv: AppEnv, eventBus: EventBus) {
@@ -161,26 +162,36 @@ class Node {
       this.nodes[nodeModel.id.toString()] =
         nodeModel.type === NodeType.local
           ? new LocalNode(nodeModel, this.appEnv)
-          : new LocalNode(nodeModel, this.appEnv)
+          : new ProviderNode(nodeModel, this.appEnv)
     }
     const node = this.nodes[nodeModel.id.toString()]
     const initNodeStatus = await node.initialize()
     log.debug('initNodeStatus', initNodeStatus)
     node.on('stop', () => {
-      const pids = node.getPids()
+      if (nodeModel.type === NodeType.local) {
+        const pids = node.getPids()
+        this.nodeModel.update(nodeModel.id, {
+          coordinatorPid: pids.coordinatorBeacon,
+          coordinatorStatus: pids.coordinatorBeacon
+            ? CoordinatorStatus.running
+            : CoordinatorStatus.stopped,
+          coordinatorPeersCount: 0,
+          validatorPid: pids.validator,
+          validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
+          validatorPeersCount: 0,
+          coordinatorValidatorPid: pids.coordinatorValidator,
+          coordinatorValidatorStatus: pids.coordinatorValidator
+            ? CoordinatorValidatorStatus.running
+            : CoordinatorValidatorStatus.stopped
+        })
+        return
+      }
       this.nodeModel.update(nodeModel.id, {
-        coordinatorPid: pids.coordinatorBeacon,
-        coordinatorStatus: pids.coordinatorBeacon
-          ? CoordinatorStatus.running
-          : CoordinatorStatus.stopped,
+        coordinatorStatus: CoordinatorStatus.stopped,
         coordinatorPeersCount: 0,
-        validatorPid: pids.validator,
-        validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
+        validatorStatus: ValidatorStatus.stopped,
         validatorPeersCount: 0,
-        coordinatorValidatorPid: pids.coordinatorValidator,
-        coordinatorValidatorStatus: pids.coordinatorValidator
-          ? CoordinatorValidatorStatus.running
-          : CoordinatorValidatorStatus.stopped
+        coordinatorValidatorStatus: CoordinatorValidatorStatus.stopped
       })
     })
     if (
@@ -189,19 +200,29 @@ class Node {
       initNodeStatus.coordinatorValidator === StatusResult.success
     ) {
       await node.start()
-      const pids = node.getPids()
-      this.nodeModel.update(nodeModel.id, {
-        coordinatorPid: pids.coordinatorBeacon,
-        coordinatorStatus: pids.coordinatorBeacon
-          ? CoordinatorStatus.running
-          : CoordinatorStatus.stopped,
-        validatorPid: pids.validator,
-        validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
-        coordinatorValidatorPid: pids.coordinatorValidator,
-        coordinatorValidatorStatus: pids.coordinatorValidator
-          ? CoordinatorValidatorStatus.running
-          : CoordinatorValidatorStatus.stopped
-      })
+      if (nodeModel.type === NodeType.local) {
+        const pids = node.getPids()
+        this.nodeModel.update(nodeModel.id, {
+          coordinatorPid: pids.coordinatorBeacon,
+          coordinatorStatus: pids.coordinatorBeacon
+            ? CoordinatorStatus.running
+            : CoordinatorStatus.stopped,
+          validatorPid: pids.validator,
+          validatorStatus: pids.validator ? ValidatorStatus.running : ValidatorStatus.stopped,
+          coordinatorValidatorPid: pids.coordinatorValidator,
+          coordinatorValidatorStatus: pids.coordinatorValidator
+            ? CoordinatorValidatorStatus.running
+            : CoordinatorValidatorStatus.stopped
+        })
+      }
+      if (nodeModel.type === NodeType.provider) {
+        this.nodeModel.update(nodeModel.id, {
+          coordinatorStatus: CoordinatorStatus.running,
+          validatorStatus: ValidatorStatus.running,
+          coordinatorValidatorStatus: CoordinatorValidatorStatus.running
+        })
+      }
+
       return true
     }
     return false
@@ -224,9 +245,10 @@ class Node {
         continue
       }
       if (
-        nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
-        nodeModel.validatorStatus !== ValidatorStatus.stopped ||
-        nodeModel.coordinatorValidatorStatus !== CoordinatorValidatorStatus.stopped
+        nodeModel.type === NodeType.local &&
+        (nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
+          nodeModel.validatorStatus !== ValidatorStatus.stopped ||
+          nodeModel.coordinatorValidatorStatus !== CoordinatorValidatorStatus.stopped)
       ) {
         continue
       }
@@ -238,7 +260,7 @@ class Node {
       const node =
         nodeModel.type === NodeType.local
           ? new LocalNode(nodeModel, this.appEnv)
-          : new LocalNode(nodeModel, this.appEnv)
+          : new ProviderNode(nodeModel, this.appEnv)
 
       if (withData) {
         if (!(await node.removeData())) {

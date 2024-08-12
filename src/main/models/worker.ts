@@ -48,6 +48,7 @@ export interface Worker extends WorkerStatus {
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
+  delegate: string
   createdAt: string
   updatedAt: string
 }
@@ -71,6 +72,7 @@ type OptionalNewWorkerFields = Partial<
     | 'validatorDeActivationEpoch'
     | 'validatorBlockCreationCount'
     | 'stakeAmount'
+    | 'delegate'
   >
 >
 
@@ -103,7 +105,7 @@ class WorkerModel {
     }
 
     const insertWorkerQuery = this.db.prepare(
-      `INSERT INTO workers (nodeId, coordinatorPublicKey, validatorAddress, withdrawalAddress, signature) VALUES (@nodeId, @coordinatorPublicKey, @validatorAddress, @withdrawalAddress, @signature)`
+      `INSERT INTO workers (nodeId, coordinatorPublicKey, validatorAddress, withdrawalAddress, signature, delegate) VALUES (@nodeId, @coordinatorPublicKey, @validatorAddress, @withdrawalAddress, @signature, @delegate)`
     )
 
     const updateNode = this.db.prepare(`UPDATE nodes SET memoHash = @memoHash  WHERE id = @id`)
@@ -135,6 +137,14 @@ class WorkerModel {
     const res = this.db.prepare('SELECT * FROM workers WHERE id = ?')
     const worker = res.get(id) as Worker
 
+    if (worker && worker.delegate) {
+      try {
+        worker.delegate = JSON.parse(worker.delegate)
+      } catch (e){
+        log.error(e)
+      }
+    }
+
     if (options?.withNode && worker) {
       const nodeModel = new NodeModel(this.db)
       const node = nodeModel.getById(worker.nodeId)
@@ -152,6 +162,15 @@ class WorkerModel {
     }
     const res = this.db.prepare('SELECT * FROM workers WHERE nodeId = ?')
     let workers = res.all(nodeId) as Worker[]
+
+    try {
+      workers = workers.map((worker) => ({
+        ...worker,
+        delegate: worker.delegate ? JSON.parse(worker.delegate) : null
+      }))
+    } catch (e){
+      log.error(e)
+    }
 
     if (options?.withNode && workers.length > 0) {
       const nodeModel = new NodeModel(this.db)
@@ -181,6 +200,15 @@ class WorkerModel {
     const res = this.db.prepare('SELECT * FROM workers')
 
     let workers = res.all() as Worker[]
+
+    try {
+      workers = workers.map((worker) => ({
+        ...worker,
+        delegate: worker.delegate ? JSON.parse(worker.delegate) : null
+      }))
+    } catch (e){
+      log.error(e)
+    }
 
     if (options?.withNode && workers.length > 0) {
       const nodeModel = new NodeModel(this.db)

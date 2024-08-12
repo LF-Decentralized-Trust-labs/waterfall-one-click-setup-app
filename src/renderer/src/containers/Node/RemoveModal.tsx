@@ -9,9 +9,10 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox'
 type RemoveModalProps = {
   onClose: () => void
   id?: string
+  isRemoveFolder?: boolean
 }
 const okButtonProps = { danger: true }
-export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose }) => {
+export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose, isRemoveFolder }) => {
   const { status: status, withData, onChangeWithData, onRemove, node } = useRemove(id)
 
   if (!id) {
@@ -41,16 +42,17 @@ export const RemoveModal: React.FC<RemoveModalProps> = ({ id, onClose }) => {
     >
       <div>
         <Alert message="Are you sure you want to remove this Node?" type="error" />
-
-        <Title>
-          <Checkbox onChange={onChange} checked={withData}>
-            Delete data folder `
-            <Text color="red" size="sm">
-              {node?.locationDir}
-            </Text>
-            ` too
-          </Checkbox>
-        </Title>
+        {isRemoveFolder && (
+          <Title>
+            <Checkbox onChange={onChange} checked={withData}>
+              Delete data folder `
+              <Text color="red" size="sm">
+                {node?.locationDir}
+              </Text>
+              ` too
+            </Checkbox>
+          </Title>
+        )}
       </div>
     </Modal>
   )

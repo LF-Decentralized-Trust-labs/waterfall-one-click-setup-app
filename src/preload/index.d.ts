@@ -15,6 +15,10 @@ declare global {
       platform: 'linux' | 'mac' | 'win' | null
       homedir: string
       selectDirectory: (defaultPath?: string) => Promise<string | null>
+      selectFile: (
+        defaultPath?: string,
+        filters?: { name: string; extensions: string[] }[]
+      ) => Promise<string | null>
       saveTextFile: (text: string, title?: string, fileName?: string) => Promise<boolean>
       openExternal: (url: string) => void
       path: path

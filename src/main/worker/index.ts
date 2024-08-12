@@ -14,8 +14,13 @@ import {
   GetValidatorKeyStoreResponseType
 } from 'web3/utils'
 import LocalNode from '../node/local'
+import ProviderNode from '../node/provider'
 import crypto from 'crypto'
 import { getStakeAmount } from '../libs/env'
+import { readJSON } from '../libs/fs'
+import { validateDelegateRules, validateDepositData } from '../helpers/worker'
+import { getWeb3 } from '../libs/web3'
+import { TransactionConfig } from 'web3-core'
 
 enum ErrorResults {
   NODE_NOT_FOUND = 'Node is Not Found',
@@ -27,7 +32,9 @@ enum ErrorResults {
   WORKER_NOT_FOUND = 'Worker Is Not Found',
   ACTION_NOT_FOUND = 'Action is not provided',
   PASSWORD_NOT_GENERATE = 'Password was not generated',
-  ADD_WORKER_FAILED = 'Add Worker Failed'
+  ADD_WORKER_FAILED = 'Add Worker Failed',
+  DELEGATE_RULES_INVALID = 'Delegate rules invalid',
+  DEPOSIT_DATA_INVALID = 'Deposit data invalid'
 }
 
 export interface Response<T> {
@@ -51,9 +58,11 @@ export interface PublicKey {
 
 export interface addParams {
   nodeId: number | bigint
-  mnemonic: string
-  amount: number
-  withdrawalAddress: string
+  mnemonic?: string
+  amount?: number
+  withdrawalAddress?: string
+  depositData?: string
+  delegateRules?: string
 }
 
 export enum ActionTxType {
@@ -61,6 +70,7 @@ export enum ActionTxType {
   deActivate = 'deActivate',
   withdraw = 'withdraw'
 }
+
 export interface ActionTx {
   from: string
   to: string
@@ -95,6 +105,18 @@ class Worker {
     this.ipcMain.handle('worker:getActionTx', (_event: IpcMainInvokeEvent, action, id, amount) =>
       this._getActionTx(action, id, amount)
     )
+    this.ipcMain.handle('worker:getDepositDataCount', (_event: IpcMainInvokeEvent, path) =>
+      this._getDepositDataCount(path)
+    )
+    this.ipcMain.handle('worker:getDelegateRules', (_event: IpcMainInvokeEvent, path) =>
+      this._getDelegateRules(path)
+    )
+    this.ipcMain.handle('worker:sendActionTx', (_event: IpcMainInvokeEvent, action, ids, pk) =>
+      this._sendActionTx(action, ids, pk)
+    )
+    this.ipcMain.handle('worker:getBalance', (_event: IpcMainInvokeEvent, address) =>
+      this._getBalance(address)
+    )
 
     return true
   }
@@ -107,6 +129,10 @@ class Worker {
     this.ipcMain.removeHandler('worker:getById')
     this.ipcMain.removeHandler('worker:getAllByNodeId')
     this.ipcMain.removeHandler('worker:getActionTx')
+    this.ipcMain.removeHandler('worker:getDepositDataCount')
+    this.ipcMain.removeHandler('worker:getDelegateRules')
+    this.ipcMain.removeHandler('worker:sendActionTx')
+    this.ipcMain.removeHandler('worker:getBalance')
   }
 
   private _genMnemonic() {
@@ -119,6 +145,11 @@ class Worker {
         status: 'error',
         message: ErrorResults.NODE_NOT_FOUND
       }
+    }
+
+    log.debug(data)
+    if (data.depositData && data.delegateRules) {
+      return this._addDelegate(data.nodeId, data.depositData, data.delegateRules)
     }
     if (!data.mnemonic) {
       return {
@@ -144,10 +175,7 @@ class Worker {
       return { status: 'error', message: ErrorResults.MNEMONIC_NOT_MATCHED }
     }
 
-    const node =
-      nodeModel.type === NodeType.local
-        ? new LocalNode(nodeModel, this.appEnv)
-        : new LocalNode(nodeModel, this.appEnv)
+    const node = new LocalNode(nodeModel, this.appEnv)
 
     const coordinatorPassword = await node.getCoordinatorValidatorPassword()
     if (!coordinatorPassword) {
@@ -208,6 +236,53 @@ class Worker {
 
     return { status: 'success', data: workers }
   }
+
+  private async _addDelegate(
+    nodeId: number | bigint,
+    depositDataFile: string,
+    delegateRulesFile: string
+  ): Promise<Response<WorkerModelType[]>> {
+    log.debug(depositDataFile, delegateRulesFile)
+
+    const nodeModel = this.nodeModel.getById(nodeId)
+    if (!nodeModel) {
+      return { status: 'error', message: ErrorResults.NODE_NOT_FOUND }
+    }
+    try {
+      const depositData = await readJSON(depositDataFile)
+      const jsonDepositData = JSON.parse(depositData)
+
+      if (!validateDepositData(jsonDepositData)) {
+        return {
+          status: 'error',
+          message: ErrorResults.DEPOSIT_DATA_INVALID
+        }
+      }
+
+      const delegateRules = await readJSON(delegateRulesFile)
+      const jsondelegateRules = JSON.parse(delegateRules)
+
+      if (!validateDelegateRules(jsondelegateRules)) {
+        return {
+          status: 'error',
+          message: ErrorResults.DELEGATE_RULES_INVALID
+        }
+      }
+      const newWorkers = jsonDepositData.map((data) => ({
+        nodeId: nodeId,
+        coordinatorPublicKey: data.pubkey,
+        validatorAddress: data.creator_address,
+        withdrawalAddress: data.withdrawal_address,
+        signature: data.signature,
+        delegate: delegateRules
+      }))
+      const workers = this.workerModel.insert(newWorkers, nodeModel)
+      return { status: 'success', data: workers }
+    } catch (err) {
+      return { status: 'error', data: [], message: ErrorResults.ADD_WORKER_FAILED }
+    }
+  }
+
   private async _delete(ids: number[] | bigint[]): Promise<boolean[] | ErrorResults> {
     log.debug('_delete', ids)
     if (!ids || ids.length == 0) {
@@ -233,15 +308,16 @@ class Worker {
       const nodeModel = this.nodeModel.getById(parseInt(nodeId))
       if (
         !nodeModel ||
-        nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
-        nodeModel.validatorStatus !== ValidatorStatus.stopped
+        (nodeModel.type === NodeType.local &&
+          (nodeModel.coordinatorStatus !== CoordinatorStatus.stopped ||
+            nodeModel.validatorStatus !== ValidatorStatus.stopped))
       ) {
         continue
       }
       const node =
         nodeModel.type === NodeType.local
           ? new LocalNode(nodeModel, this.appEnv)
-          : new LocalNode(nodeModel, this.appEnv)
+          : new ProviderNode(nodeModel, this.appEnv)
 
       const countByNode = this.workerModel.getCount({ nodeId: parseInt(nodeId) })
 
@@ -270,8 +346,138 @@ class Worker {
         }
       }
     }
+    console.log(results)
     return results
   }
+  private async _sendActionTx(
+    action: ActionTxType,
+    ids: number[] | bigint[],
+    pk: string
+  ): Promise<boolean[] | ErrorResults> {
+    log.debug('_sendActionTx', action, ids)
+    if (!action) {
+      return ErrorResults.ACTION_NOT_FOUND
+    }
+    if (!ids || ids.length == 0 || !pk) {
+      return ErrorResults.WORKER_NOT_FOUND
+    }
+    const results = ids.map(() => false)
+
+    const web3 = getWeb3('https://rpc.waterfall.network')
+    if (!web3 || !web3.currentProvider) {
+      return ErrorResults.WORKER_NOT_FOUND
+    }
+    const depositAddress = await web3.wat.validator.depositAddress()
+    const account = web3.eth.accounts.privateKeyToAccount(pk)
+    for (const id of ids) {
+      const worker = this.workerModel.getById(id, { withNode: true })
+      if (!worker || !worker.node) {
+        continue
+      }
+      try {
+        let data, value
+        if (action === ActionTxType.activate) {
+          value = getStakeAmount(worker.node.network)
+
+          const depositData: DepositDataType = {
+            pubkey: worker.coordinatorPublicKey,
+            creator_address: worker.validatorAddress,
+            withdrawal_address: worker.withdrawalAddress,
+            signature: worker.signature
+          }
+          if (worker.delegate) {
+            try {
+              depositData.delegating_stake = JSON.parse(worker.delegate)
+            } catch (e) {
+              continue
+            }
+          }
+
+          data = await web3.wat.validator.depositData(depositData)
+        } else if (action === ActionTxType.deActivate) {
+          value = 0
+          data = await web3.wat.validator.exitData({
+            pubkey: worker.coordinatorPublicKey,
+            creator_address: worker.validatorAddress
+          })
+        } else if (action === ActionTxType.withdraw) {
+          value = 0
+          data = await web3.wat.validator.withdrawalData({
+            creator_address: `0x${worker.validatorAddress}`,
+            amount: '0'
+          })
+        }
+        const nonce = await web3.eth.getTransactionCount(account.address, 'pending')
+        const tx: TransactionConfig = {
+          from: account.address,
+          to: depositAddress,
+          value,
+          data,
+          nonce
+        }
+        tx.gas = await web3.eth.estimateGas(tx)
+        const signedTx = await web3.eth.accounts.signTransaction(tx, pk)
+        if (!signedTx?.rawTransaction) {
+          continue
+        }
+        const sendTransaction = (rawTransaction: string) => {
+          return new Promise((resolve, reject) => {
+            if (!web3.currentProvider) {
+              reject('No web3 provider')
+              return
+            }
+            const provider: any = web3.currentProvider
+            if (typeof provider.send === 'function') {
+              provider.send(
+                {
+                  jsonrpc: '2.0',
+                  method: 'eth_sendRawTransaction',
+                  params: [rawTransaction],
+                  id: Date.now()
+                },
+                (error: any, result: any) => {
+                  if (error) {
+                    reject(error)
+                  } else {
+                    resolve(result.result)
+                  }
+                }
+              )
+            } else if (typeof provider.sendAsync === 'function') {
+              provider.sendAsync(
+                {
+                  jsonrpc: '2.0',
+                  method: 'eth_sendRawTransaction',
+                  params: [rawTransaction],
+                  id: Date.now()
+                },
+                (error: any, result: any) => {
+                  if (error) {
+                    reject(error)
+                  } else {
+                    resolve(result.result)
+                  }
+                }
+              )
+            } else {
+              reject(new Error('Unsupported provider'))
+            }
+          })
+        }
+        const hash = await sendTransaction(signedTx.rawTransaction)
+        log.debug(hash)
+      } catch (e) {
+        log.error(e)
+        continue
+      }
+      const index = ids.findIndex((id) => id === worker.id)
+      results[index] = true
+    }
+
+    log.debug(results)
+    return results
+  }
+
   private async _getActionTx(
     action: ActionTxType,
     id: number,
@@ -279,9 +485,6 @@ class Worker {
   ): Promise<ActionTx | ErrorResults> {
     if (!action) {
       return ErrorResults.ACTION_NOT_FOUND
-    }
-    if (action === ActionTxType.withdraw && !amount) {
-      return ErrorResults.AMOUNT_NOT_PROVIDED
     }
     const worker = this.workerModel.getById(id, { withNode: true })
     if (!worker) {
@@ -294,33 +497,93 @@ class Worker {
     const node =
       worker.node.type === NodeType.local
         ? new LocalNode(worker.node, this.appEnv)
-        : new LocalNode(worker.node, this.appEnv)
+        : new ProviderNode(worker.node, this.appEnv)
+
+    if (!node || !node.web3) {
+      return ErrorResults.NODE_NOT_FOUND
+    }
 
     let hexData, value
     if (action === ActionTxType.activate) {
-      hexData = await node.runValidatorCommand(
-        `wat.validator.depositData({pubkey:'0x${worker.coordinatorPublicKey}', creator_address:'0x${worker.validatorAddress}', withdrawal_address:'0x${worker.withdrawalAddress}', signature:'0x${worker.signature}'})`
-      )
+      hexData = await node.web3.wat.validator.depositData({
+        pubkey: worker.coordinatorPublicKey,
+        creator_address: worker.validatorAddress,
+        withdrawal_address: worker.withdrawalAddress,
+        signature: worker.signature
+      })
       value = getStakeAmount(worker.node.network)
     } else if (action === ActionTxType.deActivate) {
-      hexData = await node.runValidatorCommand(
-        `wat.validator.exitData({pubkey:'0x${worker.coordinatorPublicKey}' , creator_address:'0x${worker.validatorAddress}'})`
-      )
       value = 0
+      hexData = await node.web3.wat.validator.exitData({
+        pubkey: worker.coordinatorPublicKey,
+        creator_address: worker.validatorAddress
+      })
     } else if (action === ActionTxType.withdraw) {
       value = 0
-      hexData = await node.runValidatorCommand(
-        `wat.validator.withdrawalData({creator_address:'0x${worker.validatorAddress}', amount:web3.toWei('${amount}', 'ether')})`
-      )
+      hexData = await node.web3.wat.validator.withdrawalData({
+        creator_address: worker.validatorAddress,
+        amount: Web3.utils.toWei(`${amount || '0'}`, 'ether')
+      })
     }
 
     return {
       hexData,
       value,
-      to: (await node.runValidatorCommand('wat.validator.depositAddress()')) as string,
+      to: await node.web3.wat.validator.depositAddress(),
       from: `0x${worker.withdrawalAddress}`
     }
+  }
+
+  private async _getDepositDataCount(path: string): Promise<number> {
+    try {
+      const data = await readJSON(path)
+      const jsonData = JSON.parse(data)
+      return jsonData.length
+    } catch (err) {
+      return 0
+    }
+  }
+
+  private async _getDelegateRules(path: string): Promise<object> {
+    try {
+      const data = await readJSON(path)
+      const jsonData = JSON.parse(data)
+      return jsonData
+    } catch (err) {
+      return {}
+    }
+  }
+  private async _getBalance(address: string): Promise<string> {
+    const web3 = getWeb3('https://rpc.waterfall.network')
+    if (!web3 || !web3.currentProvider) {
+      return ''
+    }
+    const balance = await web3.eth.getBalance(address)
+    return balance ? web3.utils.fromWei(balance, 'ether') : ''
   }
 }
 
 export default Worker
+
+interface DelegatingStakeType {
+  trial_period: string
+  rules: {
+    profit_share: Record<string, number>
+    stake_share: Record<string, number>
+    exit: string[]
+    withdrawal: string[]
+  }
+  trial_rules?: {
+    profit_share: Record<string, number>
+    stake_share: Record<string, number>
+    exit: string[]
+    withdrawal: string[]
+  }
+}
+interface DepositDataType {
+  pubkey: string
+  creator_address: string
+  withdrawal_address: string
+  signature: string
+  delegating_stake?: DelegatingStakeType
+}

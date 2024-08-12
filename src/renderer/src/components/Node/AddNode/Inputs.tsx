@@ -16,11 +16,12 @@ import { styled } from 'styled-components'
 import { Type as NODE_TYPE, NewNode, AddNodeFields } from '@renderer/types/node'
 import { IconButton } from '../../../ui-kit/Button'
 import { ReloadOutlined } from '@ant-design/icons'
-import { DownloadStatus, PortsNodeFields, Snapshot } from '../../../types/node'
+import { DownloadStatus, PortsNodeFields, Snapshot, Type } from '../../../types/node'
 import { formatBytes } from '../../../helpers/common'
 
 const node_type_options = [
   { value: NODE_TYPE.local, label: 'Local' },
+  { value: NODE_TYPE.provider, label: 'Provider' },
   { value: NODE_TYPE.remote, label: 'Remote', disabled: true }
 ]
 
@@ -137,17 +138,26 @@ export const NodePreview: React.FC<{
       <TextRow label="Name" value={values[AddNodeFields.name]} />
       <TextRow label="Type" value={values[AddNodeFields.type]} />
       <TextRow label="Network" value={values[AddNodeFields.network]} />
-      <TextRow label="Path" value={values[AddNodeFields.locationDir]} />
-      <TextRow
-        label="Download Last Snapshot"
-        value={values[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? 'Yes' : 'No'}
-      />
-      <TextRow
-        label="Ports"
-        value={Object.keys(PortsNodeFields)
-          .map((key) => values[key])
-          .join(', ')}
-      />
+      {values[AddNodeFields.type] === Type.local && (
+        <>
+          <TextRow label="Path" value={values[AddNodeFields.locationDir]} />
+          <TextRow
+            label="Download Last Snapshot"
+            value={
+              values[AddNodeFields.downloadStatus] === DownloadStatus.downloading ? 'Yes' : 'No'
+            }
+          />
+          <TextRow
+            label="Ports"
+            value={Object.keys(PortsNodeFields)
+              .map((key) => values[key])
+              .join(', ')}
+          />
+        </>
+      )}
+      {values[AddNodeFields.type] === Type.provider && (
+        <TextRow label="Provider Name" value={values[AddNodeFields.locationDir]} />
+      )}
     </TabContentWrapper>
   )
 }

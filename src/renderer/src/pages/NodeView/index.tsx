@@ -18,44 +18,60 @@ import { NodeViewValidator } from '@renderer/containers/Node/NodeViewValidator'
 import { NodeViewWorkers } from '@renderer/containers/Node/NodeViewWorkers'
 import { NodeViewStatistics } from '@renderer/containers/Node/NodeViewStatistics'
 import { useGetById, useControl } from '@renderer/hooks/node'
-import { Node, DownloadStatus, Action } from '@renderer/types/node'
+import { Node, DownloadStatus, Action, Type } from '@renderer/types/node'
 import { getActions } from '@renderer/helpers/node'
 import { getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
 import { RemoveModal } from '../../containers/Node/RemoveModal'
 
-const getTabs = (node?: Node) => [
-  {
-    label: 'Main Information',
-    children: <NodeViewInformation item={node} />,
-    key: '1',
-    closable: false
-  },
-  {
-    label: 'Coordinator Layer',
-    children: <NodeViewCoordinator item={node} />,
-    key: '2',
-    closable: false
-  },
-  {
-    label: 'Verifier Layer',
-    children: <NodeViewValidator item={node} />,
-    key: '3',
-    closable: false
-  },
-  {
-    label: 'Validators',
-    children: <NodeViewWorkers item={node} />,
-    key: '4',
-    closable: false
-  },
-  {
-    label: 'Statistics',
-    children: <NodeViewStatistics item={node} />,
-    key: '5',
-    closable: false
+const getTabs = (node?: Node) => {
+  let tabs = [
+    {
+      label: 'Main Information',
+      children: <NodeViewInformation item={node} />,
+      key: '1',
+      closable: false
+    }
+  ]
+
+  if (node && node.type === Type.local) {
+    tabs = [
+      ...tabs,
+      ...[
+        {
+          label: 'Coordinator Layer',
+          children: <NodeViewCoordinator item={node} />,
+          key: '2',
+          closable: false
+        },
+        {
+          label: 'Verifier Layer',
+          children: <NodeViewValidator item={node} />,
+          key: '3',
+          closable: false
+        }
+      ]
+    ]
   }
-]
+  tabs = [
+    ...tabs,
+    ...[
+      {
+        label: 'Validators',
+        children: <NodeViewWorkers item={node} />,
+        key: '4',
+        closable: false
+      },
+      {
+        label: 'Statistics',
+        children: <NodeViewStatistics item={node} />,
+        key: '5',
+        closable: false
+      }
+    ]
+  ]
+  return tabs
+}
 
 export const NodeViewPage = () => {
   const nodeId = useParams()?.id
@@ -142,7 +158,11 @@ export const NodeViewPage = () => {
       <PageBody isLoading={isLoading}>
         {error && <Alert message={error.message} type="error" />}
         <Tabs items={tabs} onChange={onTabChange} activeKey={activeKey} />
-        <RemoveModal id={removeId} onClose={() => setRemoveId(undefined)} />
+        <RemoveModal
+          id={removeId}
+          onClose={() => setRemoveId(undefined)}
+          isRemoveFolder={node && node.type === Type.local}
+        />
       </PageBody>
     </Layout>
   )

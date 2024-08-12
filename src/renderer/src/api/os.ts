@@ -11,3 +11,10 @@ export const saveTextFile = async (
 }
 
 export const openExternal = (url: string): void => window.os.openExternal(url)
+
+export const selectFile = async (
+  defaultPath?: string,
+  filters?: { name: string; extensions: string[] }[]
+): Promise<string | null> => {
+  return await window.os.selectFile(defaultPath, filters)
+}

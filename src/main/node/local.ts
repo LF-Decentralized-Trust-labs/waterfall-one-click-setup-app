@@ -44,12 +44,13 @@ import { isValidatorInfo, isEraInfo } from '../helpers/worker'
 
 import Web3 from 'web3'
 import { Key, PublicKey } from '../worker'
-import { isSyncInfo } from '../helpers/node'
+import { isWatInfo } from '../helpers/node'
 import { getCurrentDateUTC } from '../helpers/common'
 
 import DownloadFile from '../libs/downloadFile'
 import { clearInterval } from 'node:timers'
 import * as rfs from 'rotating-file-stream'
+import { getWeb3 } from '../libs/web3'
 
 export { StatusResult }
 
@@ -67,6 +68,8 @@ export type removeWorkersResponse = {
 class LocalNode extends EventEmitter {
   private readonly appEnv: AppEnv
   private readonly model: Node | null
+  public readonly web3: Web3 | null
+
   private coordinatorBeacon: Child | null
   private coordinatorValidator: Child | null
   private validator: Child | null
@@ -83,6 +86,8 @@ class LocalNode extends EventEmitter {
     this.coordinatorBeacon = null
     this.coordinatorValidator = null
     this.validator = null
+    this.web3 =
+      this.model === null ? null : getWeb3(this.appEnv.getValidatorSocket(this.model.id.toString()))
   }
 
   public async initialize(): Promise<StatusResults> {
@@ -305,7 +310,7 @@ class LocalNode extends EventEmitter {
       } else {
         const response = await this.runValidatorCommand('wat.info', 'json')
 
-        if (isSyncInfo(response)) {
+        if (isWatInfo(response)) {
           results.validatorHeadSlot = BigInt(response.currSlot)
           // results.validatorSyncDistance = BigInt(response.currSlot) - BigInt(response.maxDagSlot)
           results.validatorSyncDistance = BigInt(0)

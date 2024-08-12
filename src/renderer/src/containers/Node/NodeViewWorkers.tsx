@@ -1,5 +1,5 @@
 import React from 'react'
-import { NodeViewTabProps } from '@renderer/types/node'
+import { NodeViewTabProps, Type as NodeType } from '@renderer/types/node'
 import { TabContent } from '@renderer/ui-kit/Tabs'
 import { Flex, Spin } from 'antd'
 import { Alert } from '@renderer/ui-kit/Alert'
@@ -29,7 +29,7 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
     <TabContent>
       {item && (
         <Actions align="center" justify="flex-end" gap={10}>
-          {data?.length === 0 && (
+          {(data?.length === 0 || item.type === NodeType.provider) && (
             <ButtonPrimary
               href={addParams(routes.workers.add, {
                 [SearchKeys.node]: item?.id.toString(),
@@ -40,14 +40,17 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
               Import Validator
             </ButtonPrimary>
           )}
-          <ButtonPrimary
-            href={addParams(routes.workers.add, {
-              [SearchKeys.node]: item?.id.toString(),
-              [SearchKeys.step]: '1'
-            })}
-          >
-            Add Validator
-          </ButtonPrimary>
+
+          {item.type === NodeType.local && (
+            <ButtonPrimary
+              href={addParams(routes.workers.add, {
+                [SearchKeys.node]: item?.id.toString(),
+                [SearchKeys.step]: '1'
+              })}
+            >
+              Add Validator
+            </ButtonPrimary>
+          )}
         </Actions>
       )}
       {error && <Alert message={error.message} type="error" />}

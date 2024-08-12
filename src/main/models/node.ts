@@ -16,7 +16,8 @@ import { Condition, appendCondition } from '../helpers/query'
 type Database = ReturnType<typeof Database>
 export enum Type {
   local = 'local',
-  remote = 'remote'
+  remote = 'remote',
+  provider = 'provider'
 }
 
 export enum CoordinatorStatus {
@@ -123,6 +124,7 @@ class NodeModel {
     if (!this.db) {
       return null
     }
+
     const query = this.db.prepare(
       'INSERT INTO nodes (' +
         'name, network, type, locationDir, ' +
