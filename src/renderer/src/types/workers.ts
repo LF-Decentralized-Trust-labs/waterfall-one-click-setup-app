@@ -210,5 +210,5 @@ interface Rules {
 export interface DelegateRulesT {
   trial_period?: number
   trial_rules?: Rules
-  rules?: Rules
+  rules: Rules
 }
