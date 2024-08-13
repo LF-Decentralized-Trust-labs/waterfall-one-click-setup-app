@@ -365,7 +365,7 @@ const DelegateRules: React.FC<
     value?: string
     onChange: (value?: string) => void
     onSelectFile: () => void
-    delegateRules: DelegateRulesT
+    delegateRules?: DelegateRulesT
   }
 > = ({ goNext, goPrev, value, onChange, onSelectFile, delegateRules }) => {
   return (

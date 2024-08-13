@@ -27,12 +27,13 @@ import { Status as NodeStatus, Type as NodeType } from '../../types/node'
 import { getNodeStatus } from '../../helpers/node'
 
 const getTabs = (worker?: Worker) => {
-  let tabs = [ {
-    label: 'Main Information',
-    children: <WorkerViewInformation item={worker} />,
-    key: '1',
-    closable: false
-  },
+  let tabs = [
+    {
+      label: 'Main Information',
+      children: <WorkerViewInformation item={worker} />,
+      key: '1',
+      closable: false
+    },
     {
       label: 'Coordinator',
       children: <WorkerViewCoordinator item={worker} />,
@@ -44,27 +45,34 @@ const getTabs = (worker?: Worker) => {
       children: <WorkerViewValidator item={worker} />,
       key: '3',
       closable: false
-    }]
+    }
+  ]
 
-  if(worker?.delegate) {
-    tabs = [...tabs, ...[
-      {
-        label: 'Delegate Rules',
-        children: <WorkerViewDelegateRules item={worker} />,
-        key: '4',
-        closable: false
-      }
-    ]]
+  if (worker?.delegate) {
+    tabs = [
+      ...tabs,
+      ...[
+        {
+          label: 'Delegate Rules',
+          children: <WorkerViewDelegateRules item={worker} />,
+          key: '4',
+          closable: false
+        }
+      ]
+    ]
   }
 
-  tabs = [...tabs, ...[
-    {
-      label: 'Statistics',
-      children: <WorkerViewStatistics item={worker} />,
-      key: '10',
-      closable: false
-    }
-  ]]
+  tabs = [
+    ...tabs,
+    ...[
+      {
+        label: 'Statistics',
+        children: <WorkerViewStatistics item={worker} />,
+        key: '10',
+        closable: false
+      }
+    ]
+  ]
 
   return tabs
 }

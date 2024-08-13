@@ -4,7 +4,8 @@ import {
   AddWorkerFields,
   AddWorkerFormValuesT,
   ImportWorkerFields,
-  ImportWorkerFormValuesT
+  ImportWorkerFormValuesT,
+  DelegateRulesT
 } from '@renderer/types/workers'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -44,7 +45,10 @@ const addInitialValues = {
 
 export const useAddWorker = (node?: Node, mode: 'add' | 'import' = 'add') => {
   const [isLoading, setLoading] = useState(false)
-  const [deposit, setDeposit] = useState({ depositDataCount: 0, delegateRules: {} })
+  const [deposit, setDeposit] = useState<{
+    depositDataCount: number
+    delegateRules?: DelegateRulesT
+  }>({ depositDataCount: 0, delegateRules: undefined })
   const [error, setError] = useState<string | undefined>(undefined)
   const navigate = useNavigate()
   const [values, setValues] = useState<AddWorkerFormValuesT>({

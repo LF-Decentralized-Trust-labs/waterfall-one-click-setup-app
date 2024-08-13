@@ -5,10 +5,13 @@ import { Text } from '@renderer/ui-kit/Typography'
 import { Flex } from 'antd'
 
 type DelegateRulesPropsT = {
-  delegateRules: DelegateRulesT
+  delegateRules?: DelegateRulesT
 }
 
 export const DelegateRules: React.FC<DelegateRulesPropsT> = ({ delegateRules }) => {
+  if (!delegateRules) {
+    return null
+  }
   return (
     <Wrapper>
       {delegateRules.trial_period && delegateRules.trial_rules && (

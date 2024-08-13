@@ -251,7 +251,12 @@ export const geFromAddress = (type: ActionTxType, worker: Worker): string[] => {
 
   try {
     const delegate = worker.delegate
-    if (delegate.trial_period && delegate.trial_rules && delegate.trial_period > 0 && worker?.node?.coordinatorFinalizedEpoch) {
+    if (
+      delegate.trial_period &&
+      delegate.trial_rules &&
+      delegate.trial_period > 0 &&
+      worker?.node?.coordinatorFinalizedEpoch
+    ) {
       const currentEpoch = worker.node.coordinatorFinalizedEpoch
       if (parseInt(worker.validatorActivationEpoch) + delegate.trial_period * 32 < currentEpoch) {
         if (type === ActionTxType.withdraw) {

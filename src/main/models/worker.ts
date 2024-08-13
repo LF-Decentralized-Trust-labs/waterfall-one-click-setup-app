@@ -140,7 +140,7 @@ class WorkerModel {
     if (worker && worker.delegate) {
       try {
         worker.delegate = JSON.parse(worker.delegate)
-      } catch (e){
+      } catch (e) {
         log.error(e)
       }
     }
@@ -168,7 +168,7 @@ class WorkerModel {
         ...worker,
         delegate: worker.delegate ? JSON.parse(worker.delegate) : null
       }))
-    } catch (e){
+    } catch (e) {
       log.error(e)
     }
 
@@ -206,7 +206,7 @@ class WorkerModel {
         ...worker,
         delegate: worker.delegate ? JSON.parse(worker.delegate) : null
       }))
-    } catch (e){
+    } catch (e) {
       log.error(e)
     }
 
