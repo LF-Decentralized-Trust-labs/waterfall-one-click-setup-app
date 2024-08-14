@@ -156,6 +156,31 @@ class WorkerModel {
     return worker
   }
 
+  getByPk(coordinatorPublicKey: string, options?: Options): Worker | null {
+    if (!this.db) {
+      return null
+    }
+    const res = this.db.prepare('SELECT * FROM workers WHERE coordinatorPublicKey = ?')
+    const worker = res.get(coordinatorPublicKey) as Worker
+
+    if (worker && worker.delegate) {
+      try {
+        worker.delegate = JSON.parse(worker.delegate)
+      } catch (e) {
+        log.error(e)
+      }
+    }
+
+    if (options?.withNode && worker) {
+      const nodeModel = new NodeModel(this.db)
+      const node = nodeModel.getById(worker.nodeId)
+      if (node) {
+        worker.node = node
+      }
+    }
+
+    return worker
+  }
   getByNodeId(nodeId: number | bigint, options?: Options): Worker[] {
     if (!this.db) {
       return []

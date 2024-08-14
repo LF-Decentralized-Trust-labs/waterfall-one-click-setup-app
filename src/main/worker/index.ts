@@ -268,14 +268,16 @@ class Worker {
           message: ErrorResults.DELEGATE_RULES_INVALID
         }
       }
-      const newWorkers = jsonDepositData.map((data) => ({
-        nodeId: nodeId,
-        coordinatorPublicKey: data.pubkey,
-        validatorAddress: data.creator_address,
-        withdrawalAddress: data.withdrawal_address,
-        signature: data.signature,
-        delegate: delegateRules
-      }))
+      const newWorkers = jsonDepositData
+        .filter((data) => !this.workerModel.getByPk(data.pubkey))
+        .map((data) => ({
+          nodeId: nodeId,
+          coordinatorPublicKey: data.pubkey,
+          validatorAddress: data.creator_address,
+          withdrawalAddress: data.withdrawal_address,
+          signature: data.signature,
+          delegate: delegateRules
+        }))
       const workers = this.workerModel.insert(newWorkers, nodeModel)
       return { status: 'success', data: workers }
     } catch (err) {
@@ -377,7 +379,7 @@ class Worker {
       try {
         let data, value
         if (action === ActionTxType.activate) {
-          value = getStakeAmount(worker.node.network)
+          value = web3.utils.toWei(getStakeAmount(worker.node.network).toString(), 'ether')
 
           const depositData: DepositDataType = {
             pubkey: worker.coordinatorPublicKey,
@@ -387,7 +389,7 @@ class Worker {
           }
           if (worker.delegate) {
             try {
-              depositData.delegating_stake = JSON.parse(worker.delegate)
+              depositData.delegating_stake = worker.delegate as unknown as DelegatingStakeType
             } catch (e) {
               continue
             }
@@ -417,10 +419,12 @@ class Worker {
         }
         tx.gas = await web3.eth.estimateGas(tx)
         const signedTx = await web3.eth.accounts.signTransaction(tx, pk)
+        console.log(tx)
         if (!signedTx?.rawTransaction) {
           continue
         }
         const sendTransaction = (rawTransaction: string) => {
+          console.log(rawTransaction)
           return new Promise((resolve, reject) => {
             if (!web3.currentProvider) {
               reject('No web3 provider')
@@ -465,7 +469,7 @@ class Worker {
           })
         }
         const hash = await sendTransaction(signedTx.rawTransaction)
-        log.debug(hash)
+        log.debug('tx-hash',hash)
       } catch (e) {
         log.error(e)
         continue
