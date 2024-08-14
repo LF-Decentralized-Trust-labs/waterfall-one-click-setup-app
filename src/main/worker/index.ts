@@ -469,7 +469,7 @@ class Worker {
           })
         }
         const hash = await sendTransaction(signedTx.rawTransaction)
-        log.debug('tx-hash',hash)
+        log.debug('tx-hash', hash)
       } catch (e) {
         log.error(e)
         continue
