@@ -65,7 +65,7 @@ export const columns = ({
     dataIndex: WorkersListDataFields.coordinatorBalanceAmount,
     key: WorkersListDataFields.coordinatorBalanceAmount,
     render: (_, worker) =>
-      parseInt(worker.coordinatorBalanceAmount) > parseInt(worker.stakeAmount)
+      parseInt(worker.coordinatorBalanceAmount) >= parseInt(worker.stakeAmount)
         ? parseInt(worker.coordinatorBalanceAmount) - parseInt(worker.stakeAmount)
         : parseInt(worker.coordinatorBalanceAmount)
   },

@@ -374,28 +374,39 @@ class Worker {
     for (const id of ids) {
       const worker = this.workerModel.getById(id, { withNode: true })
       if (!worker || !worker.node) {
+        log.error('no worker', worker)
         continue
       }
+      log.debug(id)
       try {
         let data, value
         if (action === ActionTxType.activate) {
           value = web3.utils.toWei(getStakeAmount(worker.node.network).toString(), 'ether')
-
+          log.debug('value', value)
           const depositData: DepositDataType = {
             pubkey: worker.coordinatorPublicKey,
             creator_address: worker.validatorAddress,
             withdrawal_address: worker.withdrawalAddress,
             signature: worker.signature
           }
+          log.debug('depositData1', depositData)
           if (worker.delegate) {
             try {
               depositData.delegating_stake = worker.delegate as unknown as DelegatingStakeType
+              if (!depositData.delegating_stake.trial_period) {
+                depositData.delegating_stake.trial_period = '0x0'
+              }
+              if (!depositData.delegating_stake.trial_rules) {
+                depositData.delegating_stake.trial_rules = depositData.delegating_stake.rules
+              }
             } catch (e) {
+              log.error('depositData error', e)
               continue
             }
           }
-
+          log.debug('depositData2', depositData)
           data = await web3.wat.validator.depositData(depositData)
+          log.debug('depositData2', data)
         } else if (action === ActionTxType.deActivate) {
           value = 0
           data = await web3.wat.validator.exitData({
@@ -410,6 +421,7 @@ class Worker {
           })
         }
         const nonce = await web3.eth.getTransactionCount(account.address, 'pending')
+        log.debug('nonce', nonce)
         const tx: TransactionConfig = {
           from: account.address,
           to: depositAddress,
@@ -419,14 +431,16 @@ class Worker {
         }
         tx.gas = await web3.eth.estimateGas(tx)
         const signedTx = await web3.eth.accounts.signTransaction(tx, pk)
-        console.log(tx)
+        log.debug(tx)
         if (!signedTx?.rawTransaction) {
+          log.error('no signedTx', signedTx)
           continue
         }
         const sendTransaction = (rawTransaction: string) => {
-          console.log(rawTransaction)
+          log.debug(rawTransaction)
           return new Promise((resolve, reject) => {
             if (!web3.currentProvider) {
+              log.error('No web3 provider')
               reject('No web3 provider')
               return
             }
@@ -441,8 +455,13 @@ class Worker {
                 },
                 (error: any, result: any) => {
                   if (error) {
+                    log.error('send eth_sendRawTransaction', error)
                     reject(error)
                   } else {
+                    log.debug('send', result)
+                    if (result.error) {
+                      return reject(result.error)
+                    }
                     resolve(result.result)
                   }
                 }
@@ -457,8 +476,13 @@ class Worker {
                 },
                 (error: any, result: any) => {
                   if (error) {
+                    log.error('sendAsync eth_sendRawTransaction', error)
                     reject(error)
                   } else {
+                    log.debug('sendAsync', result)
+                    if (result.error) {
+                      return reject(result.error)
+                    }
                     resolve(result.result)
                   }
                 }
