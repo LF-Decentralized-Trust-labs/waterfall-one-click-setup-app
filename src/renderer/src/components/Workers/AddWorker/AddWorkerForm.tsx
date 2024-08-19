@@ -2,6 +2,7 @@ import React, { PropsWithChildren } from 'react'
 import { Card } from 'antd'
 import { styled } from 'styled-components'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
+import { Alert } from '@renderer/ui-kit/Alert'
 
 type FormPropsT = PropsWithChildren & {
   title?: string
@@ -11,6 +12,7 @@ type FormPropsT = PropsWithChildren & {
   extra?: React.ReactNode
   nextText?: string
   isLoading?: boolean
+  error?: string
 }
 
 export const AddWorkerForm: React.FC<FormPropsT> = ({
@@ -21,11 +23,13 @@ export const AddWorkerForm: React.FC<FormPropsT> = ({
   title,
   extra,
   nextText = 'Next',
-  isLoading
+  isLoading,
+  error
 }) => {
   return (
     <StyledCard type="inner" title={title} extra={extra}>
       <Body>{children}</Body>
+      {error && <Alert type="error" message={error} />}
       <Actions>
         <ButtonPrimary onClick={goPrev} ghost={!goPrev} disabled={!goPrev}>
           Back

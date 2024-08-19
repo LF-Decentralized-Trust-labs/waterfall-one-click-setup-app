@@ -1,55 +1,56 @@
 import React from 'react'
 import { NodeAddForm } from '@renderer/components/Node/AddNode/Form'
 import { useAddNode } from '@renderer/hooks/node'
-import { AddNodeFields, NewNode, CheckPorts } from '@renderer/types/node'
+import { AddNodeFields, NewNode, CheckPorts, DownloadStatus, Type } from '@renderer/types/node'
 import {
   NodeNetworkInput,
   NodeDataFolderInput,
+  NodeSnapshotInput,
   NodeNameInput,
   NodeTypeInput,
   NodePortInput,
   NodePreview
 } from '@renderer/components/Node/AddNode/Inputs'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
+import { Snapshot } from '../../types/node'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { SearchKeys } from '@renderer/constants/navigation'
+import { routes } from '@renderer/constants/navigation'
+import { addParams } from '@renderer/helpers/navigation'
+import { AddNodeStepKeys, getAddNodeSteps } from '@renderer/helpers/node'
 
-type AddNodePropsT = {
-  step: number
-  onChangeStep: (value: number) => void
-  goNextStep: () => void
-  goPrevStep: () => void
-}
+export const AddNode: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const step = searchParams.get(SearchKeys.step) ? Number(searchParams.get(SearchKeys.step)) : 0
+  const type = (searchParams.get(SearchKeys.type) as Type.local | Type.provider) || Type.local
+  const network = searchParams.get(SearchKeys.network)
+  const {
+    handleChange,
+    values,
+    onAdd,
+    onSelectDirectory,
+    checkPorts,
+    onCheckPorts,
+    isLoading,
+    snapshot,
+    onSelectSnapshot
+  } = useAddNode(type, network)
 
-const stepItems = [
-  {
-    title: 'Select Node type'
-  },
-  {
-    title: 'Select a network'
-  },
-  {
-    title: 'Select a data folder'
-  },
-  {
-    title: 'Select ports'
-  },
-  {
-    title: 'Name your node'
-  },
-  {
-    title: 'Preview'
-  }
-]
+  const { steps, stepsWithKeys } = getAddNodeSteps(type)
 
-export const AddNode: React.FC<AddNodePropsT> = ({
-  step,
-  onChangeStep,
-  goNextStep,
-  goPrevStep
-}) => {
-  const { handleChange, values, onAdd, onSelectDirectory, checkPorts, onCheckPorts, isLoading } =
-    useAddNode()
-  const stepsComponents = {
-    0: (
+  const onChangeStep = (step: number) =>
+    navigate(
+      addParams(routes.nodes.create, {
+        [SearchKeys.type]: type || values[AddNodeFields.type],
+        [SearchKeys.network]: network || values[AddNodeFields.network],
+        [SearchKeys.step]: step.toString()
+      })
+    )
+  const goNextStep = () => onChangeStep(step + 1 <= steps.length ? step + 1 : step)
+  const goPrevStep = () => onChangeStep(step - 1 >= 0 ? step - 1 : step)
+  const StepComponent = {
+    [AddNodeStepKeys.type]: (
       <NodeTypeSelection
         value={values[AddNodeFields.type]}
         values={values}
@@ -59,7 +60,7 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    1: (
+    [AddNodeStepKeys.network]: (
       <NetworkSelection
         value={values[AddNodeFields.network]}
         values={values}
@@ -69,18 +70,21 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    2: (
+    [AddNodeStepKeys.location]: (
       <FolderSelection
         value={values[AddNodeFields.locationDir]}
         values={values}
         handleChange={handleChange(AddNodeFields.locationDir)}
         field={AddNodeFields.locationDir}
         onSelectDirectory={onSelectDirectory}
+        isSnapshot={values[AddNodeFields.downloadStatus] === DownloadStatus.downloading}
+        snapshot={snapshot}
+        onSelectSnapshot={onSelectSnapshot}
         goNextStep={goNextStep}
         goPrevStep={goPrevStep}
       />
     ),
-    3: (
+    [AddNodeStepKeys.ports]: (
       <PortsSelection
         values={values}
         checkPorts={checkPorts}
@@ -90,7 +94,17 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    4: (
+    [AddNodeStepKeys.providerName]: (
+      <ProviderNameSelection
+        value={values[AddNodeFields.locationDir]}
+        values={values}
+        handleChange={handleChange(AddNodeFields.locationDir)}
+        field={AddNodeFields.locationDir}
+        goNextStep={goNextStep}
+        goPrevStep={goPrevStep}
+      />
+    ),
+    [AddNodeStepKeys.name]: (
       <NameSelection
         value={values[AddNodeFields.name]}
         values={values}
@@ -100,12 +114,19 @@ export const AddNode: React.FC<AddNodePropsT> = ({
         goPrevStep={goPrevStep}
       />
     ),
-    5: <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} isLoading={isLoading} />
+    [AddNodeStepKeys.preview]: (
+      <Preview values={values} goNextStep={onAdd} goPrevStep={goPrevStep} isLoading={isLoading} />
+    )
   }
-  const stepsWithComponents = stepItems.map((el, index) => ({
-    title: el?.title,
-    description: stepsComponents?.[index] || null
-  }))
+  const stepsWithComponents = steps.map((el, index) => {
+    const currentKey = stepsWithKeys?.[index].key
+    const activeStep = index === step
+    return {
+      title: el?.title,
+      description: activeStep ? currentKey && StepComponent[currentKey] : null
+    }
+  })
+
   return (
     <StepsWithActiveContent
       direction="vertical"
@@ -142,12 +163,22 @@ const NetworkSelection: React.FC<SelectionBasePropsT> = ({
   )
 }
 
-const FolderSelection: React.FC<SelectionBasePropsT & { onSelectDirectory: () => void }> = ({
+const FolderSelection: React.FC<
+  SelectionBasePropsT & {
+    onSelectDirectory: () => void
+    snapshot?: Snapshot | null
+    isSnapshot: boolean
+    onSelectSnapshot: () => void
+  }
+> = ({
   value,
   handleChange,
   onSelectDirectory,
   goNextStep,
-  goPrevStep
+  goPrevStep,
+  snapshot,
+  isSnapshot,
+  onSelectSnapshot
 }) => {
   return (
     <NodeAddForm
@@ -162,6 +193,16 @@ const FolderSelection: React.FC<SelectionBasePropsT & { onSelectDirectory: () =>
         onSelectDirectory={onSelectDirectory}
         // error={'The directory and network does not match'}
       />
+      {snapshot && (
+        <>
+          <br />
+          <NodeSnapshotInput
+            value={isSnapshot}
+            handleChange={onSelectSnapshot}
+            snapshot={snapshot}
+          />
+        </>
+      )}
     </NodeAddForm>
   )
 }
@@ -205,21 +246,21 @@ const PortsSelection: React.FC<PortsSelectionT> = ({
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator P2P"
+        label="Verifier P2P"
         handleChange={handleChange(AddNodeFields.validatorP2PPort)}
         value={Number(values[AddNodeFields.validatorP2PPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorP2PPort] : true}
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator HTTP api"
+        label="Verifier HTTP api"
         handleChange={handleChange(AddNodeFields.validatorHttpApiPort)}
         value={Number(values[AddNodeFields.validatorHttpApiPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorHttpApiPort] : true}
         onCheck={onCheckPorts}
       />
       <NodePortInput
-        label="Validator WS api"
+        label="Verifier WS api"
         handleChange={handleChange(AddNodeFields.validatorWsApiPort)}
         value={Number(values[AddNodeFields.validatorWsApiPort])}
         isCheck={checkPorts ? !!checkPorts[AddNodeFields.validatorWsApiPort] : true}
@@ -242,15 +283,34 @@ const NameSelection: React.FC<SelectionBasePropsT> = ({
   )
 }
 
+const ProviderNameSelection: React.FC<SelectionBasePropsT> = ({
+  value,
+  handleChange,
+  goNextStep,
+  goPrevStep
+}) => {
+  return (
+    <NodeAddForm
+      title="Name your provider"
+      goNext={goNextStep}
+      goPrev={goPrevStep}
+      canGoNext={!!value}
+    >
+      <NodeNameInput handleChange={handleChange} value={value} />
+    </NodeAddForm>
+  )
+}
+
 const Preview: React.FC<PreviewPropsT> = ({ values, goNextStep, goPrevStep, isLoading }) => {
   const canGoNext =
     !!values[AddNodeFields.type] &&
     !!values[AddNodeFields.network] &&
-    !!values[AddNodeFields.locationDir] &&
-    !!values[AddNodeFields.name]
+    !!values[AddNodeFields.name] &&
+    !!values[AddNodeFields.locationDir]
+
   return (
     <NodeAddForm
-      title="Name your node"
+      title="Preview"
       goNext={goNextStep}
       goNextTitle="Add"
       goPrev={goPrevStep}

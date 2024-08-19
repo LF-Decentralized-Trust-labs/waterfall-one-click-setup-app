@@ -1,39 +1,54 @@
-appId: com.electron.app
+appId: network.waterfall.app
 productName: Waterfall
 directories:
+  output: dist
   buildResources: build
 files:
   - '!**/.vscode/*'
+  - '!.zed/*'
   - '!src/*'
+  - '!tmp/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - node_modules/better-sqlite3
-  - node_modules/bcrypto
-  - resources/**
+  - '!resources/{bin,genesis}/**/*'
+buildDependenciesFromSource: true
+extraFiles:
+  - from: 'resources/bin/${os}/${arch}'
+    to: 'Resources/bin'
+    filter:
+      - '**/*'
+  - from: 'resources/genesis'
+    to: 'Resources/genesis'
+    filter:
+      - '**/*'
+#asarUnpack:
+#  - node_modules/better-sqlite3
+#  - node_modules/bcrypto
+#  - resources/**
 win:
   executableName: waterfall
+  certificateSubjectName: 'Fuente Labs LLC'
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${name}-setup-${version}-${arch}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-#  identity: 'Developer ID Application: Moonion Inc. (5ZSVC9ZU6W)'
-#  target:
-#    - dmg
-#    - zip
+  category: public.app-category.utilities
+  identity: 'FUENTE LABS LLC (BR22ZLPXU8)'
+  target:
+    - dmg
+    - zip
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-${arch}.${ext}
+  notarize:
+    teamId: 'BR22ZLPXU8'
 linux:
   target:
     - AppImage
@@ -42,21 +57,13 @@ linux:
   maintainer: electronjs.org
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-${arch}.${ext}
 npmRebuild: false
-build:
-  buildDependenciesFromSource: true
-  extraFiles:
-    - from: 'resources/${os}'
-      to: 'Resources/bin'
-      filter:
-        - '**/*'
-    - from: 'resources/genesis'
-      to: 'Resources/genesis'
-      filter:
-        - '**/*'
-#publish:
-#  provider: generic
-#  url: https://docs.waterfall.network/files/app
+publish:
+  provider: generic
+  #  url: https://docs.waterfall.network/files/app
+  url: https://storage.waterfall.network/app
+  #  channel: dev
+  channel: beta
 #  generateUpdateFilesForAllChannels: true
 #  publishAutoUpdates: true

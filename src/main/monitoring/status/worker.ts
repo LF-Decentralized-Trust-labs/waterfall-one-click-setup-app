@@ -1,18 +1,16 @@
 import { parentPort, workerData } from 'worker_threads'
 import log from 'electron-log/node'
-import { getMain } from '../libs/db'
-import AppEnv from '../libs/appEnv'
-import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../models/node'
-import WorkerModel from '../models/worker'
-import LocalNode from '../node/local'
-import { areObjectsEqual } from '../helpers/common'
+import { getMain } from '../../libs/db'
+import AppEnv from '../../libs/appEnv'
+import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../../models/node'
+import WorkerModel from '../../models/worker'
+import LocalNode from '../../node/local'
+import ProviderNode from '../../node/provider'
+import { areObjectsEqual } from '../../helpers/common'
+import { Event, EventName } from '../../libs/EventBus'
 
 const port = parentPort
 if (!port) throw new Error('IllegalState')
-
-interface ParentMessage {
-  type: 'start' | 'stop'
-}
 
 class StatusMonitoring {
   private timeout: number = 4000
@@ -30,6 +28,8 @@ class StatusMonitoring {
     if (timeout) {
       this.timeout = timeout
     }
+    this.onMessage = this.onMessage.bind(this)
+    this.onListeners()
   }
 
   public start() {
@@ -46,15 +46,35 @@ class StatusMonitoring {
     }
     clearInterval(this.interval)
     this.interval = null
+    this.offListeners()
     log.debug('StatusMonitoring stop')
   }
 
+  private onListeners() {
+    port?.on('message', this.onMessage)
+  }
+  private offListeners() {
+    port?.off('message', this.onMessage)
+  }
+  private async onMessage(event: Event<EventName, any>) {
+    switch (event.type) {
+      case EventName.StartStatusMonitoring: {
+        this.start()
+        break
+      }
+      case EventName.StopStatusMonitoring: {
+        this.stop()
+        break
+      }
+    }
+  }
   private async _start() {
     if (this.isStart) {
       return
     }
     this.isStart = true
     const nodes = this.nodeModel.getAll()
+
     for (const nodeModel of nodes) {
       try {
         let data = {}
@@ -62,7 +82,7 @@ class StatusMonitoring {
         const node =
           nodeModel.type === NodeType.local
             ? new LocalNode(nodeModel, this.appEnv)
-            : new LocalNode(nodeModel, this.appEnv)
+            : new ProviderNode(nodeModel, this.appEnv)
         const peers = await node.getPeers()
         const sync = await node.getSync()
 
@@ -97,11 +117,9 @@ class StatusMonitoring {
           for (const workerModel of workers) {
             try {
               const workerStatus = await node.getWorkerStatus(workerModel)
-              // console.log('workerStatus', workerStatus)
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {
-              console.log('err')
               log.error(error)
             }
           }
@@ -118,20 +136,7 @@ class StatusMonitoring {
 const appEnv = new AppEnv({
   isPackaged: workerData.isPackaged,
   appPath: workerData.appPath,
-  userData: workerData.userData
+  userData: workerData.userData,
+  version: workerData.version
 })
-log.debug({
-  isPackaged: workerData.isPackaged,
-  appPath: workerData.appPath,
-  userData: workerData.userData
-})
-
-const monitoring = new StatusMonitoring(appEnv, 4000)
-
-parentPort?.on('message', (message: ParentMessage) => {
-  if (message.type === 'start') {
-    monitoring.start()
-  } else if (message.type === 'stop') {
-    monitoring.stop()
-  }
-})
+new StatusMonitoring(appEnv, 4000)

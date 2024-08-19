@@ -23,7 +23,7 @@ export const WorkerViewValidator: React.FC<WorkerViewTabProps> = ({ item }) => {
       />
       <TabTextRow
         label="Current balance"
-        value={item ? `${item.validatorBalanceAmount} WATER` : '-'}
+        value={item ? `${parseFloat(item.validatorBalanceAmount).toFixed(2)} WATER` : '-'}
       />
       <TabTextRow
         label="Activation Epoch"
@@ -33,10 +33,10 @@ export const WorkerViewValidator: React.FC<WorkerViewTabProps> = ({ item }) => {
         label="Deactivation Epoch"
         value={item?.validatorDeActivationEpoch ? item.validatorDeActivationEpoch : '-'}
       />
-      <TabTextRow
-        label="Blocks created"
-        value={item?.validatorBlockCreationCount ? item.validatorBlockCreationCount : '-'}
-      />
+      {/*<TabTextRow*/}
+      {/*  label="Blocks created"*/}
+      {/*  value={item?.validatorBlockCreationCount ? item.validatorBlockCreationCount : '-'}*/}
+      {/*/>*/}
     </TabContent>
   )
 }

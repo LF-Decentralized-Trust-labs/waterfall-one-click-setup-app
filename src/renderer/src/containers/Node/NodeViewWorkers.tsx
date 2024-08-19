@@ -1,5 +1,5 @@
 import React from 'react'
-import { NodeViewTabProps } from '@renderer/types/node'
+import { NodeViewTabProps, Type as NodeType } from '@renderer/types/node'
 import { TabContent } from '@renderer/ui-kit/Tabs'
 import { Flex, Spin } from 'antd'
 import { Alert } from '@renderer/ui-kit/Alert'
@@ -29,19 +29,28 @@ export const NodeViewWorkers: React.FC<NodeViewTabProps> = ({ item }) => {
     <TabContent>
       {item && (
         <Actions align="center" justify="flex-end" gap={10}>
-          <ButtonPrimary
-            href={addParams(routes.workers.add, {
-              [SearchKeys.node]: item?.id.toString(),
-              [SearchKeys.step]: '1'
-            })}
-          >
-            Add Worker
-          </ButtonPrimary>
-          {/*{data?.length === 0 && (*/}
-          {/*  <ButtonPrimary href={addParams(routes.workers.import, { node: item?.id.toString() })}>*/}
-          {/*    Import Worker*/}
-          {/*  </ButtonPrimary>*/}
-          {/*)}*/}
+          {(data?.length === 0 || item.type === NodeType.provider) && (
+            <ButtonPrimary
+              href={addParams(routes.workers.add, {
+                [SearchKeys.node]: item?.id.toString(),
+                [SearchKeys.mode]: 'import',
+                [SearchKeys.step]: '1'
+              })}
+            >
+              Import Validator
+            </ButtonPrimary>
+          )}
+
+          {item.type === NodeType.local && (
+            <ButtonPrimary
+              href={addParams(routes.workers.add, {
+                [SearchKeys.node]: item?.id.toString(),
+                [SearchKeys.step]: '1'
+              })}
+            >
+              Add Validator
+            </ButtonPrimary>
+          )}
         </Actions>
       )}
       {error && <Alert message={error.message} type="error" />}

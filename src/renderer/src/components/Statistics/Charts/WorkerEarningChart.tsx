@@ -26,7 +26,7 @@ export const WorkerEarningChart: React.FC<PropsT> = ({ data }) => {
       <Title level={5}>
         <Flex gap={10}>
           <StockOutlined />
-          Consult the chart to calculate Worker earnings
+          Consult the chart to calculate Validator earnings
         </Flex>
       </Title>
       <CanvasJSStockChart containerProps={containerProps} options={options} />

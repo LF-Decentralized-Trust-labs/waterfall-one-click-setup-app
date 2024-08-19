@@ -27,10 +27,13 @@ export const WorkerViewCoordinator: React.FC<WorkerViewTabProps> = ({ item }) =>
         }
       />
 
-      <TabTextRow label="Stake size" value={item ? `${item.stakeAmount} WATER` : '-'} />
+      <TabTextRow
+        label="Stake size"
+        value={item ? `${parseFloat(item.stakeAmount).toFixed(2)} WATER` : '-'}
+      />
       <TabTextRow
         label="Current balance"
-        value={item ? `${item.coordinatorBalanceAmount} WATER` : '-'}
+        value={item ? `${parseFloat(item.coordinatorBalanceAmount).toFixed(2)} WATER` : '-'}
       />
       <TabTextRow
         label="Activation Epoch"
@@ -40,16 +43,16 @@ export const WorkerViewCoordinator: React.FC<WorkerViewTabProps> = ({ item }) =>
         label="Deactivation Epoch"
         value={item?.coordinatorDeActivationEpoch ? item.coordinatorDeActivationEpoch : '-'}
       />
-      <TabTextRow
-        label="Blocks created"
-        value={item?.coordinatorBlockCreationCount ? item.coordinatorBlockCreationCount : '-'}
-      />
-      <TabTextRow
-        label="Attestations created"
-        value={
-          item?.coordinatorAttestationCreationCount ? item.coordinatorAttestationCreationCount : '-'
-        }
-      />
+      {/*<TabTextRow*/}
+      {/*  label="Blocks created"*/}
+      {/*  value={item?.coordinatorBlockCreationCount ? item.coordinatorBlockCreationCount : '-'}*/}
+      {/*/>*/}
+      {/*<TabTextRow*/}
+      {/*  label="Attestations created"*/}
+      {/*  value={*/}
+      {/*    item?.coordinatorAttestationCreationCount ? item.coordinatorAttestationCreationCount : '-'*/}
+      {/*  }*/}
+      {/*/>*/}
     </TabContent>
   )
 }

@@ -9,10 +9,10 @@ export function up(next: () => void): void {
     CREATE TABLE nodes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
-      network TEXT CHECK( network IN ('testnet8','mainnet') ) NOT NULL DEFAULT 'mainnet',
-      type TEXT CHECK( type IN ('local','remote') ) NOT NULL DEFAULT 'local',
+      network TEXT NOT NULL DEFAULT 'mainnet',
+      type TEXT NOT NULL DEFAULT 'local',
       locationDir TEXT NOT NULL,
-      coordinatorStatus TEXT CHECK( coordinatorStatus IN ('stopped','running','syncing') ) NOT NULL DEFAULT 'stopped',
+      coordinatorStatus TEXT NOT NULL DEFAULT 'stopped',
       coordinatorPeersCount INTEGER NOT NULL DEFAULT 0,
       coordinatorHeadSlot INTEGER NOT NULL DEFAULT 0,
       coordinatorSyncDistance INTEGER NOT NULL DEFAULT 0,
@@ -24,9 +24,9 @@ export function up(next: () => void): void {
       coordinatorP2PTcpPort INTEGER NOT NULL,
       coordinatorP2PUdpPort INTEGER NOT NULL,
       coordinatorPid INTEGER,
-      coordinatorValidatorStatus TEXT CHECK( coordinatorValidatorStatus IN ('stopped','running') ) NOT NULL DEFAULT 'stopped',
+      coordinatorValidatorStatus TEXT NOT NULL DEFAULT 'stopped',
       coordinatorValidatorPid INTEGER,
-      validatorStatus TEXT CHECK( validatorStatus IN ('stopped','running','syncing') ) NOT NULL DEFAULT 'stopped',
+      validatorStatus TEXT NOT NULL DEFAULT 'stopped',
       validatorPeersCount INTEGER NOT NULL DEFAULT 0,
       validatorHeadSlot INTEGER NOT NULL DEFAULT 0,
       validatorSyncDistance INTEGER NOT NULL DEFAULT 0,
@@ -50,6 +50,7 @@ export function up(next: () => void): void {
 }
 export function down(next: () => void): void {
   db.exec(`
+    DROP TRIGGER IF EXISTS update_nodes_trigger;
     DROP TABLE nodes;
   `)
   next()

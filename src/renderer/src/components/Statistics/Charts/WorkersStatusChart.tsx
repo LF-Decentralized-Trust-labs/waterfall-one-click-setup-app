@@ -23,7 +23,7 @@ export const WorkerStatusChart: React.FC<PropsT> = ({ data }) => {
   return (
     <ChartWrapper>
       <Title level={5}>
-        <Flex gap={10}>This Chart reflects the number and status of Workers</Flex>
+        <Flex gap={10}>This Chart reflects the number and status of Validators</Flex>
       </Title>
       <CanvasJSStockChart containerProps={containerProps} options={options} />
     </ChartWrapper>

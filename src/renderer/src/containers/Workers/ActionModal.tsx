@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { Modal } from '../../ui-kit/Modal'
 import { Alert } from '../../ui-kit/Alert'
-import { useActionTx } from '../../hooks/workers'
+import { useActionTx, useRemove } from '../../hooks/workers'
 import { useCopy } from '../../hooks/common'
 import { Button, Spin, Input, Space } from 'antd'
 import { Text } from '@renderer/ui-kit/Typography'
@@ -17,16 +17,24 @@ type ActionModalProps = {
 
 const getTitle = (type, id) => {
   if (type === ActionTxType.activate) {
-    return `Activate Worker #${id}`
+    return `Activate Validator #${id}`
   } else if (type === ActionTxType.deActivate) {
-    return `Deactivate Worker #${id}`
+    return `Deactivate Validator #${id}`
+  } else if (type === ActionTxType.remove) {
+    return `Remove Validator #${id}`
   }
 
-  return `Withdraw Worker #${id}`
+  return `Withdraw Validator #${id}`
 }
+
+const okButtonProps = {}
+const okRemoveButtonProps = { danger: true }
 export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) => {
   const [amount, setAmount] = useState('0')
+
   const { data, isLoading, error, onUpdate } = useActionTx(type, id)
+  const { status: removeStatus, onRemove } = useRemove(id)
+
   const [copyFromStatus, handleFromCopy] = useCopy(data?.from)
   const [copyToStatus, handleToCopy] = useCopy(data?.to)
   const [copyValueStatus, handleValueCopy] = useCopy(data?.value?.toString())
@@ -42,15 +50,27 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)
 
   const handleClose = () => {
-    setAmount('0')
+    if (type === ActionTxType.withdraw) {
+      setAmount('0')
+    }
     onClose()
+  }
+
+  let handleOk = handleClose
+  if (type === ActionTxType.remove) {
+    handleOk = async () => {
+      await onRemove(handleClose)
+    }
   }
 
   return (
     <Modal
       title={getTitle(type, id)}
       open={!!type}
-      onOk={handleClose}
+      confirmLoading={removeStatus}
+      okButtonProps={type === ActionTxType.remove ? okRemoveButtonProps : okButtonProps}
+      okText={type === ActionTxType.remove ? 'Delete' : 'OK'}
+      onOk={handleOk}
       onCancel={handleClose}
       width={800}
     >
@@ -62,6 +82,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
         <Alert message={error.message} type="error" />
       ) : (
         <div>
+          {type === ActionTxType.remove && (
+            <Alert message="Are you sure you want to remove this Validator?" type="error" />
+          )}
+
           {type === ActionTxType.withdraw && (
             <TextRow
               label="Amount"
@@ -93,33 +117,39 @@ export const ActionModal: React.FC<ActionModalProps> = ({ type, id, onClose }) =
               }
             />
           )}
-          <TextRow
-            label="To"
-            value={data?.to}
-            actions={
-              <Button type="dashed" onClick={handleToCopy}>
-                {copyToStatus ? 'Copied' : 'Copy'}
-              </Button>
-            }
-          />
-          <TextRow
-            label="Value"
-            value={data?.value?.toString()}
-            actions={
-              <Button type="dashed" onClick={handleValueCopy}>
-                {copyValueStatus ? 'Copied' : 'Copy'}
-              </Button>
-            }
-          />
-          <TextRow
-            label="Data"
-            value={data?.hexData}
-            actions={
-              <Button type="dashed" onClick={handleDataCopy}>
-                {copyDataStatus ? 'Copied' : 'Copy'}
-              </Button>
-            }
-          />
+          {(type === ActionTxType.activate ||
+            type === ActionTxType.deActivate ||
+            type === ActionTxType.withdraw) && (
+            <>
+              <TextRow
+                label="To"
+                value={data?.to}
+                actions={
+                  <Button type="dashed" onClick={handleToCopy}>
+                    {copyToStatus ? 'Copied' : 'Copy'}
+                  </Button>
+                }
+              />
+              <TextRow
+                label="Value"
+                value={data?.value?.toString()}
+                actions={
+                  <Button type="dashed" onClick={handleValueCopy}>
+                    {copyValueStatus ? 'Copied' : 'Copy'}
+                  </Button>
+                }
+              />
+              <TextRow
+                label="Data"
+                value={data?.hexData}
+                actions={
+                  <Button type="dashed" onClick={handleDataCopy}>
+                    {copyDataStatus ? 'Copied' : 'Copy'}
+                  </Button>
+                }
+              />
+            </>
+          )}
         </div>
       )}
     </Modal>

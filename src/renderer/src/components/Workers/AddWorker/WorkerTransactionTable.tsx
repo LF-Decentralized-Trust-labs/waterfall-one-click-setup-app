@@ -10,7 +10,7 @@ type DataType = WorkerTransactionTableData & {
 
 const columns = (copyFN: (value: string) => void): TableColumnsType<DataType> => [
   {
-    title: 'Worker ID',
+    title: 'Validator ID',
     dataIndex: WorkerTransactionTableFields.id,
     key: WorkerTransactionTableFields.id
   },

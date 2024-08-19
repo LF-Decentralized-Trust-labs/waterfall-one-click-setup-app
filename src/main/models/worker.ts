@@ -48,6 +48,7 @@ export interface Worker extends WorkerStatus {
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
+  delegate: string | null
   createdAt: string
   updatedAt: string
 }
@@ -71,6 +72,7 @@ type OptionalNewWorkerFields = Partial<
     | 'validatorDeActivationEpoch'
     | 'validatorBlockCreationCount'
     | 'stakeAmount'
+    | 'delegate'
   >
 >
 
@@ -80,6 +82,14 @@ export interface UpdateWorker extends Partial<Omit<Worker, 'id' | 'createdAt' | 
 
 export interface Options {
   withNode?: boolean
+}
+
+export interface WhereOptions {
+  nodeId?: number | bigint
+}
+
+interface CountResult {
+  count: number
 }
 
 class WorkerModel {
@@ -95,7 +105,7 @@ class WorkerModel {
     }
 
     const insertWorkerQuery = this.db.prepare(
-      `INSERT INTO workers (nodeId, coordinatorPublicKey, validatorAddress, withdrawalAddress, signature) VALUES (@nodeId, @coordinatorPublicKey, @validatorAddress, @withdrawalAddress, @signature)`
+      `INSERT INTO workers (nodeId, coordinatorPublicKey, validatorAddress, withdrawalAddress, signature, delegate) VALUES (@nodeId, @coordinatorPublicKey, @validatorAddress, @withdrawalAddress, @signature, @delegate)`
     )
 
     const updateNode = this.db.prepare(`UPDATE nodes SET memoHash = @memoHash  WHERE id = @id`)
@@ -108,8 +118,7 @@ class WorkerModel {
 
         updateNode.run({ id: node.id, memoHash: node.memoHash })
       })
-      const res = query(workers)
-      console.log(res)
+      query(workers)
       const allWorkers = this.getByNodeId(node.id)
       return allWorkers.map((worker) => ({
         ...worker,
@@ -128,6 +137,14 @@ class WorkerModel {
     const res = this.db.prepare('SELECT * FROM workers WHERE id = ?')
     const worker = res.get(id) as Worker
 
+    if (worker && worker.delegate) {
+      try {
+        worker.delegate = JSON.parse(worker.delegate)
+      } catch (e) {
+        log.error(e)
+      }
+    }
+
     if (options?.withNode && worker) {
       const nodeModel = new NodeModel(this.db)
       const node = nodeModel.getById(worker.nodeId)
@@ -139,12 +156,46 @@ class WorkerModel {
     return worker
   }
 
+  getByPk(coordinatorPublicKey: string, options?: Options): Worker | null {
+    if (!this.db) {
+      return null
+    }
+    const res = this.db.prepare('SELECT * FROM workers WHERE coordinatorPublicKey = ?')
+    const worker = res.get(coordinatorPublicKey) as Worker
+
+    if (worker && worker.delegate) {
+      try {
+        worker.delegate = JSON.parse(worker.delegate)
+      } catch (e) {
+        log.error(e)
+      }
+    }
+
+    if (options?.withNode && worker) {
+      const nodeModel = new NodeModel(this.db)
+      const node = nodeModel.getById(worker.nodeId)
+      if (node) {
+        worker.node = node
+      }
+    }
+
+    return worker
+  }
   getByNodeId(nodeId: number | bigint, options?: Options): Worker[] {
     if (!this.db) {
       return []
     }
     const res = this.db.prepare('SELECT * FROM workers WHERE nodeId = ?')
     let workers = res.all(nodeId) as Worker[]
+
+    try {
+      workers = workers.map((worker) => ({
+        ...worker,
+        delegate: worker.delegate ? JSON.parse(worker.delegate) : null
+      }))
+    } catch (e) {
+      log.error(e)
+    }
 
     if (options?.withNode && workers.length > 0) {
       const nodeModel = new NodeModel(this.db)
@@ -175,6 +226,15 @@ class WorkerModel {
 
     let workers = res.all() as Worker[]
 
+    try {
+      workers = workers.map((worker) => ({
+        ...worker,
+        delegate: worker.delegate ? JSON.parse(worker.delegate) : null
+      }))
+    } catch (e) {
+      log.error(e)
+    }
+
     if (options?.withNode && workers.length > 0) {
       const nodeModel = new NodeModel(this.db)
       const nodes = nodeModel.getAllByIds([...new Set(workers.map((worker) => worker.nodeId))])
@@ -190,6 +250,31 @@ class WorkerModel {
     }
 
     return workers
+  }
+  getCount(options?: WhereOptions): number | null {
+    if (!this.db) {
+      return null
+    }
+    let query = 'SELECT COUNT(*) AS count FROM workers'
+    const params: (number | bigint | string)[] = []
+    const conditions: string[] = []
+    if (options?.nodeId !== undefined) {
+      conditions.push('nodeId = ?')
+      params.push(options.nodeId)
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ')
+    }
+
+    try {
+      const stmt = this.db.prepare(query)
+      const row = stmt.get(...params) as CountResult
+      return row.count
+    } catch (error) {
+      log.error(error)
+      return null
+    }
   }
 
   remove(id: number | bigint): boolean {

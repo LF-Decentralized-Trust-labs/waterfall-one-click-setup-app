@@ -18,10 +18,12 @@ export const getAllByNodeId = async (id: number | bigint): Promise<Worker[]> => 
 
 export const add = async (data: {
   nodeId: number | bigint
-  mnemonic: string
-  amount: number
-  withdrawalAddress: string
-}) => {
+  mnemonic?: string
+  amount?: number
+  withdrawalAddress?: string
+  depositData?: string
+  delegateRules?: string
+}): Promise<{ status: 'success' | 'error'; message?: string; data?: Worker[] }> => {
   return await window.worker.add(data)
 }
 
@@ -31,4 +33,23 @@ export const getActionTx = async (
   amount?: string
 ): Promise<ActionTx> => {
   return await window.worker.getActionTx(action, id, amount)
+}
+
+export const remove = async (ids: (number | bigint)[]) => {
+  return await window.worker.remove(ids)
+}
+
+export const sendActionTx = async (action: ActionTxType, ids: (number | bigint)[], pk: string) => {
+  return await window.worker.sendActionTx(action, ids, pk)
+}
+
+export const getDepositDataCount = async (path: string) => {
+  return await window.worker.getDepositDataCount(path)
+}
+export const getDelegateRules = async (path: string) => {
+  return await window.worker.getDelegateRules(path)
+}
+
+export const getBalance = async (address: string) => {
+  return await window.worker.getBalance(address)
 }

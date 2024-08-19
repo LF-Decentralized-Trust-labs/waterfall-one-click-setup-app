@@ -11,10 +11,13 @@ import {
   VALIDATOR_WS_API_PORT
 } from '../libs/env'
 
+import { Condition, appendCondition } from '../helpers/query'
+
 type Database = ReturnType<typeof Database>
 export enum Type {
   local = 'local',
-  remote = 'remote'
+  remote = 'remote',
+  provider = 'provider'
 }
 
 export enum CoordinatorStatus {
@@ -32,6 +35,16 @@ export enum ValidatorStatus {
   stopped = 'stopped',
   running = 'running',
   syncing = 'syncing'
+}
+
+export enum DownloadStatus {
+  downloading = 'downloading',
+  downloadingPause = 'downloadingPause',
+  verifying = 'verifying',
+  verifyingPause = 'verifyingPause',
+  extracting = 'extracting',
+  extractingPause = 'extractingPause',
+  finish = 'finish'
 }
 
 export interface Node {
@@ -65,6 +78,11 @@ export interface Node {
   validatorP2PPort: number
   validatorHttpApiPort: number
   validatorWsApiPort: number
+  downloadStatus: DownloadStatus
+  downloadUrl: string | null
+  downloadHash: string | null
+  downloadSize: number
+  downloadBytes: number
   createdAt: string
   updatedAt: string
 }
@@ -80,10 +98,19 @@ type OptionalNewNodeFields = Partial<
     | 'validatorP2PPort'
     | 'validatorHttpApiPort'
     | 'validatorWsApiPort'
+    | 'downloadStatus'
+    | 'downloadUrl'
+    | 'downloadHash'
+    | 'downloadSize'
+    | 'downloadBytes'
   >
 >
 export interface NewNode extends RequiredNewNodeFields, OptionalNewNodeFields {}
 export interface UpdateNode extends Partial<Omit<Node, 'id' | 'createdAt' | 'updatedAt'>> {}
+
+export interface WhereOptions {
+  downloadStatus?: Condition<DownloadStatus>
+}
 
 export interface Options {
   ids?: number[]
@@ -97,15 +124,18 @@ class NodeModel {
     if (!this.db) {
       return null
     }
+
     const query = this.db.prepare(
       'INSERT INTO nodes (' +
         'name, network, type, locationDir, ' +
         'coordinatorHttpApiPort, coordinatorHttpValidatorApiPort, coordinatorP2PTcpPort, coordinatorP2PUdpPort, ' +
-        'validatorP2PPort, validatorHttpApiPort, validatorWsApiPort' +
+        'validatorP2PPort, validatorHttpApiPort, validatorWsApiPort, ' +
+        'downloadStatus, downloadUrl, downloadHash, downloadSize, downloadBytes' +
         ') VALUES (' +
         '@name, @network, @type, @locationDir, ' +
         '@coordinatorHttpApiPort, @coordinatorHttpValidatorApiPort, @coordinatorP2PTcpPort, @coordinatorP2PUdpPort, ' +
-        '@validatorP2PPort, @validatorHttpApiPort, @validatorWsApiPort' +
+        '@validatorP2PPort, @validatorHttpApiPort, @validatorWsApiPort, ' +
+        '@downloadStatus, @downloadUrl, @downloadHash, @downloadSize, @downloadBytes' +
         ')'
     )
     try {
@@ -118,7 +148,12 @@ class NodeModel {
         coordinatorP2PUdpPort: fields.coordinatorP2PUdpPort || COORDINATOR_P2P_UDP_PORT,
         validatorP2PPort: fields.validatorP2PPort || VALIDATOR_P2P_PORT,
         validatorHttpApiPort: fields.validatorHttpApiPort || VALIDATOR_HTTP_API_PORT,
-        validatorWsApiPort: fields.validatorWsApiPort || VALIDATOR_WS_API_PORT
+        validatorWsApiPort: fields.validatorWsApiPort || VALIDATOR_WS_API_PORT,
+        downloadStatus: fields.downloadStatus || DownloadStatus.finish,
+        downloadUrl: fields.downloadUrl || null,
+        downloadHash: fields.downloadHash || null,
+        downloadSize: fields.downloadSize || 0,
+        downloadBytes: fields.downloadBytes || 0
       })
       if (res.changes === 0) {
         return null
@@ -138,12 +173,29 @@ class NodeModel {
     return res.get(id) as Node
   }
 
-  getAll(): Node[] {
+  getAll(options?: WhereOptions): Node[] {
     if (!this.db) {
       return []
     }
-    const res = this.db.prepare('SELECT * FROM nodes')
-    return res.all() as Node[]
+    let query = 'SELECT * FROM nodes'
+
+    const conditions: string[] = []
+    const params: any[] = []
+    if (options?.downloadStatus !== undefined) {
+      appendCondition<DownloadStatus>('downloadStatus', options?.downloadStatus, conditions, params)
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ')
+    }
+
+    try {
+      const stmt = this.db.prepare(query)
+      return stmt.all(...params) as Node[]
+    } catch (error) {
+      log.error(error)
+      return []
+    }
   }
   getAllByIds(ids: (number | bigint)[]): Node[] {
     if (!this.db) {

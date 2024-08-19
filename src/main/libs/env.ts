@@ -4,6 +4,7 @@ const ENV = import.meta.env
 
 export enum Network {
   testnet8 = 'testnet8',
+  testnet9 = 'testnet9',
   mainnet = 'mainnet'
 }
 
@@ -14,6 +15,8 @@ export const getCoordinatorBootnode = (network: Network): string =>
 export const getCoordinatorNetwork = (network: Network): string => {
   if (network === Network.testnet8) {
     return '--testnet8'
+  } else if (network === Network.testnet9) {
+    return '--testnet9'
   } else if (network === Network.mainnet) {
     return '--mainnet'
   }
@@ -23,6 +26,8 @@ export const getCoordinatorNetwork = (network: Network): string => {
 export const getValidatorNetwork = (network: Network): string => {
   if (network === Network.testnet8) {
     return '--testnet8'
+  } else if (network === Network.testnet9) {
+    return '--testnet9'
   } else if (network === Network.mainnet) {
     return '--mainnet'
   }
@@ -37,6 +42,7 @@ export const getChainId = (network: Network): string =>
 export const getValidatorAddress = (network: Network): string =>
   ENV[`VITE_VALIDATOR_ADDRESS_${network.toUpperCase()}`]
 
+export const getLocationPath = (dataPath: string): string => path.resolve(dataPath)
 export const getCoordinatorPath = (dataPath: string): string =>
   path.resolve(path.join(dataPath, 'coordinator'))
 export const getCoordinatorWalletPath = (dataPath: string): string =>
@@ -52,9 +58,19 @@ export const getCoordinatorWalletPasswordPath = (dataPath: string): string =>
 
 export const getValidatorPath = (dataPath: string): string =>
   path.resolve(path.join(dataPath, 'gwat'))
+
+export const getValidatorKeystorePath = (dataPath: string, name?: string): string =>
+  path.resolve(path.join(getValidatorPath(dataPath), 'keystore', name || ''))
+
 export const getValidatorPasswordPath = (dataPath: string): string =>
   path.resolve(path.join(getValidatorPath(dataPath), 'password.txt'))
+
+export const getValidatorNodeKeyPath = (dataPath: string): string =>
+  path.resolve(path.join(getValidatorPath(dataPath), 'gwat', 'nodekey'))
 export const getLogPath = (dataPath: string): string => path.resolve(path.join(dataPath, 'logs'))
+
+export const getSnapshotPath = (dataPath: string): string =>
+  path.resolve(path.join(dataPath, 'snapshot.tar'))
 
 export const COORDINATOR_HTTP_API_PORT = ENV.VITE_COORDINATOR_HTTP_API_PORT
 export const COORDINATOR_HTTP_VALIDATOR_API_PORT = ENV.VITE_COORDINATOR_HTTP_VALIDATOR_API_PORT
@@ -63,3 +79,16 @@ export const COORDINATOR_P2P_UDP_PORT = ENV.VITE_COORDINATOR_P2P_UDP_PORT
 export const VALIDATOR_P2P_PORT = ENV.VITE_VALIDATOR_P2P_PORT
 export const VALIDATOR_HTTP_API_PORT = ENV.VITE_VALIDATOR_HTTP_API_PORT
 export const VALIDATOR_WS_API_PORT = ENV.VITE_VALIDATOR_WS_API_PORT
+
+export const getStakeAmount = (network: Network): number => {
+  if (network === Network.testnet8) {
+    return 3200
+  } else if (network === Network.testnet9) {
+    return 32000
+  } else if (network === Network.mainnet) {
+    return 32000
+  }
+  return 32000
+}
+
+export const getRPC = (network: Network): string => ENV[`VITE_RPC_${network.toUpperCase()}`]

@@ -3,12 +3,15 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { platform, homedir } from 'node:os'
 import path from 'node:path'
+import https from 'node:https'
 
 import { node } from './node'
 import { worker } from './worker'
 
 const selectDirectory = (defaultPath?: string) =>
   ipcRenderer.invoke('os:selectDirectory', defaultPath)
+const selectFile = (defaultPath?: string, filters?: { name: string; extensions: string[] }[]) =>
+  ipcRenderer.invoke('os:selectFile', defaultPath, filters)
 
 const saveTextFile = (text: string, title?: string, fileName?: string) =>
   ipcRenderer.invoke('os:saveTextFile', text, title, fileName)
@@ -16,6 +19,9 @@ const saveTextFile = (text: string, title?: string, fileName?: string) =>
 const openExternal = (url: string) => ipcRenderer.invoke('os:openExternal', url)
 
 const quit = () => ipcRenderer.invoke('app:quit')
+
+const fetchState = () => ipcRenderer.invoke('app:state')
+
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -25,15 +31,18 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('node', node)
     contextBridge.exposeInMainWorld('worker', worker)
     contextBridge.exposeInMainWorld('app', {
-      quit
+      quit,
+      fetchState
     })
     contextBridge.exposeInMainWorld('os', {
       platform: getPlatform(),
       homedir: getHomeDir(),
       selectDirectory: selectDirectory,
+      selectFile: selectFile,
       saveTextFile: saveTextFile,
       openExternal: openExternal,
-      path
+      path,
+      fetchJSON
     })
   } catch (error) {
     console.error(error)
@@ -50,12 +59,14 @@ if (process.contextIsolated) {
     platform: getPlatform(),
     homedir: getHomeDir(),
     selectDirectory: selectDirectory,
+    selectFile: selectFile,
     saveTextFile: saveTextFile,
     openExternal: openExternal,
-    path
+    path,
+    fetchJSON
   }
   // @ts-ignore (define in dts)
-  window.app = { quit }
+  window.app = { quit, fetchState }
 }
 
 function getPlatform(): 'linux' | 'mac' | 'win' | null {
@@ -78,4 +89,35 @@ function getPlatform(): 'linux' | 'mac' | 'win' | null {
 
 function getHomeDir() {
   return homedir()
+}
+
+function fetchJSON(url: string): Promise<object> {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url)
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      family: 4
+    }
+    const req = https.get(options, (res) => {
+      let data = ''
+      res.on('data', (chunk) => {
+        data += chunk
+      })
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data))
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+    req.setTimeout(10000, () => {
+      req.destroy()
+      reject(new Error('Request timeout'))
+    })
+    req.on('error', (e) => {
+      reject(e)
+    })
+  })
 }

@@ -21,7 +21,7 @@ export const WorkersBalanceChart: React.FC<PropsT> = ({ data }) => {
   }
   return (
     <ChartWrapper>
-      <Title level={5}>Consult the chart to calculate Worker earnings</Title>
+      <Title level={5}>Consult the chart to calculate Validator earnings</Title>
       <CanvasJSStockChart containerProps={containerProps} options={options} />
     </ChartWrapper>
   )

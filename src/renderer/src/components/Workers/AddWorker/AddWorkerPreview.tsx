@@ -1,22 +1,38 @@
 import { Flex } from 'antd'
 import { Text } from '@renderer/ui-kit/Typography'
 import { styled } from 'styled-components'
-import { AddWorkerFields, AddWorkerFormValuesT } from '@renderer/types/workers'
-import { Node } from '@renderer/types/node'
-
+import { AddWorkerFields, AddWorkerFormValuesT, DelegateRulesT } from '@renderer/types/workers'
+import { Node, Type as NodeType } from '@renderer/types/node'
+import { DelegateRules as DelegateRulesComponent } from '../../DelegateRules'
 export const AddWorkerPreview: React.FC<{
   data: AddWorkerFormValuesT
   node?: Node
-}> = ({ data, node }) => {
+  deposit?: {
+    depositDataCount?: number
+    delegateRules?: DelegateRulesT
+  }
+}> = ({ data, node, deposit }) => {
   return (
     <TabContentWrapper>
       <TextRow label="Node" value={node?.name || data[AddWorkerFields.node]} />
-      <TextRow
-        label="Mnemonic"
-        value={Object.values(data[AddWorkerFields.mnemonicVerify]).join(' ')}
-      />
-      <TextRow label="Withdrawal Address" value={data[AddWorkerFields.withdrawalAddress]} />
-      <TextRow label="Amount" value={data[AddWorkerFields.amount]} />
+      {node && node.type === NodeType.local && (
+        <>
+          <TextRow
+            label="Mnemonic"
+            value={Object.values(data[AddWorkerFields.mnemonicVerify]).join(' ')}
+          />
+          <TextRow label="Withdrawal Address" value={data[AddWorkerFields.withdrawalAddress]} />
+          <TextRow label="Amount" value={data[AddWorkerFields.amount]} />
+        </>
+      )}
+      {deposit && !!deposit.depositDataCount && (
+        <>
+          <TextRow label="Amount" value={deposit.depositDataCount} />
+          {deposit.delegateRules && (
+            <DelegateRulesComponent delegateRules={deposit.delegateRules} />
+          )}
+        </>
+      )}
     </TabContentWrapper>
   )
 }

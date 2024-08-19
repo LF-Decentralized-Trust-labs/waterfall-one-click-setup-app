@@ -3,6 +3,7 @@ const root_routes = {
   workers: 'workers',
   statistics: 'statistics',
   settings: 'settings',
+  changelog: 'changelog',
   notifications: 'notifications'
 }
 
@@ -22,12 +23,16 @@ const sub_routes = {
     view: `/${root_routes.statistics}/view`
   },
   settings: `/settings`,
+  changelog: `/changelog`,
   notifications: `/notifications`
 }
 
 const SearchKeys = {
   node: 'node',
-  step: 'step'
+  step: 'step',
+  mode: 'mode',
+  type: 'type',
+  network: 'network'
 }
 
 export { sub_routes as routes, root_routes, SearchKeys }

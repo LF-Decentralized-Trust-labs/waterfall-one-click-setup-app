@@ -7,7 +7,7 @@ export type DataType = NodesWorkersDataTypes & {
 }
 
 export const columns = (generateFN: (id?: string) => void): TableColumnsType<DataType> => [
-  { title: 'Worker ID', dataIndex: NodesWorkersDataFields.id, key: NodesWorkersDataFields.id },
+  { title: 'Validator ID', dataIndex: NodesWorkersDataFields.id, key: NodesWorkersDataFields.id },
   {
     title: 'Status',
     dataIndex: NodesWorkersDataFields.status,

@@ -3,7 +3,12 @@ import { PageBody } from '@renderer/components/Page/Body'
 import { PageHeader } from '@renderer/components/Page/Header'
 import { Flex, Layout, Popover } from 'antd'
 import { IconButton } from '@renderer/ui-kit/Button'
-import { CloseOutlined, CaretRightOutlined, WalletOutlined } from '@ant-design/icons'
+import {
+  CloseOutlined,
+  CaretRightOutlined,
+  WalletOutlined,
+  DeleteOutlined
+} from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
 import { Tabs } from '@renderer/ui-kit/Tabs'
 import { Alert } from '@renderer/ui-kit/Alert'
@@ -11,39 +16,66 @@ import { WorkerViewStatistics } from '@renderer/containers/Workers/WorkerViewSta
 import { WorkerViewValidator } from '@renderer/containers/Workers/WorkerViewValidator'
 import { WorkerViewCoordinator } from '@renderer/containers/Workers/WorkerViewCoordinator'
 import { WorkerViewInformation } from '@renderer/containers/Workers/WorkerViewInformation'
+import { WorkerViewDelegateRules } from '@renderer/containers/Workers/WorkerViewDelegateRules'
 import { useGetById } from '../../hooks/workers'
 import { getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
 import { getActions } from '../../helpers/workers'
 import { Worker, ActionTxType } from '../../types/workers'
 import { ActionModal } from '../../containers/Workers/ActionModal'
+import { Status as NodeStatus, Type as NodeType } from '../../types/node'
+import { getNodeStatus } from '../../helpers/node'
 
-const getTabs = (worker?: Worker) => [
-  {
-    label: 'Main Information',
-    children: <WorkerViewInformation item={worker} />,
-    key: '1',
-    closable: false
-  },
-  {
-    label: 'Coordinator',
-    children: <WorkerViewCoordinator item={worker} />,
-    key: '2',
-    closable: false
-  },
-  {
-    label: 'Validator',
-    children: <WorkerViewValidator item={worker} />,
-    key: '3',
-    closable: false
-  },
-  {
-    label: 'Statistics',
-    children: <WorkerViewStatistics item={worker} />,
-    key: '4',
-    closable: false
+const getTabs = (worker?: Worker) => {
+  let tabs = [
+    {
+      label: 'Main Information',
+      children: <WorkerViewInformation item={worker} />,
+      key: '1',
+      closable: false
+    },
+    {
+      label: 'Coordinator',
+      children: <WorkerViewCoordinator item={worker} />,
+      key: '2',
+      closable: false
+    },
+    {
+      label: 'Verifier',
+      children: <WorkerViewValidator item={worker} />,
+      key: '3',
+      closable: false
+    }
+  ]
+
+  if (worker?.delegate) {
+    tabs = [
+      ...tabs,
+      ...[
+        {
+          label: 'Delegate Rules',
+          children: <WorkerViewDelegateRules item={worker} />,
+          key: '4',
+          closable: false
+        }
+      ]
+    ]
   }
-]
+
+  tabs = [
+    ...tabs,
+    ...[
+      {
+        label: 'Statistics',
+        children: <WorkerViewStatistics item={worker} />,
+        key: '10',
+        closable: false
+      }
+    ]
+  ]
+
+  return tabs
+}
 
 export const WorkerViewPage = () => {
   const workerId = useParams()?.id
@@ -57,7 +89,7 @@ export const WorkerViewPage = () => {
 
   const breadcrumb = [
     {
-      title: 'Workers',
+      title: 'Validators',
       link: getViewLink(routes.nodes.list)
     },
     {
@@ -73,35 +105,89 @@ export const WorkerViewPage = () => {
         actions={
           <Flex dir="row" gap={6}>
             {actions[ActionTxType.activate] && (
-              <Popover content="Activate" placement="bottom">
+              <Popover
+                content={
+                  worker?.node && worker?.node.type === NodeType.local
+                    ? 'Activate the Validator only if the node runs and syncs'
+                    : 'Activate the Validator only if the Providers node runs and syncs'
+                }
+                placement="bottom"
+              >
                 <IconButton
                   icon={<CaretRightOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={
+                    worker?.node &&
+                    worker?.node.type === NodeType.local &&
+                    getNodeStatus(worker?.node) !== NodeStatus.running
+                  }
                   onClick={() => onActionModalChange(ActionTxType.activate)}
                 />
               </Popover>
             )}
             {actions[ActionTxType.deActivate] && (
-              <Popover content="Deactivate" placement="bottom">
+              <Popover
+                content={
+                  worker?.node && worker?.node.type === NodeType.local
+                    ? 'Deactivate the Validator only if the node runs and syncs'
+                    : 'Deactivate the Validator only if the Providers node runs and syncs'
+                }
+                placement="bottom"
+              >
                 <IconButton
                   icon={<CloseOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={
+                    worker?.node &&
+                    worker?.node.type === NodeType.local &&
+                    getNodeStatus(worker?.node) !== NodeStatus.running
+                  }
                   onClick={() => onActionModalChange(ActionTxType.deActivate)}
                 />
               </Popover>
             )}
             {actions[ActionTxType.withdraw] && (
-              <Popover content="Withdraw" placement="bottom">
+              <Popover
+                content={
+                  worker?.node && worker?.node.type === NodeType.local
+                    ? 'Withdraw the Validator only if the node runs and syncs'
+                    : 'Withdraw the Validator only if the Providers node runs and syncs'
+                }
+                placement="bottom"
+              >
                 <IconButton
                   icon={<WalletOutlined />}
                   shape="default"
                   size="middle"
+                  disabled={
+                    worker?.node &&
+                    worker?.node.type === NodeType.local &&
+                    getNodeStatus(worker?.node) !== NodeStatus.running
+                  }
                   onClick={() => onActionModalChange(ActionTxType.withdraw)}
                 />
               </Popover>
             )}
+
+            <Popover
+              content={
+                worker?.node && worker?.node.type === NodeType.local
+                  ? 'Delete the Validator only if the node stops'
+                  : 'Delete the Validator only if the Providers node stops'
+              }
+              placement="bottom"
+            >
+              <IconButton
+                disabled={!actions[ActionTxType.remove]}
+                icon={<DeleteOutlined />}
+                shape="default"
+                size="middle"
+                danger
+                onClick={() => onActionModalChange(ActionTxType.remove)}
+              />
+            </Popover>
           </Flex>
         }
       />

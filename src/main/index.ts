@@ -9,19 +9,25 @@ import {
   powerSaveBlocker
 } from 'electron'
 import { Event, HandlerDetails } from 'electron'
-// import { autoUpdater } from 'electron-updater'
+import { autoUpdater } from 'electron-updater'
 import { join } from 'path'
 import log from 'electron-log/main'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/app/iconTemplate.png?asset'
 import trayIcon from '../../resources/tray/iconTemplate.png?asset'
+import EventBus from './libs/EventBus'
 import Node from './node'
 import Worker from './worker'
 import AppEnv from './libs/appEnv'
 import { runMigrations } from './libs/migrate'
-import createStatusWorker from './monitoring/status?nodeWorker'
+import StatusWorker from './monitoring/status'
+import SnapshotWorker from './monitoring/snapshot'
 import FsHandle from './libs/FsHandle'
 
+log.transports.file.level = 'debug'
+autoUpdater.logger = log
+
+const eventBus = new EventBus()
 let tray: null | Tray = null
 let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
@@ -29,18 +35,14 @@ let updateWindow: null | BrowserWindow = null
 const appEnv = new AppEnv({
   isPackaged: app.isPackaged,
   appPath: app.getAppPath(),
-  userData: app.getPath('userData')
+  userData: app.getPath('userData'),
+  version: app.getVersion()
 })
-const node = new Node(ipcMain, appEnv)
+const node = new Node(ipcMain, appEnv, eventBus)
 const worker = new Worker(ipcMain, appEnv)
 const fsHandle = new FsHandle(ipcMain)
-const statusWorker = createStatusWorker({
-  workerData: {
-    isPackaged: appEnv.isPackaged,
-    appPath: appEnv.appPath,
-    userData: appEnv.userData
-  }
-})
+const statusWorker = new StatusWorker(appEnv, eventBus)
+const snapshotWorker = new SnapshotWorker(appEnv, eventBus)
 // Optional, initialize the logger for any renderer process
 log.initialize({ spyRendererConsole: true })
 
@@ -65,7 +67,7 @@ function createUpdateWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    console.log('ELECTRON_RENDERER_URL', process.env['ELECTRON_RENDERER_URL'])
+    log.debug('ELECTRON_RENDERER_URL', process.env['ELECTRON_RENDERER_URL'])
     updateWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/update.html`).then(() => {})
   } else {
     updateWindow.loadFile(join(__dirname, '../renderer/update.html')).then(() => {})
@@ -155,15 +157,18 @@ app.whenReady().then(async () => {
     await runMigrations()
     log.debug('runMigrations Done')
   } catch (e) {
-    console.log('runMigrations', e)
+    log.error('runMigrations', e)
     return await quit()
   }
+
+  autoUpdater.checkForUpdatesAndNotify()
+  log.debug('check update')
 
   try {
     await node.initialize()
     log.debug('node.initialize Done')
   } catch (e) {
-    console.log('node.initialize', e)
+    log.error('node.initialize', e)
     return await quit()
   }
 
@@ -171,7 +176,7 @@ app.whenReady().then(async () => {
     await worker.initialize()
     log.debug('worker.initialize Done')
   } catch (e) {
-    console.log('worker.initialize', e)
+    log.error('worker.initialize', e)
     return await quit()
   }
 
@@ -179,14 +184,16 @@ app.whenReady().then(async () => {
     fsHandle.initialize()
     log.debug('sHandle.initialize Done')
   } catch (e) {
-    console.log('fsHandle.initialize', e)
+    log.error('fsHandle.initialize', e)
     return await quit()
   }
 
-  statusWorker.postMessage({
-    type: 'start'
-  })
+  statusWorker.start()
   log.debug('statusWorker.postMessage start')
+
+  snapshotWorker.start()
+
+  log.debug('snapshotWorker.postMessage start')
 
   preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
 
@@ -203,17 +210,17 @@ app.whenReady().then(async () => {
           return
         }
         mainWindow.show()
-        console.log('Show')
+        log.debug('Show')
       }
     },
-    // {
-    //   label: 'Check Updates',
-    //   click: (): void => {
-    //     autoUpdater.channel = 'beta'
-    //     autoUpdater.checkForUpdatesAndNotify()
-    //     console.log('Show')
-    //   }
-    // },
+    {
+      label: 'Check Updates',
+      click: (): void => {
+        // autoUpdater.channel = 'beta'
+        autoUpdater.checkForUpdatesAndNotify()
+        log.debug('check update')
+      }
+    },
     {
       label: 'Quit',
       click: async () => {
@@ -225,15 +232,10 @@ app.whenReady().then(async () => {
   tray.setContextMenu(contextMenu)
   tray.setToolTip('Waterfall')
   ipcMain.handle('app:quit', async () => await quit())
+  ipcMain.handle('app:state', async () => ({
+    version: appEnv.version
+  }))
 
-  // setTimeout(async () => {
-  //   console.log('start add')
-  //   if (!node) {
-  //     return
-  //   }
-  //   const res = await node.tmp()
-  //   console.log('end add', res)
-  // }, 5000)
   createWindow()
 
   app.on('activate', function () {
@@ -265,10 +267,9 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 const quit = async () => {
-  statusWorker.postMessage({
-    type: 'stop'
-  })
-  await statusWorker.terminate()
+  await statusWorker.destroy()
+
+  await snapshotWorker.destroy()
 
   await worker.destroy()
 
@@ -285,5 +286,5 @@ const quit = async () => {
   }
   globalShortcut.unregisterAll()
   app.quit()
-  console.log('Quit')
+  log.debug('Quit')
 }

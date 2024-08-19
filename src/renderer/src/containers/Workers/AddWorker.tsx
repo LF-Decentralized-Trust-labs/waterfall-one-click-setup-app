@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Flex, Input, InputNumber, Select, StepProps } from 'antd'
+import { Flex, Input, InputNumber, Select } from 'antd'
 import { AddWorkerStepKeys } from '@renderer/helpers/workers'
 import { isAddress } from '../../helpers/common'
 import { useAddWorker } from '@renderer/hooks/workers'
 import { AddWorkerForm } from '@renderer/components/Workers/AddWorker/AddWorkerForm'
 import { AddWorkerPreview } from '@renderer/components/Workers/AddWorker/AddWorkerPreview'
-import { AddWorkerFields, AddWorkerFormValuesT } from '@renderer/types/workers'
+import { AddWorkerFields, AddWorkerFormValuesT, DelegateRulesT } from '@renderer/types/workers'
+import { Type as NodeType } from '@renderer/types/node'
 import { ButtonPrimary } from '@renderer/ui-kit/Button'
 import { StepsWithActiveContent } from '@renderer/ui-kit/Steps/Steps'
 import { GenerateMnemonic } from '@renderer/ui-kit/Mnemonic/GenerateMnemonic'
@@ -13,31 +14,72 @@ import { VerifyMnemonic } from '@renderer/ui-kit/Mnemonic/VerifyMnemonic'
 import { MnemonicInput } from '@renderer/ui-kit/Mnemonic/MnemonicInput'
 import { Node } from '@renderer/types/node'
 import { verifyMnemonic } from '../../helpers/workers'
+import { getAddWorkerSteps } from '@renderer/helpers/workers'
+import { routes } from '@renderer/constants/navigation'
+import { addParams } from '@renderer/helpers/navigation'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { SearchKeys } from '@renderer/constants/navigation'
+import { useGetAll, useGetById } from '@renderer/hooks/node'
+import { DataFile } from '@renderer/ui-kit/DataFile'
+import { Text } from '@renderer/ui-kit/Typography'
+import { DelegateRules as DelegateRulesComponent } from '../../components/DelegateRules'
 
 type AddWorkerPropsT = {
-  steps: Partial<StepProps>[]
-  stepsWithKeys: Partial<StepProps & { key: string }>[]
-  step: number
-  onChangeStep: (value: number) => void
-  goNextStep: () => void
-  goPrevStep: () => void
-  nodes?: Node[]
-  node?: Node
+  mode: 'add' | 'import'
   nodeId?: string
 }
 
-export const AddWorker: React.FC<AddWorkerPropsT> = ({
-  steps,
-  stepsWithKeys,
-  step,
-  onChangeStep,
-  goNextStep,
-  goPrevStep,
-  nodes,
-  node
-}) => {
-  const { values, handleChange, handleSaveMnemonic, onAdd, handleChangeNode, isLoading } =
-    useAddWorker(node)
+export const AddWorker: React.FC<AddWorkerPropsT> = ({ mode }) => {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  const fromNode = searchParams.get(SearchKeys.node)
+  const fromStep = searchParams.get(SearchKeys.step)
+
+  const step = fromStep ? Number(fromStep) : 0
+
+  const { data } = useGetAll()
+  const nodes = mode === 'import' ? data?.filter((node) => node.workersCount === 0) : data
+
+  const nodeId = fromNode
+    ? fromNode
+    : nodes && nodes.length > 0
+      ? nodes[0].id.toString()
+      : undefined
+  // const nodeId = searchParams.get(SearchKeys.node)
+
+  const { data: node } = useGetById(nodeId || undefined)
+
+  const {
+    values,
+    handleChange,
+    handleSaveMnemonic,
+    onSelectFile,
+    deposit,
+    onAdd,
+    handleChangeNode,
+    isLoading,
+    error
+  } = useAddWorker(node, mode)
+
+  const { steps, stepsWithKeys } = getAddWorkerSteps(node, mode)
+
+  const onChangeStep = (step: number) =>
+    navigate(
+      addParams(routes.workers.add, {
+        [SearchKeys.mode]: mode,
+        [SearchKeys.node]: nodeId ? nodeId.toString() : '',
+        [SearchKeys.step]: step.toString()
+      })
+    )
+  const goNextStep = () => onChangeStep(step + 1 <= steps.length ? step + 1 : step)
+  const goPrevStep = () => onChangeStep(step - 1 >= 0 ? step - 1 : step)
+
+  useEffect(() => {
+    if (fromNode === null && fromStep === null && nodes && nodes.length > 0) {
+      onChangeStep(0)
+    }
+  }, [fromStep, nodes, fromNode, mode])
 
   const StepComponent = {
     [AddWorkerStepKeys.node]: (
@@ -71,6 +113,15 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         goNext={goNextStep}
         goPrev={goPrevStep}
         memoHash={node?.memoHash}
+        isValidationMemoHash={true}
+        value={values[AddWorkerFields.mnemonicVerify]}
+        onChange={handleChange(AddWorkerFields.mnemonicVerify)}
+      />
+    ),
+    [AddWorkerStepKeys.importMnemonic]: (
+      <GetMnemonicPhrase
+        goNext={goNextStep}
+        goPrev={goPrevStep}
         value={values[AddWorkerFields.mnemonicVerify]}
         onChange={handleChange(AddWorkerFields.mnemonicVerify)}
       />
@@ -91,13 +142,36 @@ export const AddWorker: React.FC<AddWorkerPropsT> = ({
         value={values[AddWorkerFields.withdrawalAddress]}
       />
     ),
+    [AddWorkerStepKeys.depositData]: (
+      <DepositData
+        goNext={goNextStep}
+        goPrev={goPrevStep}
+        onChange={handleChange(AddWorkerFields.depositData)}
+        onSelectFile={onSelectFile(AddWorkerFields.depositData)}
+        value={values[AddWorkerFields.depositData]}
+        depositDataCount={deposit.depositDataCount}
+      />
+    ),
+    [AddWorkerStepKeys.delegateRules]: (
+      <DelegateRules
+        goNext={goNextStep}
+        goPrev={goPrevStep}
+        onChange={handleChange(AddWorkerFields.delegateRules)}
+        onSelectFile={onSelectFile(AddWorkerFields.delegateRules)}
+        value={values[AddWorkerFields.delegateRules]}
+        delegateRules={deposit.delegateRules}
+      />
+    ),
     [AddWorkerStepKeys.preview]: (
       <Preview
         values={values}
         node={node}
+        mode={mode}
         goNext={onAdd}
         goPrev={goPrevStep}
         isLoading={isLoading}
+        error={error}
+        deposit={deposit}
       />
     )
   }
@@ -126,6 +200,7 @@ type BasePropsT = {
   goNext: () => void
   goPrev: () => void
   isLoading?: boolean
+  error?: string
 }
 
 const NodeSelect: React.FC<
@@ -201,14 +276,17 @@ const VerifyMnemonicPhrase: React.FC<
 const GetMnemonicPhrase: React.FC<
   BasePropsT & {
     memoHash?: string
+    isValidationMemoHash?: boolean
     value: Record<number, string>
     onChange: (value: Record<number, string>) => void
   }
-> = ({ goNext, goPrev, memoHash, value, onChange }) => {
+> = ({ goNext, goPrev, memoHash, isValidationMemoHash = false, value, onChange }) => {
   let isValid = Object.values(value).filter((el) => el).length === 24
-  isValid = isValid && !!memoHash
-  if (isValid && memoHash) {
-    isValid = verifyMnemonic(Object.values(value).join(' '), memoHash)
+  if (isValidationMemoHash) {
+    isValid = isValid && !!memoHash
+    if (isValid && memoHash) {
+      isValid = verifyMnemonic(Object.values(value).join(' '), memoHash)
+    }
   }
 
   return (
@@ -228,7 +306,7 @@ const WorkersAmount: React.FC<
 > = ({ goNext, goPrev, value, onChange }) => {
   return (
     <AddWorkerForm
-      title="Select the number of Workers that you want to add"
+      title="Select the number of Validators that you want to add"
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={!!value}
@@ -260,29 +338,86 @@ const WithdrawalAddress: React.FC<
   )
 }
 
-const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node }> = ({
-  goNext,
-  goPrev,
-  values,
-  node,
-  isLoading
-}) => {
-  let canGoNext =
-    !!node &&
-    !!values[AddWorkerFields.mnemonicVerify] &&
-    !!values[AddWorkerFields.amount] &&
-    !!values[AddWorkerFields.withdrawalAddress]
+const DepositData: React.FC<
+  BasePropsT & {
+    value?: string
+    onChange: (value?: string) => void
+    onSelectFile: () => void
+    depositDataCount: number
+  }
+> = ({ goNext, goPrev, value, onChange, onSelectFile, depositDataCount }) => {
+  return (
+    <AddWorkerForm title="Select Deposit Data" goNext={goNext} goPrev={goPrev} canGoNext={!!value}>
+      <DataFile
+        placeholder="Select Deposit Data"
+        value={value}
+        handleChange={onChange}
+        onSelectFile={onSelectFile}
+        // errorMessage={error}
+      />
+      <Text size="sm">Validators count: {depositDataCount}</Text>
+    </AddWorkerForm>
+  )
+}
+
+const DelegateRules: React.FC<
+  BasePropsT & {
+    value?: string
+    onChange: (value?: string) => void
+    onSelectFile: () => void
+    delegateRules?: DelegateRulesT
+  }
+> = ({ goNext, goPrev, value, onChange, onSelectFile, delegateRules }) => {
+  return (
+    <AddWorkerForm
+      title="Select Delegate Rules"
+      goNext={goNext}
+      goPrev={goPrev}
+      canGoNext={!!value}
+    >
+      <DataFile
+        placeholder="Select Delegate Rules"
+        value={value}
+        handleChange={onChange}
+        onSelectFile={onSelectFile}
+        // errorMessage={error}
+      />
+      <DelegateRulesComponent delegateRules={delegateRules} />
+    </AddWorkerForm>
+  )
+}
+
+const Preview: React.FC<
+  BasePropsT & {
+    values: AddWorkerFormValuesT
+    node?: Node
+    mode: 'add' | 'import'
+    deposit: { depositDataCount: number; delegateRules?: DelegateRulesT }
+  }
+> = ({ goNext, goPrev, values, node, mode, isLoading, error, deposit }) => {
+  let canGoNext = !!node
 
   if (canGoNext) {
-    if (node && node.memoHash) {
-      canGoNext = verifyMnemonic(
-        Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
-        node.memoHash
-      )
+    if (node && node.type === NodeType.provider) {
+      canGoNext = !!values[AddWorkerFields.depositData] && !!values[AddWorkerFields.delegateRules]
     } else {
       canGoNext =
-        values[AddWorkerFields.mnemonic].join('') ===
-        Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
+        !!values[AddWorkerFields.mnemonicVerify] &&
+        !!values[AddWorkerFields.amount] &&
+        !!values[AddWorkerFields.withdrawalAddress]
+    }
+
+    if (canGoNext) {
+      if (node && node.memoHash) {
+        canGoNext = verifyMnemonic(
+          Object.values(values[AddWorkerFields.mnemonicVerify]).join(' '),
+          node.memoHash
+        )
+      } else if (mode === 'add') {
+        canGoNext =
+          values[AddWorkerFields.mnemonic].join('') ===
+          Object.values(values[AddWorkerFields.mnemonicVerify]).join('')
+      }
     }
   }
 
@@ -291,10 +426,11 @@ const Preview: React.FC<BasePropsT & { values: AddWorkerFormValuesT; node?: Node
       goNext={goNext}
       goPrev={goPrev}
       canGoNext={canGoNext}
-      nextText="Add"
+      nextText={mode === 'import' ? 'Import' : 'Add'}
       isLoading={isLoading}
+      error={error}
     >
-      <AddWorkerPreview data={values} node={node} />
+      <AddWorkerPreview data={values} node={node} deposit={deposit} />
     </AddWorkerForm>
   )
 }

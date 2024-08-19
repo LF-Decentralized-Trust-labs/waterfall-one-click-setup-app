@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_VALIDATOR_WS_API_PORT: string
   readonly VITE_CHAIN_ID_TESTNET8: string
   readonly VITE_VALIDATOR_ADDRESS_TESTNET8: string
+  readonly VITE_LAST_SNAPSHOT_URL: string
 }
 
 interface ImportMeta {

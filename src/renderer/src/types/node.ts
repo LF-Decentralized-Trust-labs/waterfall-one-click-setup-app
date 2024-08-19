@@ -1,11 +1,13 @@
 // NODE LIST TABLE
 export enum Network {
   testnet8 = 'testnet8',
+  testnet9 = 'testnet9',
   mainnet = 'mainnet'
 }
 export enum Type {
   local = 'local',
-  remote = 'remote'
+  remote = 'remote',
+  provider = 'provider'
 }
 
 export enum Status {
@@ -28,6 +30,16 @@ export enum ValidatorStatus {
   stopped = 'stopped',
   running = 'running',
   syncing = 'syncing'
+}
+
+export enum DownloadStatus {
+  downloading = 'downloading',
+  downloadingPause = 'downloadingPause',
+  verifying = 'verifying',
+  verifyingPause = 'verifyingPause',
+  extracting = 'extracting',
+  extractingPause = 'extractingPause',
+  finish = 'finish'
 }
 
 export interface Node {
@@ -61,6 +73,11 @@ export interface Node {
   validatorP2PPort: number
   validatorHttpApiPort: number
   validatorWsApiPort: number
+  downloadStatus: DownloadStatus
+  downloadUrl: string | null
+  downloadHash: string | null
+  downloadSize: number
+  downloadBytes: number
   createdAt: string
   updatedAt: string
 }
@@ -76,6 +93,11 @@ type OptionalNewNodeFields = Partial<
     | 'validatorP2PPort'
     | 'validatorHttpApiPort'
     | 'validatorWsApiPort'
+    | 'downloadStatus'
+    | 'downloadUrl'
+    | 'downloadHash'
+    | 'downloadSize'
+    | 'downloadBytes'
   >
 >
 export interface NewNode extends RequiredNewNodeFields, OptionalNewNodeFields {}
@@ -130,7 +152,11 @@ export enum CommonNodeFields {
   type = 'type',
   network = 'network',
   locationDir = 'locationDir',
-  name = 'name'
+  name = 'name',
+  downloadStatus = 'downloadStatus',
+  downloadUrl = 'downloadUrl',
+  downloadHash = 'downloadHash',
+  downloadSize = 'downloadSize'
 }
 export enum PortsNodeFields {
   coordinatorHttpApiPort = 'coordinatorHttpApiPort',
@@ -147,6 +173,10 @@ export enum AddNodeFields {
   network = CommonNodeFields.network,
   locationDir = CommonNodeFields.locationDir,
   name = CommonNodeFields.name,
+  downloadStatus = CommonNodeFields.downloadStatus,
+  downloadUrl = CommonNodeFields.downloadUrl,
+  downloadHash = CommonNodeFields.downloadHash,
+  downloadSize = CommonNodeFields.downloadSize,
   coordinatorHttpApiPort = PortsNodeFields.coordinatorHttpApiPort,
   coordinatorHttpValidatorApiPort = PortsNodeFields.coordinatorHttpValidatorApiPort,
   coordinatorP2PTcpPort = PortsNodeFields.coordinatorP2PTcpPort,
@@ -161,4 +191,25 @@ export type Ports = {
 }
 export type CheckPorts = {
   [K in PortsNodeFields]?: boolean
+}
+
+export type Snapshot = {
+  url: string
+  hash: string
+  size: number
+}
+
+export type Snapshots = {
+  [K in Network]: Snapshot
+}
+
+export enum Action {
+  stop = 'stop',
+  start = 'start',
+  restart = 'restart',
+  remove = 'remove'
+}
+
+export type ActionMap = {
+  [key in Action]: boolean
 }
