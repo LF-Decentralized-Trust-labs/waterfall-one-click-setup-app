@@ -71,9 +71,11 @@ export const columns = ({
     key: WorkersListDataFields.coordinatorBalanceAmount,
     render: (_, worker) => {
       const status = getStatus(worker)
-      return status === Status.active
-        ? parseInt(worker.coordinatorBalanceAmount) - parseInt(worker.stakeAmount)
-        : parseInt(worker.coordinatorBalanceAmount)
+      return (
+        status === Status.active
+          ? parseFloat(worker.coordinatorBalanceAmount) - parseFloat(worker.stakeAmount)
+          : parseFloat(worker.coordinatorBalanceAmount)
+      ).toFixed(2)
     }
   },
   {

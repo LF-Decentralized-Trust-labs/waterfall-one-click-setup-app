@@ -27,10 +27,13 @@ export const WorkerViewCoordinator: React.FC<WorkerViewTabProps> = ({ item }) =>
         }
       />
 
-      <TabTextRow label="Stake size" value={item ? `${item.stakeAmount} WATER` : '-'} />
+      <TabTextRow
+        label="Stake size"
+        value={item ? `${parseFloat(item.stakeAmount).toFixed(2)} WATER` : '-'}
+      />
       <TabTextRow
         label="Current balance"
-        value={item ? `${item.coordinatorBalanceAmount} WATER` : '-'}
+        value={item ? `${parseFloat(item.coordinatorBalanceAmount).toFixed(2)} WATER` : '-'}
       />
       <TabTextRow
         label="Activation Epoch"
