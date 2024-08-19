@@ -48,7 +48,7 @@ export interface Worker extends WorkerStatus {
   validatorBlockCreationCount: number
   withdrawalAddress: string
   signature: string
-  delegate: string
+  delegate: string | null
   createdAt: string
   updatedAt: string
 }

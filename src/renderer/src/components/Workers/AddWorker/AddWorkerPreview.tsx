@@ -25,7 +25,7 @@ export const AddWorkerPreview: React.FC<{
           <TextRow label="Amount" value={data[AddWorkerFields.amount]} />
         </>
       )}
-      {deposit && (
+      {deposit && !!deposit.depositDataCount && (
         <>
           <TextRow label="Amount" value={deposit.depositDataCount} />
           {deposit.delegateRules && (

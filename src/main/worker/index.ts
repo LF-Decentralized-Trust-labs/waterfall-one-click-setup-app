@@ -214,7 +214,8 @@ class Worker {
           coordinatorPublicKey: key.depositData.pubkey,
           validatorAddress: key.depositData.creator_address,
           withdrawalAddress: key.depositData.withdrawal_address,
-          signature: key.depositData.signature
+          signature: key.depositData.signature,
+          delegate: null
         }
         keys.push(key)
         newWorkers.push(worker)

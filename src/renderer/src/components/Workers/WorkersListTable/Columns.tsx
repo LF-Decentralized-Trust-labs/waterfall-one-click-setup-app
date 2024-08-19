@@ -1,5 +1,10 @@
 import { Flex, TableColumnsType, Popover } from 'antd'
-import { WorkersListDataFields, WorkersListDataTypes, Worker } from '@renderer/types/workers'
+import {
+  WorkersListDataFields,
+  WorkersListDataTypes,
+  Worker,
+  Status
+} from '@renderer/types/workers'
 import { IconButton } from '@renderer/ui-kit/Button'
 import {
   CloseOutlined,
@@ -9,7 +14,7 @@ import {
 } from '@ant-design/icons'
 import { Link } from '@renderer/ui-kit/Link'
 import { getViewLink } from '@renderer/helpers/navigation'
-import { getStatusLabel } from '@renderer/helpers/workers'
+import { getStatusLabel, getStatus } from '@renderer/helpers/workers'
 import { routes } from '@renderer/constants/navigation'
 import React from 'react'
 import { getActions } from '../../../helpers/workers'
@@ -61,13 +66,15 @@ export const columns = ({
   },
 
   {
-    title: 'Rewards(WATER)',
+    title: 'Rewards (WATER)',
     dataIndex: WorkersListDataFields.coordinatorBalanceAmount,
     key: WorkersListDataFields.coordinatorBalanceAmount,
-    render: (_, worker) =>
-      parseInt(worker.coordinatorBalanceAmount) >= parseInt(worker.stakeAmount)
+    render: (_, worker) => {
+      const status = getStatus(worker)
+      return status === Status.active
         ? parseInt(worker.coordinatorBalanceAmount) - parseInt(worker.stakeAmount)
         : parseInt(worker.coordinatorBalanceAmount)
+    }
   },
   {
     title: 'Actions',
