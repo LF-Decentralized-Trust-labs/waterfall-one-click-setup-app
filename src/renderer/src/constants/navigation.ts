@@ -30,7 +30,9 @@ const sub_routes = {
 const SearchKeys = {
   node: 'node',
   step: 'step',
-  mode: 'mode'
+  mode: 'mode',
+  type: 'type',
+  network: 'network'
 }
 
 export { sub_routes as routes, root_routes, SearchKeys }

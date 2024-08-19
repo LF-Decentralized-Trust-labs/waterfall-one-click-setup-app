@@ -10,6 +10,8 @@ import { worker } from './worker'
 
 const selectDirectory = (defaultPath?: string) =>
   ipcRenderer.invoke('os:selectDirectory', defaultPath)
+const selectFile = (defaultPath?: string, filters?: { name: string; extensions: string[] }[]) =>
+  ipcRenderer.invoke('os:selectFile', defaultPath, filters)
 
 const saveTextFile = (text: string, title?: string, fileName?: string) =>
   ipcRenderer.invoke('os:saveTextFile', text, title, fileName)
@@ -36,6 +38,7 @@ if (process.contextIsolated) {
       platform: getPlatform(),
       homedir: getHomeDir(),
       selectDirectory: selectDirectory,
+      selectFile: selectFile,
       saveTextFile: saveTextFile,
       openExternal: openExternal,
       path,
@@ -56,6 +59,7 @@ if (process.contextIsolated) {
     platform: getPlatform(),
     homedir: getHomeDir(),
     selectDirectory: selectDirectory,
+    selectFile: selectFile,
     saveTextFile: saveTextFile,
     openExternal: openExternal,
     path,

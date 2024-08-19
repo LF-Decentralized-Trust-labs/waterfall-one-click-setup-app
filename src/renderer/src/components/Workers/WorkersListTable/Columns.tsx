@@ -1,5 +1,10 @@
 import { Flex, TableColumnsType, Popover } from 'antd'
-import { WorkersListDataFields, WorkersListDataTypes, Worker } from '@renderer/types/workers'
+import {
+  WorkersListDataFields,
+  WorkersListDataTypes,
+  Worker,
+  Status
+} from '@renderer/types/workers'
 import { IconButton } from '@renderer/ui-kit/Button'
 import {
   CloseOutlined,
@@ -9,7 +14,7 @@ import {
 } from '@ant-design/icons'
 import { Link } from '@renderer/ui-kit/Link'
 import { getViewLink } from '@renderer/helpers/navigation'
-import { getStatusLabel } from '@renderer/helpers/workers'
+import { getStatusLabel, getStatus } from '@renderer/helpers/workers'
 import { routes } from '@renderer/constants/navigation'
 import React from 'react'
 import { getActions } from '../../../helpers/workers'
@@ -61,9 +66,15 @@ export const columns = ({
   },
 
   {
-    title: 'Worked hours',
-    dataIndex: WorkersListDataFields.workedHours,
-    key: WorkersListDataFields.workedHours
+    title: 'Rewards (WATER)',
+    dataIndex: WorkersListDataFields.coordinatorBalanceAmount,
+    key: WorkersListDataFields.coordinatorBalanceAmount,
+    render: (_, worker) => {
+      const status = getStatus(worker)
+      return status === Status.active
+        ? parseInt(worker.coordinatorBalanceAmount) - parseInt(worker.stakeAmount)
+        : parseInt(worker.coordinatorBalanceAmount)
+    }
   },
   {
     title: 'Actions',
@@ -94,7 +105,7 @@ export const columns = ({
           <Flex gap={6}>
             {actions[ActionTxType.activate] && (
               <Popover
-                content="Activate the Validator only if the node runs and syncs"
+                content="Activate the Validator only if the Node runs and syncs or Node from Provider"
                 placement="bottom"
               >
                 <IconButton
@@ -108,7 +119,7 @@ export const columns = ({
             )}
             {actions[ActionTxType.deActivate] && (
               <Popover
-                content="Deactivate the Validator only if the node runs and syncs"
+                content="Deactivate the Validator only if the Node runs and syncs or Node from Provider"
                 placement="bottom"
               >
                 <IconButton
@@ -122,7 +133,7 @@ export const columns = ({
             )}
             {actions[ActionTxType.withdraw] && (
               <Popover
-                content="Withdraw the Validator only if the node runs and syncs"
+                content="Withdraw the Validator only if the Node runs and syncs or Node from Provider"
                 placement="bottom"
               >
                 <IconButton
@@ -134,7 +145,10 @@ export const columns = ({
                 />
               </Popover>
             )}
-            <Popover content="Delete the Validator only if the node stops" placement="bottom">
+            <Popover
+              content="Delete the Validator only if the node stops or Node from Provider"
+              placement="bottom"
+            >
               <IconButton
                 disabled={!actions[ActionTxType.remove]}
                 icon={<DeleteOutlined />}

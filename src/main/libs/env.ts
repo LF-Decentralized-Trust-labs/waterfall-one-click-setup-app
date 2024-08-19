@@ -90,3 +90,5 @@ export const getStakeAmount = (network: Network): number => {
   }
   return 32000
 }
+
+export const getRPC = (network: Network): string => ENV[`VITE_RPC_${network.toUpperCase()}`]

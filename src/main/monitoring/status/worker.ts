@@ -5,6 +5,7 @@ import AppEnv from '../../libs/appEnv'
 import NodeModel, { Type as NodeType, CoordinatorStatus, ValidatorStatus } from '../../models/node'
 import WorkerModel from '../../models/worker'
 import LocalNode from '../../node/local'
+import ProviderNode from '../../node/provider'
 import { areObjectsEqual } from '../../helpers/common'
 import { Event, EventName } from '../../libs/EventBus'
 
@@ -81,7 +82,7 @@ class StatusMonitoring {
         const node =
           nodeModel.type === NodeType.local
             ? new LocalNode(nodeModel, this.appEnv)
-            : new LocalNode(nodeModel, this.appEnv)
+            : new ProviderNode(nodeModel, this.appEnv)
         const peers = await node.getPeers()
         const sync = await node.getSync()
 
@@ -116,7 +117,6 @@ class StatusMonitoring {
           for (const workerModel of workers) {
             try {
               const workerStatus = await node.getWorkerStatus(workerModel)
-              // console.log('workerStatus', workerStatus)
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {

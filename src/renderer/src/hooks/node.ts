@@ -1,27 +1,27 @@
-import { getViewLink } from '@renderer/helpers/navigation'
+import { addParams, getViewLink } from '@renderer/helpers/navigation'
 import { routes } from '@renderer/constants/navigation'
-import { AddNodeFields, Type, Network, NewNode, Ports } from '@renderer/types/node'
-import { useState, useCallback, useEffect } from 'react'
+import { AddNodeFields, Network, NewNode, Ports, Type } from '@renderer/types/node'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  add,
+  checkPorts,
   getAll,
   getById,
-  stop,
-  start,
-  restart,
-  add,
+  getLastSnapshots,
   remove,
-  checkPorts,
-  getLastSnapshots
+  restart,
+  start,
+  stop
 } from '@renderer/api/node'
 import { selectDirectory } from '@renderer/api/os'
 import {
-  DEFAULT_WF_PATH,
   COORDINATOR_HTTP_API_PORT,
   COORDINATOR_HTTP_VALIDATOR_API_PORT,
   COORDINATOR_P2P_TCP_PORT,
   COORDINATOR_P2P_UDP_PORT,
+  DEFAULT_WF_PATH,
   VALIDATOR_HTTP_API_PORT,
   VALIDATOR_P2P_PORT,
   VALIDATOR_WS_API_PORT
@@ -37,17 +37,18 @@ const initialPorts = {
   [AddNodeFields.validatorP2PPort]: Number(VALIDATOR_P2P_PORT),
   [AddNodeFields.validatorWsApiPort]: Number(VALIDATOR_WS_API_PORT)
 }
-const initialValues = {
-  [AddNodeFields.type]: Type.local,
-  [AddNodeFields.network]: Network.mainnet,
-  [AddNodeFields.locationDir]: DEFAULT_WF_PATH,
+const getInitialValues = (type: Type.local | Type.provider, network: Network.mainnet) => ({
+  [AddNodeFields.type]: type || Type.local,
+  [AddNodeFields.network]: network || Network.mainnet,
+  [AddNodeFields.locationDir]: Type.local === type ? DEFAULT_WF_PATH : '',
   [AddNodeFields.name]: '',
-  [AddNodeFields.downloadStatus]: DownloadStatus.downloading,
+  [AddNodeFields.downloadStatus]:
+    Type.local === type ? DownloadStatus.downloading : DownloadStatus.finish,
   [AddNodeFields.downloadUrl]: null,
   [AddNodeFields.downloadHash]: null,
   [AddNodeFields.downloadSize]: 0,
   ...initialPorts
-}
+})
 
 export const useGoNode = () => {
   const navigate = useNavigate()
@@ -67,11 +68,11 @@ const _checkPorts = async (values) => {
   }
   return results
 }
-export const useAddNode = () => {
+export const useAddNode = (type: Type.local | Type.provider, network) => {
   const [isLoading, setLoading] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const [values, setValues] = useState<NewNode>(initialValues)
+  const [values, setValues] = useState<NewNode>(getInitialValues(type, network))
 
   const { data: snapshots } = useQuery({
     queryKey: ['node:snapshot'],
@@ -95,19 +96,23 @@ export const useAddNode = () => {
       queryClient.setQueryData(['node:checkPorts'], data)
     }
   })
-  const handleChange = (field: AddNodeFields) => (value?: string | number | null) =>
+  const handleChange = (field: AddNodeFields) => (value?: string | number | null) => {
+    if (field === AddNodeFields.type && value) {
+      navigate(addParams(routes.nodes.create, { type: value as Type.local | Type.provider }))
+      setValues(() => getInitialValues(value as Type.local | Type.provider, network))
+      return
+    }
     setValues((prev) => ({ ...prev, [field]: value }))
+  }
 
   const onAdd = async () => {
     setLoading(true)
     const node = await add(values)
-    setTimeout(() => {
-      setLoading(false)
-      if (node?.id) {
-        return navigate(getViewLink(routes.nodes.view, { id: node.id.toString() }))
-      }
-      alert(node)
-    }, 10000)
+    setLoading(false)
+    if (node?.id) {
+      return navigate(getViewLink(routes.nodes.view, { id: node.id.toString() }))
+    }
+    alert(node)
   }
 
   const onSelectDirectory = useCallback(async () => {

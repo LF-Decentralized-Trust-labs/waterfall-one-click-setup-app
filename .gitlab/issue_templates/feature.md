@@ -1,22 +1,16 @@
-
-
 ### Problem/Opportunity (Here we describe problem that need to be improved, or adding description for feature ):
-
 
 ### Solutions (Here we describe how we going to improve it)
 
-
-### Need to check(Used by developer to mention what need to be checked by QA): 
+### Need to check(Used by developer to mention what need to be checked by QA):
 
 ### Nodes:
 
 - [ ] Node Add
 - [ ] Node synchronisation
-- [ ] Delete Node 
+- [ ] Delete Node
 - [ ] Stopped/Start Node
-- [ ] List Node 
-
-
+- [ ] List Node
 
 ### Workers
 
@@ -28,7 +22,6 @@
 - [ ] Worker Reward
 - [ ] Worker Penalty
 - [ ] Worker Withdrawal
-
 
 ### Other
 

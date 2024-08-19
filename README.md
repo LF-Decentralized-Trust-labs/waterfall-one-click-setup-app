@@ -32,3 +32,7 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+## License
+
+[APACHE LICENSE, VERSION 2.0](https://www.apache.org/licenses/LICENSE-2.0)

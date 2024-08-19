@@ -12,6 +12,15 @@ const items = [
   {
     children: (
       <>
+        <Text size="sm">0.4.1 beta - 12.08.2024</Text>
+        <p>New: Add support delegate rules</p>
+        <p>New: Add support provider node</p>
+      </>
+    )
+  },
+  {
+    children: (
+      <>
         <Text size="sm">0.4.0 beta - 24.07.2024</Text>
         <p>New: Add support mainnet</p>
         <p>Improve: Rename Worker to validator, Validator to Verifier</p>

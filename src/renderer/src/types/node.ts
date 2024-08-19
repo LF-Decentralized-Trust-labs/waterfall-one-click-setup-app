@@ -6,7 +6,8 @@ export enum Network {
 }
 export enum Type {
   local = 'local',
-  remote = 'remote'
+  remote = 'remote',
+  provider = 'provider'
 }
 
 export enum Status {
