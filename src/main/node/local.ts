@@ -837,7 +837,6 @@ class LocalNode extends EventEmitter {
   }
 
   public async runValidatorCommand(command: string, format?: 'json'): Promise<string | object> {
-    // console.log(command)
     if (!this.model) {
       return ''
     }

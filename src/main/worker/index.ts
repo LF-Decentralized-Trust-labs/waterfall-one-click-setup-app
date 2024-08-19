@@ -9,14 +9,14 @@ import WorkerModel, {
 import { getMain } from '../libs/db'
 import Web3 from 'web3'
 import {
-  GetDepositDataResponse,
   GetCoordinatorKeyStoreResponseType,
+  GetDepositDataResponse,
   GetValidatorKeyStoreResponseType
 } from 'web3/utils'
 import LocalNode from '../node/local'
 import ProviderNode from '../node/provider'
 import crypto from 'crypto'
-import { getStakeAmount } from '../libs/env'
+import { getRPC, getStakeAmount, Network } from '../libs/env'
 import { readJSON } from '../libs/fs'
 import { validateDelegateRules, validateDepositData } from '../helpers/worker'
 import { getWeb3 } from '../libs/web3'
@@ -348,7 +348,6 @@ class Worker {
         }
       }
     }
-    console.log(results)
     return results
   }
   private async _sendActionTx(
@@ -365,12 +364,6 @@ class Worker {
     }
     const results = ids.map(() => false)
 
-    const web3 = getWeb3('https://rpc.waterfall.network')
-    if (!web3 || !web3.currentProvider) {
-      return ErrorResults.WORKER_NOT_FOUND
-    }
-    const depositAddress = await web3.wat.validator.depositAddress()
-    const account = web3.eth.accounts.privateKeyToAccount(pk)
     for (const id of ids) {
       const worker = this.workerModel.getById(id, { withNode: true })
       if (!worker || !worker.node) {
@@ -379,6 +372,14 @@ class Worker {
       }
       log.debug(id)
       try {
+        const web3 = getWeb3(getRPC(worker.node.network))
+        if (!web3 || !web3.currentProvider) {
+          log.error('no web3 currentProvider')
+          continue
+        }
+        const depositAddress = await web3.wat.validator.depositAddress()
+        const account = web3.eth.accounts.privateKeyToAccount(pk)
+
         let data, value
         if (action === ActionTxType.activate) {
           value = web3.utils.toWei(getStakeAmount(worker.node.network).toString(), 'ether')
@@ -582,7 +583,7 @@ class Worker {
     }
   }
   private async _getBalance(address: string): Promise<string> {
-    const web3 = getWeb3('https://rpc.waterfall.network')
+    const web3 = getWeb3(getRPC(Network.mainnet))
     if (!web3 || !web3.currentProvider) {
       return ''
     }

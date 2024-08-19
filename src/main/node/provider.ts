@@ -10,6 +10,7 @@ import { isSyncInfo, isWatInfo } from '../helpers/node'
 import { EraInfo, isEraInfo, isValidatorInfo } from '../helpers/worker'
 import { PublicKey } from '../worker'
 import { getWeb3 } from '../libs/web3'
+import { getRPC, Network } from '../libs/env'
 
 export enum StatusResult {
   success = 'success',
@@ -36,7 +37,7 @@ class ProviderNode extends EventEmitter {
     super()
     this.appEnv = appEnv
     this.model = model || null
-    this.web3 = getWeb3('https://rpc.waterfall.network')
+    this.web3 = getWeb3(getRPC(model ? model.network : Network.mainnet))
   }
 
   public async initialize(): Promise<StatusResults> {
@@ -217,9 +218,10 @@ class ProviderNode extends EventEmitter {
 
     try {
       const [validatorResponse, currentEra, validatorBalanceAmount] = await Promise.all([
-        this.runValidatorCommand(`wat_validator_GetInfo`, [`0x${worker.validatorAddress}`]).catch(
-          () => null
-        ),
+        this.runValidatorCommand(`wat_validator_GetInfo`, [
+          `0x${worker.validatorAddress}`,
+          'latest'
+        ]).catch(() => null),
         this.runValidatorCommand('wat_getEra'),
         this.runValidatorCommand(`eth_getBalance`, [`0x${worker.validatorAddress}`, 'latest'])
       ])
@@ -294,11 +296,14 @@ class ProviderNode extends EventEmitter {
       return {}
     }
     try {
-      const response = await fetch(`https://rpc.waterfall.network/coordinator/${command}`, {
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${getRPC(this.model ? this.model.network : Network.mainnet)}/coordinator/${command}`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      })
+      )
       if (!response.ok) {
         return {}
       }
@@ -316,7 +321,7 @@ class ProviderNode extends EventEmitter {
       return {}
     }
     try {
-      const response = await fetch(`https://rpc.waterfall.network`, {
+      const response = await fetch(getRPC(this.model ? this.model.network : Network.mainnet), {
         headers: {
           'Content-Type': 'application/json'
         },

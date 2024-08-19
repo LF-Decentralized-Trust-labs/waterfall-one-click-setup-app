@@ -341,7 +341,6 @@ export const useMassAction = (type: ActionTxType | null, from: string[] | null) 
     const chunkedArray = chunkArray(ids, chunkSize)
     for (const chunk of chunkedArray) {
       const res = await removeMutation.mutateAsync({ ids: chunk })
-      console.log(res)
       if (res?.error) {
         setError(res.error)
         return
@@ -374,7 +373,6 @@ export const useMassAction = (type: ActionTxType | null, from: string[] | null) 
     const chunkedArray = chunkArray(ids, chunkSize)
     for (const chunk of chunkedArray) {
       const res = await activateMutation.mutateAsync({ ids: chunk, pk: pk.key })
-      console.log(res)
       if (res?.error) {
         setError(res.error)
       }
@@ -401,7 +399,6 @@ export const useMassAction = (type: ActionTxType | null, from: string[] | null) 
     const chunkedArray = chunkArray(ids, chunkSize)
     for (const chunk of chunkedArray) {
       const res = await deActivateMutation.mutateAsync({ ids: chunk, pk: pk.key })
-      console.log(res)
       if (res?.error) {
         setError(res.error)
       }
@@ -427,7 +424,6 @@ export const useMassAction = (type: ActionTxType | null, from: string[] | null) 
     const chunkedArray = chunkArray(ids, chunkSize)
     for (const chunk of chunkedArray) {
       const res = await withdrawMutation.mutateAsync({ ids: chunk, pk: pk.key })
-      console.log(res)
       if (res?.error) {
         setError(res.error)
       }
