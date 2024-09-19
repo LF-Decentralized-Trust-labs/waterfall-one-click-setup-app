@@ -32,13 +32,15 @@ type getColumnsProps = {
   deactivate: (id?: string) => void
   withdraw: (id?: string) => void
   remove: (id?: string) => void
+  rewardAmount: number
 }
 
 export const columns = ({
   deactivate,
   activate,
   withdraw,
-  remove
+  remove,
+  rewardAmount
 }: getColumnsProps): TableColumnsType<DataType> => [
   {
     title: '#',
@@ -71,7 +73,12 @@ export const columns = ({
   },
 
   {
-    title: 'Rewards (WATER)',
+    title: (
+      <div>
+        Rewards (WATER) <br />
+        Total: {rewardAmount.toFixed(2)}
+      </div>
+    ),
     dataIndex: WorkersListDataFields.coordinatorBalanceAmount,
     key: WorkersListDataFields.coordinatorBalanceAmount,
     render: (_, worker) => {
