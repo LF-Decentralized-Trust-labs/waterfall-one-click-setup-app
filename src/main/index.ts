@@ -6,7 +6,8 @@ import {
   Menu,
   ipcMain,
   globalShortcut,
-  powerSaveBlocker
+  powerSaveBlocker,
+  dialog
 } from 'electron'
 import { Event, HandlerDetails } from 'electron'
 import { autoUpdater } from 'electron-updater'
@@ -32,6 +33,7 @@ let tray: null | Tray = null
 let preventSleepId: null | number = null
 let mainWindow: null | BrowserWindow = null
 let updateWindow: null | BrowserWindow = null
+let isQuitting = false
 const appEnv = new AppEnv({
   isPackaged: app.isPackaged,
   appPath: app.getAppPath(),
@@ -109,11 +111,14 @@ function createWindow(): void {
   })
 
   mainWindow.on('close', function (event: Event): void {
-    event.preventDefault()
-    if (mainWindow === null) {
-      return
+    if (!isQuitting) {
+      event.preventDefault()
+      if (mainWindow === null) {
+        return
+      }
+      mainWindow.hide()
+      showExitConfirmation()
     }
-    mainWindow.hide()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details: HandlerDetails) => {
@@ -132,139 +137,154 @@ function createWindow(): void {
   }
 }
 
-app.setName('Waterfall')
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(async () => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('app.waterfall')
+const gotTheLock = app.requestSingleInstanceLock()
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.setName('Waterfall')
+
+  app.on('second-instance', () => {
+    // if have second app
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
   })
 
-  if (appEnv.getPlatform() === 'mac') {
-    //   app.dock.hide()
-    app.dock.setIcon(icon)
-  }
-  createUpdateWindow()
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+  app.whenReady().then(async () => {
+    // Set app user model id for windows
+    electronApp.setAppUserModelId('app.waterfall')
 
-  try {
-    await runMigrations()
-    log.debug('runMigrations Done')
-  } catch (e) {
-    log.error('runMigrations', e)
-    return await quit()
-  }
+    // Default open or close DevTools by F12 in development
+    // and ignore CommandOrControl + R in production.
+    // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
 
-  autoUpdater.checkForUpdatesAndNotify()
-  log.debug('check update')
+    if (appEnv.getPlatform() === 'mac') {
+      //   app.dock.hide()
+      app.dock.setIcon(icon)
+    }
+    createUpdateWindow()
 
-  try {
-    await node.initialize()
-    log.debug('node.initialize Done')
-  } catch (e) {
-    log.error('node.initialize', e)
-    return await quit()
-  }
+    try {
+      await runMigrations()
+      log.debug('runMigrations Done')
+    } catch (e) {
+      log.error('runMigrations', e)
+      return await quit()
+    }
 
-  try {
-    await worker.initialize()
-    log.debug('worker.initialize Done')
-  } catch (e) {
-    log.error('worker.initialize', e)
-    return await quit()
-  }
+    autoUpdater.checkForUpdatesAndNotify()
+    log.debug('check update')
 
-  try {
-    fsHandle.initialize()
-    log.debug('sHandle.initialize Done')
-  } catch (e) {
-    log.error('fsHandle.initialize', e)
-    return await quit()
-  }
+    try {
+      await node.initialize()
+      log.debug('node.initialize Done')
+    } catch (e) {
+      log.error('node.initialize', e)
+      return await quit()
+    }
 
-  statusWorker.start()
-  log.debug('statusWorker.postMessage start')
+    try {
+      await worker.initialize()
+      log.debug('worker.initialize Done')
+    } catch (e) {
+      log.error('worker.initialize', e)
+      return await quit()
+    }
 
-  snapshotWorker.start()
+    try {
+      fsHandle.initialize()
+      log.debug('sHandle.initialize Done')
+    } catch (e) {
+      log.error('fsHandle.initialize', e)
+      return await quit()
+    }
 
-  log.debug('snapshotWorker.postMessage start')
+    statusWorker.start()
+    log.debug('statusWorker.postMessage start')
 
-  preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
+    snapshotWorker.start()
 
-  tray = new Tray(trayIcon)
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: 'Show App',
-      click: (): void => {
-        // if (getPlatform() === 'mac') {
-        //   app.show()
-        // }
-        // app.focus()
-        if (mainWindow === null) {
-          return
+    log.debug('snapshotWorker.postMessage start')
+
+    preventSleepId = powerSaveBlocker.start('prevent-app-suspension')
+
+    tray = new Tray(trayIcon)
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show App',
+        click: (): void => {
+          // if (getPlatform() === 'mac') {
+          //   app.show()
+          // }
+          // app.focus()
+          if (mainWindow === null) {
+            return
+          }
+          mainWindow.show()
+          log.debug('Show')
         }
-        mainWindow.show()
-        log.debug('Show')
+      },
+      {
+        label: 'Check Updates',
+        click: (): void => {
+          // autoUpdater.channel = 'beta'
+          autoUpdater.checkForUpdatesAndNotify()
+          log.debug('check update')
+        }
+      },
+      {
+        label: 'Quit',
+        click: async () => {
+          await quit()
+        }
       }
-    },
-    {
-      label: 'Check Updates',
-      click: (): void => {
-        // autoUpdater.channel = 'beta'
-        autoUpdater.checkForUpdatesAndNotify()
-        log.debug('check update')
+    ])
+
+    tray.setContextMenu(contextMenu)
+    tray.setToolTip('Waterfall')
+    ipcMain.handle('app:quit', async () => await quit())
+    ipcMain.handle('app:state', async () => ({
+      version: appEnv.version
+    }))
+
+    createWindow()
+
+    app.on('activate', function () {
+      // On macOS, it's common to re-create a window in the app when the
+      // dock icon is clicked and there are no other windows open.
+      if (mainWindow === null) {
+        return
       }
-    },
-    {
-      label: 'Quit',
-      click: async () => {
-        await quit()
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
+    globalShortcut.register('CommandOrControl+Shift+I', () => {
+      if (mainWindow === null) {
+        return
       }
-    }
-  ])
-
-  tray.setContextMenu(contextMenu)
-  tray.setToolTip('Waterfall')
-  ipcMain.handle('app:quit', async () => await quit())
-  ipcMain.handle('app:state', async () => ({
-    version: appEnv.version
-  }))
-
-  createWindow()
-
-  app.on('activate', function () {
-    // On macOS, it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) {
-      return
-    }
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      mainWindow.webContents.toggleDevTools()
+    })
   })
-  globalShortcut.register('CommandOrControl+Shift+I', () => {
-    if (mainWindow === null) {
-      return
+
+  // Quit when all windows are closed, except on macOS. There, it's common
+  // for applications and their menu bar to stay active until the user quits
+  // explicitly with Cmd + Q.
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit()
     }
-    mainWindow.webContents.toggleDevTools()
   })
-})
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  // if (process.platform !== 'darwin') {
-  //   app.quit()
-  // }
-})
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+  // In this file you can include the rest of your app's specific main process
+  // code. You can also put them in separate files and require them here.
+}
 
 const quit = async () => {
   await statusWorker.destroy()
@@ -287,4 +307,20 @@ const quit = async () => {
   globalShortcut.unregisterAll()
   app.quit()
   log.debug('Quit')
+}
+const showExitConfirmation = () => {
+  const options = {
+    icon: icon,
+    buttons: ['Yes', 'No'],
+    defaultId: 1,
+    title: 'Confirm',
+    message: 'Do you really want to quit?',
+    detail: 'Your application will be closed.'
+  }
+  dialog.showMessageBox(options).then(async (result) => {
+    if (result.response === 0) {
+      isQuitting = true
+      await quit()
+    }
+  })
 }
