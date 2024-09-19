@@ -21,6 +21,10 @@ export const WorkerViewInformation: React.FC<WorkerViewTabProps> = ({ item }) =>
     <TabContent>
       <TabTextRow label="ID" value={item?.id ? item?.id.toString() : '-'} />
       <TabTextRow
+        label="Index"
+        value={item?.validatorIndex ? item?.validatorIndex.toString() : '-'}
+      />
+      <TabTextRow
         label="Node"
         value={
           item ? (

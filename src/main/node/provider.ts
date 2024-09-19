@@ -174,6 +174,169 @@ class ProviderNode extends EventEmitter {
     return Object.keys(results).length > 0 ? results : null
   }
 
+  public async getWorkerStatuses(workers: WorkerModelType[]) {
+    const results: WorkerStatus[] = workers.map((worker) => ({
+      coordinatorStatus: worker.coordinatorStatus,
+      coordinatorBalanceAmount: worker.coordinatorBalanceAmount,
+      coordinatorActivationEpoch: worker.coordinatorActivationEpoch,
+      coordinatorDeActivationEpoch: worker.coordinatorDeActivationEpoch,
+      validatorStatus: worker.validatorStatus,
+      validatorBalanceAmount: worker.validatorBalanceAmount,
+      validatorActivationEpoch: worker.validatorActivationEpoch,
+      validatorDeActivationEpoch: worker.validatorDeActivationEpoch,
+      stakeAmount: worker.stakeAmount,
+      validatorIndex: worker.validatorIndex
+    }))
+    if (this.model === null) {
+      return results
+    }
+
+    const batchSize = 50
+    try {
+      for (let i = 0; i < workers.length; i += batchSize) {
+        const batch = workers.slice(i, i + batchSize)
+        const queryString = batch
+          .map(
+            (worker) =>
+              `id=${worker.validatorIndex ? worker.validatorIndex : '0x' + worker.coordinatorPublicKey}`
+          )
+          .join('&')
+        const coordinatorResponse = await this.runCoordinatorCommand(
+          `/eth/v1/beacon/states/head/validators?${queryString}`
+        )
+        if (coordinatorResponse?.data) {
+          coordinatorResponse.data.forEach((coordinator, index) => {
+            const resultIndex = i + index
+            results[resultIndex].coordinatorStatus = coordinator.status
+            results[resultIndex].coordinatorBalanceAmount = Web3.utils.fromWei(
+              Web3.utils.toWei(coordinator.balance, 'gwei'),
+              'ether'
+            )
+            if (coordinator.validator.activation_epoch !== '18446744073709551615') {
+              results[resultIndex].coordinatorActivationEpoch =
+                coordinator.validator.activation_epoch
+            }
+            if (coordinator.validator.exit_epoch !== '18446744073709551615') {
+              results[resultIndex].coordinatorDeActivationEpoch = coordinator.validator.exit_epoch
+            }
+            results[resultIndex].stakeAmount = Web3.utils.fromWei(
+              Web3.utils.toWei(coordinator.validator.effective_balance, 'gwei'),
+              'ether'
+            )
+            results[resultIndex].validatorIndex = parseInt(coordinator.index)
+          })
+        }
+      }
+    } catch (e) {
+      log.error(e)
+    }
+
+    const currentEra = await this.runValidatorCommand('wat_getEra')
+    try {
+      for (let i = 0; i < workers.length; i += batchSize) {
+        const batch = workers.slice(i, i + batchSize)
+        const [validatorResponses, validatorsBalanceAmount] = await Promise.all([
+          this.runValidatorCommands(
+            batch.map((worker) => ({
+              method: `wat_validator_GetInfo`,
+              params: [`0x${worker.validatorAddress}`, 'latest']
+            }))
+          ).catch(() => null),
+          this.runValidatorCommands(
+            batch.map((worker) => ({
+              method: `eth_getBalance`,
+              params: [`0x${worker.validatorAddress}`, 'latest']
+            }))
+          ).catch(() => null)
+        ])
+        if (validatorResponses) {
+          const eraNumbers: number[] = []
+          validatorResponses.forEach((validator) => {
+            if (isValidatorInfo(validator)) {
+              if (
+                validator.activationEra !== 18446744073709552000 &&
+                !eraNumbers.includes(validator.activationEra)
+              ) {
+                eraNumbers.push(validator.activationEra)
+              }
+              if (
+                validator.exitEra !== 18446744073709552000 &&
+                !eraNumbers.includes(validator.exitEra)
+              ) {
+                eraNumbers.push(validator.exitEra)
+              }
+            }
+          })
+          const eras = await this.runValidatorCommands(
+            eraNumbers.map((num) => ({
+              method: `wat_getEra`,
+              params: [num]
+            }))
+          ).catch(() => null)
+          for (let index = 0; index < batch.length; index++) {
+            const validatorResponse = validatorResponses[index]
+            const resultIndex = i + index // Adjust the index to match the original array
+            try {
+              const validatorBalanceAmount = validatorsBalanceAmount
+                ? validatorsBalanceAmount[index]
+                : null
+
+              if (isValidatorInfo(validatorResponse)) {
+                const activationEra = eras?.find(
+                  (era) => isEraInfo(era) && era.number === validatorResponse.activationEra
+                )
+                const exitEra = eras?.find(
+                  (era) => isEraInfo(era) && era.number === validatorResponse.exitEra
+                )
+                results[resultIndex].validatorStatus = ValidatorStatus.pending_initialized
+                if (isEraInfo(currentEra)) {
+                  if (validatorResponse.activationEra !== 18446744073709552000) {
+                    results[resultIndex].validatorStatus =
+                      validatorResponse.activationEra <= currentEra.number
+                        ? ValidatorStatus.active
+                        : ValidatorStatus.pending_activation
+                  }
+                  if (isEraInfo(activationEra)) {
+                    results[resultIndex].validatorActivationEpoch =
+                      activationEra.fromEpoch.toString()
+                  } else if (validatorResponse.activationEra === currentEra.number + 1) {
+                    results[resultIndex].validatorActivationEpoch = (
+                      currentEra.toEpoch + 1
+                    ).toString()
+                  }
+                  if (validatorResponse.exitEra !== 18446744073709552000) {
+                    results[resultIndex].validatorStatus =
+                      validatorResponse.exitEra <= currentEra.number
+                        ? ValidatorStatus.exited
+                        : ValidatorStatus.pending_exiting
+                  }
+                  if (isEraInfo(exitEra)) {
+                    results[resultIndex].validatorDeActivationEpoch = exitEra.fromEpoch.toString()
+                  } else if (validatorResponse.exitEra === currentEra.number + 1) {
+                    results[resultIndex].validatorDeActivationEpoch = (
+                      currentEra.toEpoch + 1
+                    ).toString()
+                  }
+                }
+              }
+              if (validatorBalanceAmount && typeof validatorBalanceAmount === 'string') {
+                results[resultIndex].validatorBalanceAmount = Web3.utils.fromWei(
+                  validatorBalanceAmount,
+                  'ether'
+                )
+              }
+            } catch (e) {
+              log.error(e)
+            }
+          }
+        }
+      }
+    } catch (e) {
+      log.error(e)
+    }
+
+    return results
+  }
   public async getWorkerStatus(worker: WorkerModelType) {
     const results: WorkerStatus = {
       coordinatorStatus: worker.coordinatorStatus,
@@ -184,7 +347,8 @@ class ProviderNode extends EventEmitter {
       validatorBalanceAmount: worker.validatorBalanceAmount,
       validatorActivationEpoch: worker.validatorActivationEpoch,
       validatorDeActivationEpoch: worker.validatorDeActivationEpoch,
-      stakeAmount: worker.stakeAmount
+      stakeAmount: worker.stakeAmount,
+      validatorIndex: worker.validatorIndex
     }
     if (this.model === null) {
       return results
@@ -211,6 +375,7 @@ class ProviderNode extends EventEmitter {
           Web3.utils.toWei(coordinatorResponse.data.validator.effective_balance, 'gwei'),
           'ether'
         )
+        results.validatorIndex = parseInt(coordinatorResponse.data.index)
       }
     } catch (e) {
       log.error(e)
@@ -313,6 +478,39 @@ class ProviderNode extends EventEmitter {
     }
     return {}
   }
+
+  public async runValidatorCommands(
+    req: ValidatorCommandReq[]
+  ): Promise<string[] | boolean[] | object[]> {
+    if (!this.model) {
+      return []
+    }
+    try {
+      const response = await fetch(getRPC(this.model ? this.model.network : Network.mainnet), {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(
+          req.map(({ method, params }, id) => ({
+            jsonrpc: '2.0',
+            method,
+            params: params || [],
+            id
+          }))
+        ),
+        method: 'POST'
+      })
+      if (!response.ok) {
+        return []
+      }
+      const result = await response.json()
+      return result.map((r) => r.result)
+    } catch (error) {
+      // log.debug(error)
+    }
+    return []
+  }
+
   public async runValidatorCommand(
     method: string,
     params: (string | number | bigint | boolean)[] = []
@@ -348,4 +546,8 @@ class ProviderNode extends EventEmitter {
   }
 }
 
+type ValidatorCommandReq = {
+  method: string
+  params: Array<string | number | bigint | boolean>
+}
 export default ProviderNode

@@ -323,6 +323,9 @@ class LocalNode extends EventEmitter {
     return Object.keys(results).length > 0 ? results : null
   }
 
+  public async getWorkerStatuses(workers: WorkerModelType[]) {
+    return Promise.all(workers.map((worker) => this.getWorkerStatus(worker)))
+  }
   public async getWorkerStatus(worker: WorkerModelType) {
     const results: WorkerStatus = {
       coordinatorStatus: worker.coordinatorStatus,
@@ -333,7 +336,8 @@ class LocalNode extends EventEmitter {
       validatorBalanceAmount: worker.validatorBalanceAmount,
       validatorActivationEpoch: worker.validatorActivationEpoch,
       validatorDeActivationEpoch: worker.validatorDeActivationEpoch,
-      stakeAmount: worker.stakeAmount
+      stakeAmount: worker.stakeAmount,
+      validatorIndex: worker.validatorIndex
     }
     if (this.model === null) {
       return results
@@ -360,6 +364,7 @@ class LocalNode extends EventEmitter {
           Web3.utils.toWei(coordinatorResponse.data.validator.effective_balance, 'gwei'),
           'ether'
         )
+        results.validatorIndex = parseInt(coordinatorResponse.data.index)
       }
     } catch (e) {
       log.error(e)

@@ -114,14 +114,17 @@ class StatusMonitoring {
             sync.coordinatorFinalizedEpoch.toString()
         ) {
           const workers = this.workerModel.getByNodeId(nodeModel.id)
+          const statuses = await node.getWorkerStatuses(workers)
+          let index = 0
           for (const workerModel of workers) {
             try {
-              const workerStatus = await node.getWorkerStatus(workerModel)
+              const workerStatus = statuses[index]
               if (!areObjectsEqual(workerStatus, workerModel))
                 this.workerModel.update(workerModel.id, workerStatus)
             } catch (error) {
               log.error(error)
             }
+            index++
           }
         }
       } catch (error) {

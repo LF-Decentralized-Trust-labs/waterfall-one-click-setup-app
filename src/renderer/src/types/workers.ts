@@ -29,6 +29,7 @@ export enum ValidatorStatus {
 
 export interface Worker {
   id: number | bigint
+  validatorIndex?: number | bigint
   nodeId: number | bigint
   node?: Node
   number: number
@@ -81,6 +82,7 @@ export interface UpdateWorker extends Partial<Omit<Worker, 'id' | 'createdAt' | 
 
 export enum WorkersListDataFields {
   id = 'id',
+  validatorIndex = 'validatorIndex',
   nodeId = 'nodeId',
   node = 'node',
   status = 'status',
@@ -90,6 +92,7 @@ export enum WorkersListDataFields {
 
 export type WorkersListDataTypes = {
   [WorkersListDataFields.id]: string
+  [WorkersListDataFields.validatorIndex]: number
   [WorkersListDataFields.nodeId]: string
   [WorkersListDataFields.node]: Node
   [WorkersListDataFields.status]?: string

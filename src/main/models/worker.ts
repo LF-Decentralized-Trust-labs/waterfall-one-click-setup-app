@@ -34,6 +34,7 @@ export interface WorkerStatus {
   validatorActivationEpoch: string
   validatorDeActivationEpoch: string
   stakeAmount: string
+  validatorIndex: number
 }
 
 export interface Worker extends WorkerStatus {

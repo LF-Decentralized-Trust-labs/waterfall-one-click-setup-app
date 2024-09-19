@@ -46,6 +46,11 @@ export const columns = ({
     key: WorkersListDataFields.id
   },
   {
+    title: 'Index',
+    dataIndex: WorkersListDataFields.validatorIndex,
+    key: WorkersListDataFields.validatorIndex
+  },
+  {
     title: 'Node',
     dataIndex: WorkersListDataFields.node,
     key: WorkersListDataFields.node,
