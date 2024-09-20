@@ -12,6 +12,19 @@ const items = [
   {
     children: (
       <>
+        <Text size="sm">0.4.2 beta - 20.09.2024</Text>
+        <p>New: Display the global validator index</p>
+        <p>New: Display the amount of rewards</p>
+        <p>Improve: Monitoring optimization</p>
+        <p>Improve: Using the standard app close button</p>
+        <p>Fix: Preventing a second instance of the application from starting</p>
+        <p>Update: Updating the node to the latest version</p>
+      </>
+    )
+  },
+  {
+    children: (
+      <>
         <Text size="sm">0.4.1 beta - 12.08.2024</Text>
         <p>New: Add support delegate rules</p>
         <p>New: Add support provider node</p>
