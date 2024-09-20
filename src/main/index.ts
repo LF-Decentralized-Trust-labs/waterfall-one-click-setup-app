@@ -148,6 +148,7 @@ if (!gotTheLock) {
     // if have second app
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.show()
       mainWindow.focus()
     }
   })
